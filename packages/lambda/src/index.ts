@@ -8,6 +8,8 @@ export const handler: Handler = async (event, context) => {
   console.log(list);
 };
 
+export const myFunc = () => 'Hello, World!';
+
 // const createShortUrl = (longUrl: string) => {
 // };
 

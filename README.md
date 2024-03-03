@@ -13,4 +13,4 @@ See instructions in [`packages/infra/README.md`](packages/infra/README.md) for h
 
 ### Deployment
 
-The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) GitHub action deploys the prod CloudFormation stack when there is a push to `main`.
+The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) GitHub action deploys the prod CloudFormation stack when there is a push to the `main` branch.
