@@ -11,14 +11,14 @@ exports[`Stack matches snapshot 1`] = `
   },
   "Resources": {
     "MyFirstBucketB8884501": {
-      "DeletionPolicy": "Retain",
+      "DeletionPolicy": "Delete",
       "Properties": {
         "VersioningConfiguration": {
           "Status": "Enabled",
         },
       },
       "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {

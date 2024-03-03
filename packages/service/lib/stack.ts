@@ -6,6 +6,6 @@ export class TinyMuStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const testBucket = new s3.Bucket(this, 'MyFirstBucket', { versioned: true });
+    const testBucket = new s3.Bucket(this, 'MyFirstBucket', { versioned: true, removalPolicy: cdk.RemovalPolicy.DESTROY });
   }
 }
