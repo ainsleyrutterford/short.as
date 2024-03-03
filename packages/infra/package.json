@@ -1,7 +1,7 @@
 {
-  "name": "service",
+  "name": "infra",
   "version": "0.0.0",
-  "description": "The tiny.mu backend service code",
+  "description": "The tiny.mu CDK code",
   "keywords": [
     "cdk",
     "typescript",
@@ -28,15 +28,17 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.131.0",
+    "cdk-lambda-llrt": "^0.0.6",
     "constructs": "^10.0.0",
+    "lambda": "*",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.19",
+    "aws-cdk": "2.131.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
-    "aws-cdk": "2.131.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.3.3"
   }
