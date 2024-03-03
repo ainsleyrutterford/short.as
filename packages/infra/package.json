@@ -1,28 +1,11 @@
 {
   "name": "infra",
-  "version": "0.0.0",
-  "description": "The tiny.mu CDK code",
-  "keywords": [
-    "cdk",
-    "typescript",
-    "lambda"
-  ],
-  "author": "Ainsley Rutterford <ainsley.rutterford@gmail.com>",
-  "homepage": "https://github.com/ainsleyrutterford/tiny.mu#readme",
-  "license": "GPL-3.0-or-later",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ainsleyrutterford/tiny.mu.git"
-  },
-  "bugs": {
-    "url": "https://github.com/ainsleyrutterford/tiny.mu/issues"
-  },
+  "version": "0.0.1",
   "bin": {
     "app": "bin/app.js"
   },
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
   },
