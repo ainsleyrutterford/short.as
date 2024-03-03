@@ -25,6 +25,7 @@ jobs:
         with:
           cdk_subcommand: 'deploy'
           cdk_stack: 'TinyMu-prod'
+          cdk_args: '--require-approval never'
           working_dir: './packages/infra/'
           actions_comment: false
         env:
