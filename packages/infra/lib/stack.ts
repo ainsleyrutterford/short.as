@@ -12,7 +12,8 @@ export class TinyMuStack extends cdk.Stack {
     const testBucket = new s3.Bucket(this, 'MyFirstBucket', { versioned: true, removalPolicy: cdk.RemovalPolicy.DESTROY });
 
     const testHandler = new LlrtFunction(this, 'TestHandler', {
-      entry: '../lambda/index.ts',
+      // This filepath is relative to the root of the infra package I believe
+      entry: '../lambda/src/index.ts',
       functionName: this.createResourceName('TestHandler'),
     });
 
