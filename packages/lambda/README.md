@@ -1,6 +1,6 @@
 # `lambda`
 
-This package contains both the Lambda source code. This Lambda makes use of the LLRT runtime.
+This package contains both the Lambda source code. This Lambda makes use of the [LLRT runtime](https://github.com/awslabs/llrt).
 
 ## Testing
 
