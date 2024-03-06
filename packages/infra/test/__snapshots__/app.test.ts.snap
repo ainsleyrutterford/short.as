@@ -10,15 +10,26 @@ exports[`Stack matches snapshot 1`] = `
     },
   },
   "Resources": {
-    "MyFirstBucketB8884501": {
-      "DeletionPolicy": "Delete",
+    "CountBucketsTable09F12BD0": {
+      "DeletionPolicy": "Retain",
       "Properties": {
-        "VersioningConfiguration": {
-          "Status": "Enabled",
-        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "N",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH",
+          },
+        ],
+        "TableName": "TestTinyMuStack-CountBucketsTable",
       },
-      "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
     },
     "TestHandler3EEC6392": {
       "DependsOn": [
@@ -30,11 +41,14 @@ exports[`Stack matches snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "33ab88d40578a5f632b301b618393af77fb1acd3fb5dd618cac0067e0f7ddd5e.zip",
+          "S3Key": "234aaeb7a1ac4b7bfcfd0b332f5e16ab9594aba991f65935d603f439181810e6.zip",
         },
         "Environment": {
           "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "COUNT_BUCKETS_TABLE_NAME": {
+              "Ref": "CountBucketsTable09F12BD0",
+            },
           },
         },
         "FunctionName": "TestTinyMuStack-TestHandler",
@@ -85,9 +99,20 @@ exports[`Stack matches snapshot 1`] = `
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": "s3:ListAllMyBuckets",
+              "Action": [
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:ConditionCheckItem",
+              ],
               "Effect": "Allow",
-              "Resource": "*",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CountBucketsTable09F12BD0",
+                  "Arn",
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
