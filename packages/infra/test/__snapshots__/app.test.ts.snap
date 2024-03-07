@@ -31,17 +31,17 @@ exports[`Stack matches snapshot 1`] = `
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
-    "TestHandler3EEC6392": {
+    "CreateShortUrlLambda0AED869B": {
       "DependsOn": [
-        "TestHandlerServiceRoleDefaultPolicy3DEAA57E",
-        "TestHandlerServiceRole954A02F5",
+        "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861",
+        "CreateShortUrlLambdaServiceRole009F038F",
       ],
       "Properties": {
         "Code": {
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "234aaeb7a1ac4b7bfcfd0b332f5e16ab9594aba991f65935d603f439181810e6.zip",
+          "S3Key": "996dc5003da74aac8d7143e2d748e9b8b9b209993b9fa9d5973ba40cb8174c58.zip",
         },
         "Environment": {
           "Variables": {
@@ -49,13 +49,16 @@ exports[`Stack matches snapshot 1`] = `
             "COUNT_BUCKETS_TABLE_NAME": {
               "Ref": "CountBucketsTable09F12BD0",
             },
+            "URLS_TABLE_NAME": {
+              "Ref": "UrlsTable60368425",
+            },
           },
         },
-        "FunctionName": "TestTinyMuStack-TestHandler",
-        "Handler": "index.handler",
+        "FunctionName": "TestTinyMuStack-CreateShortUrlLambda",
+        "Handler": "index.createShortUrlHandler",
         "Role": {
           "Fn::GetAtt": [
-            "TestHandlerServiceRole954A02F5",
+            "CreateShortUrlLambdaServiceRole009F038F",
             "Arn",
           ],
         },
@@ -63,7 +66,7 @@ exports[`Stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "TestHandlerServiceRole954A02F5": {
+    "CreateShortUrlLambdaServiceRole009F038F": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -94,13 +97,114 @@ exports[`Stack matches snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "TestHandlerServiceRoleDefaultPolicy3DEAA57E": {
+    "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
             {
               "Action": [
-                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:ConditionCheckItem",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CountBucketsTable09F12BD0",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "UrlsTable60368425",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861",
+        "Roles": [
+          {
+            "Ref": "CreateShortUrlLambdaServiceRole009F038F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetLongUrlLambdaC5112ECB": {
+      "DependsOn": [
+        "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8",
+        "GetLongUrlLambdaServiceRole025A1693",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "996dc5003da74aac8d7143e2d748e9b8b9b209993b9fa9d5973ba40cb8174c58.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "URLS_TABLE_NAME": {
+              "Ref": "UrlsTable60368425",
+            },
+          },
+        },
+        "FunctionName": "TestTinyMuStack-GetLongUrlLambda",
+        "Handler": "index.getLongUrlHandler",
+        "Role": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambdaServiceRole025A1693",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "GetLongUrlLambdaServiceRole025A1693": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:GetItem",
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem",
@@ -109,7 +213,7 @@ exports[`Stack matches snapshot 1`] = `
               "Effect": "Allow",
               "Resource": {
                 "Fn::GetAtt": [
-                  "CountBucketsTable09F12BD0",
+                  "UrlsTable60368425",
                   "Arn",
                 ],
               },
@@ -117,14 +221,35 @@ exports[`Stack matches snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "TestHandlerServiceRoleDefaultPolicy3DEAA57E",
+        "PolicyName": "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8",
         "Roles": [
           {
-            "Ref": "TestHandlerServiceRole954A02F5",
+            "Ref": "GetLongUrlLambdaServiceRole025A1693",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "UrlsTable60368425": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "shortUrlId",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "shortUrlId",
+            "KeyType": "HASH",
+          },
+        ],
+        "TableName": "TestTinyMuStack-UrlsTable",
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
     },
   },
   "Rules": {
