@@ -1,15 +1,24 @@
-import { Handler } from 'aws-lambda';
+import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { createBareBonesDynamoDBDocumentClient, encodeNumber, getCountBucketId, getStringEnvironmentVariable } from "./utils";
+
+type Body = {
+  longUrl?: string;
+};
 
 const BUCKET_SIZE = 15000000;
 const MAX_COUNT = BUCKET_SIZE - 1;
 
 const dynamoClient = createBareBonesDynamoDBDocumentClient();
 
-export const createShortUrlHandler: Handler = async (event, context) => {
-  const { longUrl } = event;
+export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, context) => {
+  const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? '', 'base64').toString() : event.body;
+  const { longUrl } = JSON.parse(bodyString ?? '{}') as Body;
+
+  if (!longUrl) {
+    return { statusCode: 400, body: JSON.stringify({ message: 'a longUrl must be provided in the request body' })};
+  }
 
   console.log('Entered test handler.');
   console.log('Long URL: ', longUrl);
@@ -92,5 +101,5 @@ export const createShortUrlHandler: Handler = async (event, context) => {
   console.log(shortUrlId);
   console.log('Done!');
 
-  return shortUrlId;
+  return { statusCode: 200, body: JSON.stringify({ shortUrlId }) };;
 };

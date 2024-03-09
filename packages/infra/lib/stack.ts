@@ -1,9 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
+import { Construct } from 'constructs';
 
 import { LlrtFunction } from 'cdk-lambda-llrt';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
+import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 
 export class TinyMuStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -73,6 +75,26 @@ export class TinyMuStack extends cdk.Stack {
         resources: [urlsTable.tableArn],
       })
     );
+
+    const httpApi = new apigateway.HttpApi(this, 'HttpAPI', {
+      apiName: this.createResourceName('HttpAPI'),
+      corsPreflight: {
+        allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
+        allowOrigins: ['https://tiny.mu', 'http://localhost'],
+      }
+    });
+
+    httpApi.addRoutes({
+      path: '/create-short-url',
+      methods: [apigateway.HttpMethod.POST],
+      integration: new HttpLambdaIntegration('CreateShortUrlLambdaIntegration', createShortUrlLambda),
+    });
+
+    httpApi.addRoutes({
+      path: '/get-long-url/{shortUrlId}',
+      methods: [apigateway.HttpMethod.GET],
+      integration: new HttpLambdaIntegration('GetLongUrlLambdaIntegration', getLongUrlLambda),
+    });
   }
 
   createResourceName(suffix: string) {

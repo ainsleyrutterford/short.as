@@ -1,12 +1,20 @@
-import { Handler } from 'aws-lambda';
+import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { createBareBonesDynamoDBDocumentClient, getStringEnvironmentVariable } from "./utils";
 
+type PathParameters = {
+  shortUrlId?: string;
+};
+
 const dynamoClient = createBareBonesDynamoDBDocumentClient();
 
-export const getLongUrlHandler: Handler = async (event, context) => {
-  const { shortUrlId } = event;
+export const getLongUrlHandler: APIGatewayProxyHandlerV2 = async (event, context) => {
+  const { shortUrlId } = event.pathParameters as PathParameters;
+
+  if (!shortUrlId) {
+    return { statusCode: 400, body: JSON.stringify({ message: 'a shortUrlId must be provided in the request path parameters' }) };
+  }
 
   console.log('Entered handler.');
   console.log('Short URL ID: ', shortUrlId);
@@ -29,5 +37,5 @@ export const getLongUrlHandler: Handler = async (event, context) => {
   console.log(longUrl);
   console.log('Done!');
 
-  return longUrl;
+  return { statusCode: 302, headers: { Location: longUrl } };
 };
