@@ -16,8 +16,7 @@ export const getLongUrlHandler: APIGatewayProxyHandlerV2 = async (event, context
     return { statusCode: 400, body: JSON.stringify({ message: 'a shortUrlId must be provided in the request path parameters' }) };
   }
 
-  console.log('Entered handler.');
-  console.log('Short URL ID: ', shortUrlId);
+  console.log('Received short URL ID: ', shortUrlId);
 
   const urlsTableName = getStringEnvironmentVariable('URLS_TABLE_NAME');
 
@@ -29,13 +28,12 @@ export const getLongUrlHandler: APIGatewayProxyHandlerV2 = async (event, context
   );
 
   if (!Item) {
-    throw new Error("Could not find a long URL for that short URL ID");
+    return { statusCode: 404, body: JSON.stringify({ message: `could not find a long URL from the shortUrlId: ${shortUrlId}` }) };
   }
 
   const { longUrl } = Item;
 
-  console.log(longUrl);
-  console.log('Done!');
+  console.log('Successfully fetched long URL: ', longUrl);
 
   return { statusCode: 302, headers: { Location: longUrl } };
 };

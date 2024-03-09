@@ -2,6 +2,7 @@ import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { createBareBonesDynamoDBDocumentClient, encodeNumber, getCountBucketId, getStringEnvironmentVariable } from "./utils";
+import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 
 type Body = {
   longUrl?: string;
@@ -12,28 +13,9 @@ const MAX_COUNT = BUCKET_SIZE - 1;
 
 const dynamoClient = createBareBonesDynamoDBDocumentClient();
 
-export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? '', 'base64').toString() : event.body;
-  const { longUrl } = JSON.parse(bodyString ?? '{}') as Body;
-
-  if (!longUrl) {
-    return { statusCode: 400, body: JSON.stringify({ message: 'a longUrl must be provided in the request body' })};
-  }
-
-  console.log('Entered test handler.');
-  console.log('Long URL: ', longUrl);
-
-  const countBucketId = getCountBucketId(longUrl);
-
-  // Each counter can reach up to 15,000,000
-  console.log(countBucketId);
-
+const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string) => {
   const countBucketsTableName = getStringEnvironmentVariable('COUNT_BUCKETS_TABLE_NAME');
   const urlsTableName = getStringEnvironmentVariable('URLS_TABLE_NAME');
-
-  // TODO: wrap from here downwards in a try/catch with 2 retries when we encounter
-  // TODO: one of the errors that would be thrown if there was a race condition
-  // TODO: TransactionCanceledException: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-dynamodb/Class/TransactionCanceledException/
 
   const { Item } = await dynamoClient.send(
     new GetCommand({
@@ -97,9 +79,50 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, con
     })
   );
 
-  console.log(chosenUrlNumber);
-  console.log(shortUrlId);
-  console.log('Done!');
+  return shortUrlId;
+};
 
-  return { statusCode: 200, body: JSON.stringify({ shortUrlId }) };;
+export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, context) => {
+  const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? '', 'base64').toString() : event.body;
+  const { longUrl } = JSON.parse(bodyString ?? '{}') as Body;
+
+  if (!longUrl) {
+    return { statusCode: 400, body: JSON.stringify({ message: 'a longUrl must be provided in the request body' })};
+  }
+
+  console.log('Received long URL: ', longUrl);
+
+  const countBucketId = getCountBucketId(longUrl);
+
+  // There are up to 65536 count buckets, and each counter can reach up to 15,000,000
+  console.log('Count bucket ID: ', countBucketId);
+
+  let attempt = 1;
+  let shortUrlId: string;
+
+  while (attempt <= 3) {
+    try {
+      console.log(`Starting attempt ${attempt} to update the DynamoDB tables...`);
+
+      shortUrlId = await updateDynamoDBTableValues(countBucketId, longUrl);
+
+      console.log('Successfully generated short URL ID: ', shortUrlId);
+
+      return { statusCode: 200, body: JSON.stringify({ shortUrlId }) };
+    } catch (error) {
+      console.error('An error occurred while trying to update the DynamoDB tables: ', error);
+
+      // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-dynamodb/Class/TransactionCanceledException/
+      if (error instanceof TransactionCanceledException) {
+        // If it was a transaction cancel due to a race condition, try again
+        attempt += 1;
+      } else {
+        // Otherwise, just return an error
+        return { statusCode: 500, body: JSON.stringify({ message: 'An internal server error occurred' }) };
+      }
+    }
+  }
+
+  // We shouldn't ever reach here so return an error incase
+  return { statusCode: 500, body: JSON.stringify({ message: 'An internal server error occurred' }) };
 };
