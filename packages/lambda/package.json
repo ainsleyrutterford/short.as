@@ -8,7 +8,9 @@
     "install-llrt-test-runner-linux": "curl -LJO https://github.com/awslabs/llrt/releases/download/v0.1.10-beta/llrt-linux-x64.zip && unzip llrt-linux-x64.zip"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.509.0"
+    "@aws-sdk/client-dynamodb": "^3.525.0",
+    "@aws-sdk/client-s3": "^3.509.0",
+    "@aws-sdk/lib-dynamodb": "^3.525.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.133",
