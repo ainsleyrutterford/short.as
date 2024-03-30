@@ -7,7 +7,9 @@ import { LlrtFunction } from 'cdk-lambda-llrt';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 
-export class TinyMuStack extends cdk.Stack {
+export class BackendStack extends cdk.Stack {
+  public httpApi: apigateway.HttpApi;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -80,8 +82,11 @@ export class TinyMuStack extends cdk.Stack {
       apiName: this.createResourceName('HttpAPI'),
       corsPreflight: {
         allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
-        allowOrigins: ['https://tiny.mu', 'http://localhost'],
-      }
+        // I can't add the CloudFront distribution here since we need to create that after this,
+        // so maybe we set these as headers in the Lambda instead and pass in the CloudFront
+        // distribution URL to the Lambda as an environment variable
+        allowOrigins: ['https://tiny.mu', 'http://localhost', 'http://localhost:3000'],
+      },
     });
 
     httpApi.addRoutes({
@@ -95,6 +100,8 @@ export class TinyMuStack extends cdk.Stack {
       methods: [apigateway.HttpMethod.GET],
       integration: new HttpLambdaIntegration('GetLongUrlLambdaIntegration', getLongUrlLambda),
     });
+
+    this.httpApi = httpApi;
   }
 
   createResourceName(suffix: string) {
