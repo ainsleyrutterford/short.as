@@ -1,6 +1,6 @@
-# [tiny.mu](https://tiny.mu)
+# [short.as](https://short.as)
 
-A tiny URL shortener built for fun. See the design [here](wiki-link).
+A URL shortener built for fun. See the design [here](wiki-link).
 
 ### Development
 
