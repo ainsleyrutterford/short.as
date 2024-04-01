@@ -24,14 +24,21 @@ export class WebsiteStack extends cdk.Stack {
     const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OriginAccessIdentity');
     bucket.grantRead(originAccessIdentity);
 
-    const htmlRedirectFunction = new cloudfront.Function(this, 'HtmlRedirectFunction', {
+    // Note that we have to explicitly set the id and function name like this due to a bug in
+    // CDK where the names will be different on each deployment which breaks snapshot tests:
+    // https://github.com/aws/aws-cdk/issues/15523
+    const htmlRedirectFunctionName = `HtmlRedirectFunction${this.node.addr}`;
+    const htmlRedirectFunction = new cloudfront.Function(this, htmlRedirectFunctionName, {
       code: cloudfront.FunctionCode.fromFile({ filePath: path.resolve(__dirname, './cloudfront-functions/html-redirect.js') }),
       runtime: cloudfront.FunctionRuntime.JS_2_0,
+      functionName: htmlRedirectFunctionName
     });
 
-    const rootRedirectFunction = new cloudfront.Function(this, 'RootRedirectFunction', {
+    const rootRedirectFunctionName = `RootRedirectFunction${this.node.addr}`;
+    const rootRedirectFunction = new cloudfront.Function(this, rootRedirectFunctionName, {
       code: cloudfront.FunctionCode.fromFile({ filePath: path.resolve(__dirname, './cloudfront-functions/root-redirect.js') }),
       runtime: cloudfront.FunctionRuntime.JS_2_0,
+      functionName: rootRedirectFunctionName
     });
 
     const distribution = new cloudfront.Distribution(this, 'Distribution', {

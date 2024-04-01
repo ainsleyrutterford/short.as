@@ -778,7 +778,7 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
                   "EventType": "viewer-request",
                   "FunctionARN": {
                     "Fn::GetAtt": [
-                      "HtmlRedirectFunction81312656",
+                      "HtmlRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb738660F52",
                       "FunctionARN",
                     ],
                   },
@@ -813,7 +813,7 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
                 "EventType": "viewer-request",
                 "FunctionARN": {
                   "Fn::GetAtt": [
-                    "RootRedirectFunction222EE49E",
+                    "RootRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7F8ADA6BC",
                     "FunctionARN",
                   ],
                 },
@@ -893,7 +893,7 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
       },
       "Type": "AWS::CloudFront::Distribution",
     },
-    "HtmlRedirectFunction81312656": {
+    "HtmlRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb738660F52": {
       "Properties": {
         "AutoPublish": true,
         "FunctionCode": "/**
@@ -917,30 +917,10 @@ async function handler(event) {
 }
 ",
         "FunctionConfig": {
-          "Comment": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Ref": "AWS::Region",
-                },
-                "TestWebsittackHtmlRedirectFunction48EBC8EE",
-              ],
-            ],
-          },
+          "Comment": "HtmlRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7",
           "Runtime": "cloudfront-js-2.0",
         },
-        "Name": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "AWS::Region",
-              },
-              "TestWebsittackHtmlRedirectFunction48EBC8EE",
-            ],
-          ],
-        },
+        "Name": "HtmlRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7",
       },
       "Type": "AWS::CloudFront::Function",
     },
@@ -952,7 +932,7 @@ async function handler(event) {
       },
       "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
     },
-    "RootRedirectFunction222EE49E": {
+    "RootRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7F8ADA6BC": {
       "Properties": {
         "AutoPublish": true,
         "FunctionCode": "/**
@@ -979,30 +959,10 @@ async function handler(event) {
 }
 ",
         "FunctionConfig": {
-          "Comment": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Ref": "AWS::Region",
-                },
-                "TestWebsittackRootRedirectFunction3B9FC0CC",
-              ],
-            ],
-          },
+          "Comment": "RootRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7",
           "Runtime": "cloudfront-js-2.0",
         },
-        "Name": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "AWS::Region",
-              },
-              "TestWebsittackRootRedirectFunction3B9FC0CC",
-            ],
-          ],
-        },
+        "Name": "RootRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7",
       },
       "Type": "AWS::CloudFront::Function",
     },
