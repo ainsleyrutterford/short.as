@@ -1,7 +1,7 @@
 /**
  * Redirects the following:
- * - https://tiny.mu/ -> https://tiny.mu/site/ so that CloudFront redirects to the S3 website
- * - https://tiny.mu/aaaaaaa/ -> https://tiny.mu/aaaaaaa so that CloudFront calls the `get-long-url` API correctly
+ * - https://short.as/ -> https://short.as/site/ so that CloudFront redirects to the S3 website
+ * - https://short.as/aaaaaaa/ -> https://short.as/aaaaaaa so that CloudFront calls the `get-long-url` API correctly
  */
 async function handler(event) {
   const request = event.request;

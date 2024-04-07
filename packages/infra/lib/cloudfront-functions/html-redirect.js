@@ -1,8 +1,8 @@
 /**
  * Redirects the following:
- * - https://tiny.mu/site -> https://tiny.mu/site/index.html
- * - https://tiny.mu/site/folder/ -> https://tiny.mu/site/folder/index.html
- * - https://tiny.mu/site/page -> https://tiny.mu/site/page.html
+ * - https://short.as/site -> https://short.as/site/index.html
+ * - https://short.as/site/folder/ -> https://short.as/site/folder/index.html
+ * - https://short.as/site/page -> https://short.as/site/page.html
  */
 async function handler(event) {
   const request = event.request;

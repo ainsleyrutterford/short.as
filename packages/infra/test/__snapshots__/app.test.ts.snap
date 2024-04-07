@@ -26,7 +26,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "KeyType": "HASH",
           },
         ],
-        "TableName": "TestTinyMuStack-CountBucketsTable",
+        "TableName": "TestBackendStack-CountBucketsTable",
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -54,7 +54,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestTinyMuStack-CreateShortUrlLambda",
+        "FunctionName": "TestBackendStack-CreateShortUrlLambda",
         "Handler": "index.createShortUrlHandler",
         "Role": {
           "Fn::GetAtt": [
@@ -156,7 +156,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestTinyMuStack-GetLongUrlLambda",
+        "FunctionName": "TestBackendStack-GetLongUrlLambda",
         "Handler": "index.getLongUrlHandler",
         "Role": {
           "Fn::GetAtt": [
@@ -238,12 +238,12 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "POST",
           ],
           "AllowOrigins": [
-            "https://tiny.mu",
+            "https://short.as",
             "http://localhost",
             "http://localhost:3000",
           ],
         },
-        "Name": "TestTinyMuStack-HttpAPI",
+        "Name": "TestBackendStack-HttpAPI",
         "ProtocolType": "HTTP",
       },
       "Type": "AWS::ApiGatewayV2::Api",
@@ -422,7 +422,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "KeyType": "HASH",
           },
         ],
-        "TableName": "TestTinyMuStack-UrlsTable",
+        "TableName": "TestBackendStack-UrlsTable",
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -845,7 +845,7 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
                           [
                             "https://",
                             {
-                              "Fn::ImportValue": "TestTinyMuBackendStack:ExportsOutputRefHttpAPI8D545486FD78B06F",
+                              "Fn::ImportValue": "TestBackendStack:ExportsOutputRefHttpAPI8D545486FD78B06F",
                             },
                             ".execute-api.",
                             {
@@ -898,9 +898,9 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
         "AutoPublish": true,
         "FunctionCode": "/**
  * Redirects the following:
- * - https://tiny.mu/site -> https://tiny.mu/site/index.html
- * - https://tiny.mu/site/folder/ -> https://tiny.mu/site/folder/index.html
- * - https://tiny.mu/site/page -> https://tiny.mu/site/page.html
+ * - https://short.as/site -> https://short.as/site/index.html
+ * - https://short.as/site/folder/ -> https://short.as/site/folder/index.html
+ * - https://short.as/site/page -> https://short.as/site/page.html
  */
 async function handler(event) {
   const request = event.request;
@@ -937,8 +937,8 @@ async function handler(event) {
         "AutoPublish": true,
         "FunctionCode": "/**
  * Redirects the following:
- * - https://tiny.mu/ -> https://tiny.mu/site/ so that CloudFront redirects to the S3 website
- * - https://tiny.mu/aaaaaaa/ -> https://tiny.mu/aaaaaaa so that CloudFront calls the \`get-long-url\` API correctly
+ * - https://short.as/ -> https://short.as/site/ so that CloudFront redirects to the S3 website
+ * - https://short.as/aaaaaaa/ -> https://short.as/aaaaaaa so that CloudFront calls the \`get-long-url\` API correctly
  */
 async function handler(event) {
   const request = event.request;
