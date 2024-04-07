@@ -21,7 +21,7 @@ describe('Snapshot tests', () => {
     const app = new cdk.App();
     
     /* When */
-    const stack = new BackendStack(app, 'TestTinyMuStack');
+    const stack = new BackendStack(app, 'TestBackendStack');
     const template = Template.fromStack(stack);
     
     /* Then */
@@ -33,7 +33,7 @@ describe('Snapshot tests', () => {
     const app = new cdk.App();
 
     /* When */
-    const backendStack = new BackendStack(app, 'TestTinyMuBackendStack');
+    const backendStack = new BackendStack(app, 'TestBackendStack');
     const websiteStack = new WebsiteStack(app, 'TestWebsiteStack', { httpApi: backendStack.httpApi });
     const template = Template.fromStack(websiteStack);
 

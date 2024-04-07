@@ -8,5 +8,7 @@ First gain access to the account by either using `aws sso login`, or by copy/pas
 
 * `npm run build`: transpile the TypeScript to JavaScript
 * `npm run test`: execute the Jest unit and snapshot tests
-* `npx cdk diff TinyMu-dev`: compare the deployed dev stack with current state
-* `npx cdk deploy TinyMu-dev`: deploy the dev stack to the AWS account
+* `npx cdk list`: list the CDK stacks
+* `npx cdk diff Backend-dev`: compare the deployed dev stack with current state
+* `npx cdk deploy Backend-dev`: deploy the dev stack to the AWS account
+* `npx cdk deploy Website-dev`: deploy the website stack to the AWS account

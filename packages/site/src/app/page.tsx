@@ -54,7 +54,7 @@ export default function Home() {
               });
               const json = await data.json();
               console.log(json);
-            }}>Make it tiny</Button>
+            }}>Make it short as</Button>
 
             <Button onClick={async () => {
               // Had to add http://localhost:3000 to allowed origins in API Gateway
