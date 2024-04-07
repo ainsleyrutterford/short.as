@@ -27,7 +27,7 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'diff'
-          cdk_stack: 'TinyMu-prod'
+          cdk_stack: '@(TinyMu-prod|Website-prod)'
           working_dir: './packages/infra/'
           actions_comment: false
         env:
