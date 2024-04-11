@@ -1,4 +1,7 @@
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cdk from 'aws-cdk-lib';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin, S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -9,13 +12,17 @@ import * as path from 'path';
 
 interface WebsiteStackProps extends cdk.StackProps {
   httpApi: apigateway.HttpApi;
+  isProd?: boolean;
+  hostedZone?: route53.HostedZone;
+  certificate?: acm.Certificate;
 };
 
 export class WebsiteStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: WebsiteStackProps) {
     super(scope, id, props);
 
-    const { url: httpApiUrl } = props.httpApi;
+    const { httpApi, isProd, hostedZone, certificate } = props;
+    const { url: httpApiUrl } = httpApi;
 
     if (!httpApiUrl) throw new Error("HTTP API Gateway does not have a URL");
 
@@ -42,6 +49,9 @@ export class WebsiteStack extends cdk.Stack {
     });
 
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
+      // We only use a custom 
+      domainNames: isProd ? ['short.as', 'www.short.as'] : undefined,
+      certificate: isProd ? certificate : undefined,
       // API Gateway origin behavior
       defaultBehavior: {
         // https://github.com/aws/aws-cdk/issues/1882#issuecomment-518680023
@@ -74,7 +84,26 @@ export class WebsiteStack extends cdk.Stack {
       }],
     });
 
-    const bucketDeployment = new BucketDeployment(this, 'BucketDeployment', {
+    if (isProd && hostedZone !== undefined) {
+      // Create the HostedZone records for the `short.as` domain to work with the CloudFront distribution
+      // This is step 7 of this AWS guide:
+      // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CNAMEs.html
+      new route53.ARecord(this, 'ARecordForCloudFront', {
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+        zone: hostedZone,
+      });
+
+      // Since the CloudFront distribution has IPv6 enabled:
+      // https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-to-cloudfront-distribution.html
+      new route53.AaaaRecord(this, 'AaaaRecordForCloudFront', {
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+        zone: hostedZone,
+      });
+    }
+
+    // TODO: Maybe here you add in the code to copy the API Gateway URL into the HTML? Or set an env
+    // TODO: variable that says is dev or isProd so that it knows to call the dev API instead of prod
+    new BucketDeployment(this, 'BucketDeployment', {
       destinationBucket: bucket,
       distribution,
       destinationKeyPrefix: 'site/',
