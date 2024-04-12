@@ -85,7 +85,7 @@ export class BackendStack extends cdk.Stack {
         // I can't add the CloudFront distribution here since we need to create that after this,
         // so maybe we set these as headers in the Lambda instead and pass in the CloudFront
         // distribution URL to the Lambda as an environment variable
-        allowOrigins: ['https://short.as', 'http://localhost', 'http://localhost:3000'],
+        allowOrigins: ['https://short.as', 'https://www.short.as', 'https://dev.short.as', 'http://localhost', 'http://localhost:3000'],
       },
     });
 

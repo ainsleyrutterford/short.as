@@ -40,15 +40,14 @@ export default function Home() {
         <Card className="mt-16">
           <CardHeader>
             <CardTitle>Card Title</CardTitle>
-            <CardDescription>Card Description</CardDescription>
+            <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription>
           </CardHeader>
           <CardContent>
             <Input type="long url" placeholder="Long URL" value={longUrl} onChange={(event) => setLongUrl(event.target.value)} />
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button onClick={async () => {
-              // Had to add http://localhost:3000 to allowed origins in API Gateway
-              const data = await window.fetch('https://ogizw1xrqk.execute-api.eu-west-2.amazonaws.com/create-short-url', {
+              const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
                 method: 'POST',
                 body: JSON.stringify({ longUrl }),
               });

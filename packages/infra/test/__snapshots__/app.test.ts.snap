@@ -239,6 +239,8 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           ],
           "AllowOrigins": [
             "https://short.as",
+            "https://www.short.as",
+            "https://dev.short.as",
             "http://localhost",
             "http://localhost:3000",
           ],
@@ -769,6 +771,9 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
     "Distribution830FAC52": {
       "Properties": {
         "DistributionConfig": {
+          "Aliases": [
+            "dev.short.as",
+          ],
           "CacheBehaviors": [
             {
               "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
