@@ -12,3 +12,5 @@ First gain access to the account by either using `aws sso login`, or by copy/pas
 * `npx cdk diff Backend-dev`: compare the deployed dev stack with current state
 * `npx cdk deploy Backend-dev`: deploy the dev stack to the AWS account
 * `npx cdk deploy Website-dev`: deploy the website stack to the AWS account
+
+If you deploy the website stack, remember to build the `site` package first with either the dev or prod build commands to generate the static files that will be uploaded to S3.

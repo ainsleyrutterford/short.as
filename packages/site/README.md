@@ -1,4 +1,6 @@
-## Getting Started
+# `site`
+
+This package contains the source code for the https://short.as website. It is a static site built with [NextJS](https://github.com/vercel/next.js) and [shadcn/ui](https://github.com/shadcn-ui/ui).
 
 Run the development server:
 
