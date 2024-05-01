@@ -16,6 +16,7 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { ArrowUpRight, ClipboardCopy, Minimize2, QrCode, Repeat, Share } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { QRCodeDrawerDialog } from "@/components/qr-code";
 
 
 // Data fetching from the client in Next.js:
@@ -78,6 +79,7 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
       <CardContent>
         <div className="grid gap-y-6">
           <div className="grid gap-2">
+            {/* TODO: for some reason, when tapping on this in iOS, the autofill menu shows up at the top of the screen */}
             <Label htmlFor="entered-long-url">Long URL</Label>
             <Input type="text" id="entered-long-url" defaultValue={longUrl} readOnly />
           </div>
@@ -110,9 +112,7 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
             <Button variant="outline" size="icon">
               <Share className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon">
-              <QrCode className="h-4 w-4" />
-            </Button>
+            <QRCodeDrawerDialog />
             <Button variant="outline" size="icon">
               <ArrowUpRight className="h-4 w-4" />
             </Button>
