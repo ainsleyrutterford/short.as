@@ -4,19 +4,15 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"
-import { SetStateAction, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { SiteHeader } from "@/components/site-header";
-import { ArrowUpRight, ClipboardCopy, Minimize2, QrCode, Repeat, Share } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeDrawerDialog } from "@/components/qr-code";
+import { ArrowUpRight, ClipboardCopy, Minimize2, Repeat } from "lucide-react";
+import { SetStateAction, useState } from "react";
+import Link from "next/link";
+import { ShareMenu } from "@/components/share-menu";
 
 
 // Data fetching from the client in Next.js:
@@ -73,7 +69,7 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
   return (
     <Card className="mt-10 sm:mt-16">
       <CardHeader>
-        <CardTitle>Wow, that really is short as!</CardTitle>
+        <CardTitle>Wow, that really is short.as!</CardTitle>
         {/* <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription> */}
       </CardHeader>
       <CardContent>
@@ -84,7 +80,7 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
             <Input type="text" id="entered-long-url" defaultValue={longUrl} readOnly />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="short-as-url">Short as URL</Label>
+            <Label htmlFor="short-as-url">Short.as URL</Label>
             <Input type="text" id="short-as-url" defaultValue={shortUrl} readOnly />
           </div>
         </div>
@@ -109,13 +105,18 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
           </div>
           <Separator />
           <div className="flex justify-end gap-x-6">
-            <Button variant="outline" size="icon">
-              <Share className="h-4 w-4" />
-            </Button>
-            <QRCodeDrawerDialog />
-            <Button variant="outline" size="icon">
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
+            <ShareMenu shortUrl={shortUrl} />
+            <QRCodeDrawerDialog shortUrl={shortUrl} />
+            <Tooltip delayDuration={250}>
+              <TooltipTrigger>
+                <Button variant="outline" size="icon" asChild >
+                  <Link href={shortUrl}><ArrowUpRight className="h-4 w-4" /></Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Visit short.as link</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </CardFooter>
