@@ -1,5 +1,5 @@
 import { Mail, Share } from "lucide-react";
-import { SiFacebook, SiLinkedin, SiX } from '@icons-pack/react-simple-icons';
+import { SiFacebook, SiLinkedin, SiX, SiReddit } from '@icons-pack/react-simple-icons';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,74 +19,127 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { LinkedinShareButton } from "react-share";
+import Link from "next/link";
 import React from "react";
 
+const sharingTitle = 'Check out my short.as link!';
 
 export const ShareMenu = ({ shortUrl }: { shortUrl: string }) => {
   const [open, setOpen] = React.useState(false)
   const isDesktop = useMediaQuery("(min-width: 640px)")
 
+  // Uses state to prevent the modal closing from making the QR code tooltip reappear
+  // https://github.com/radix-ui/primitives/issues/617#issuecomment-2067420500
+  const [isTooltipAllowed, setIsTooltipAllowed] = React.useState(true);
+
   return isDesktop ? (
-    <DropdownMenu open={open} onOpenChange={(newOpen) => setOpen(newOpen)}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Share className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
+    <DropdownMenu open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen);
+      setIsTooltipAllowed(false);
+    }}>
+      <Tooltip delayDuration={250}>
+        <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Share className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        {isTooltipAllowed && <TooltipContent>
+          <p>Share short.as link</p>
+        </TooltipContent>}
+      </Tooltip>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Share</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <SiFacebook className="mr-2 h-4 w-4" />
-            <span>Facebook</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <SiX className="mr-2 h-4 w-4" />
-            <span>Twitter</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <SiLinkedin className="mr-2 h-4 w-4" />
-            <span>LinkedIn</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Mail className="mr-2 h-4 w-4" />
-            <span>Email</span>
-          </DropdownMenuItem>
+          <Link href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
+            <DropdownMenuItem>
+              <SiFacebook className="mr-2 h-4 w-4" />
+              <span>Facebook</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
+            <DropdownMenuItem>
+              <SiX className="mr-2 h-4 w-4" />
+              <span>Twitter</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
+            <DropdownMenuItem>
+              <SiLinkedin className="mr-2 h-4 w-4" />
+              <span>LinkedIn</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
+            <DropdownMenuItem>
+              <SiReddit className="mr-2 h-4 w-4" />
+              <span>Reddit</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
+            <DropdownMenuItem>
+              <Mail className="mr-2 h-4 w-4" />
+              <span>Email</span>
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Share className="h-4 w-4" />
-        </Button>
-      </DrawerTrigger>
+    <Drawer open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen);
+      setIsTooltipAllowed(false);
+    }}>
+      <Tooltip delayDuration={250}>
+        <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
+          <DrawerTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Share className="h-4 w-4" />
+            </Button>
+          </DrawerTrigger>
+        </TooltipTrigger>
+        {isTooltipAllowed && <TooltipContent>
+          <p>Share short.as link</p>
+        </TooltipContent>}
+      </Tooltip>
       <DrawerContent>
         <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
         <DrawerHeader className="text-left">
           <DrawerTitle>Share</DrawerTitle>
         </DrawerHeader>
         <div className="grid items-start gap-1">
-          {/* TODO: get the share buttons working, look into react-share */}
-          <Button type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-            <SiFacebook className="mr-2 h-4 w-4" />
-            <span>Facebook</span>
+          <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
+            <Link href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
+              <SiFacebook className="mr-2 h-4 w-4" />
+              <span>Facebook</span>
+            </Link>
           </Button>
-          <Button type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-            <SiX className="mr-2 h-4 w-4" />
-            <span>Twitter</span>
+          <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
+            <Link href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
+              <SiX className="mr-2 h-4 w-4" />
+              <span>Twitter</span>
+            </Link>
           </Button>
-          <Button type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-            <SiLinkedin className="mr-2 h-4 w-4" />
-            <span>LinkedIn</span>
+          <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
+            <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
+              <SiLinkedin className="mr-2 h-4 w-4" />
+              <span>LinkedIn</span>
+            </Link>
           </Button>
-          <Button type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-            <Mail className="mr-2 h-4 w-4" />
-            <span>Email</span>
+          <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
+            <Link href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
+              <SiReddit className="mr-2 h-4 w-4" />
+              <span>Reddit</span>
+            </Link>
+          </Button>
+          <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
+            <Link href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
+              <Mail className="mr-2 h-4 w-4" />
+              <span>Email</span>
+            </Link>
           </Button>
         </div>
         <DrawerFooter className="pt-2" />
