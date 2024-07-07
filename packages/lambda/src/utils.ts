@@ -3,7 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 const BASE = 52;
-const ENCODING_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ENCODING_ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 // 52^7 - 1
 const MAX_POSSIBLE_NUM = 1028071702527;
 
@@ -19,7 +19,7 @@ export const encodeNumber = (num: number): string => {
   // Padding with 'a's if the number is 0
   if (num === 0) return ENCODING_ALPHABET[0].repeat(7);
 
-  let result = '';
+  let result = "";
   while (num > 0) {
     const remainder = num % BASE;
     result = ENCODING_ALPHABET[remainder] + result;
@@ -27,9 +27,8 @@ export const encodeNumber = (num: number): string => {
   }
 
   // Padding with 'a's if the length is less than 7
-  return result.length < 7 ? 'a'.repeat(7 - result.length) + result : result;
+  return result.length < 7 ? "a".repeat(7 - result.length) + result : result;
 };
-
 
 export const getStringEnvironmentVariable = (name: string) => {
   const environmentVariable = process.env[name];

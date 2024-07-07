@@ -1,8 +1,7 @@
-import Link from "next/link"
+import Link from "next/link";
 
-// import { siteConfig } from "@/config/site"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { MainNav } from "@/components/ui/main-nav"
+import { Button } from "@/components/ui/button";
+import { MainNav } from "@/components/ui/main-nav";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { MarkGithubIcon } from "@primer/octicons-react";
 
@@ -23,5 +22,5 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

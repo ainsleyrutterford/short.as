@@ -24,5 +24,4 @@ export const getValidUrl = (url: string): string | undefined => {
       return undefined;
     }
   }
-  return undefined;
 };

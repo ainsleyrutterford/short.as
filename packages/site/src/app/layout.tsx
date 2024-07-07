@@ -17,9 +17,9 @@ export const metadata: Metadata = {
 // https://github.com/tailwindlabs/tailwindcss/issues/1193#issuecomment-2063372605
 export const viewport: Viewport = {
   initialScale: 1,
-  width: 'device-width',
+  width: "device-width",
   maximumScale: 1,
-  viewportFit: 'cover',
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -31,12 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
             {children}
             <Toaster />
