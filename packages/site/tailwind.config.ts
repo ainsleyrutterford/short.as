@@ -1,6 +1,11 @@
 import type { Config } from "tailwindcss"
 
 const config = {
+  // Disables hover styling on iOS after a button is tapped
+  // https://github.com/tailwindlabs/tailwindcss/discussions/1739#discussioncomment-3630717
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   darkMode: ["class"],
   content: [
     './pages/**/*.{ts,tsx}',
