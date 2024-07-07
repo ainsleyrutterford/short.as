@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable jest/no-commented-out-tests */
 import crypto from "crypto";
 // Note that the JavaScript has to be generated already, and then we import
 // from there rather than importing from the TypeScript code.

@@ -4,8 +4,8 @@
   "scripts": {
     "build": "esbuild src/index.ts --platform=node --target=es2020 --outdir=dist --format=esm --bundle --minify --external:@aws-sdk --external:uuid",
     "test": "./llrt test",
-    "install-llrt-test-runner-mac": "curl -LJO https://github.com/awslabs/llrt/releases/download/v0.1.10-beta/llrt-darwin-x64.zip && unzip llrt-darwin-x64.zip",
-    "install-llrt-test-runner-linux": "curl -LJO https://github.com/awslabs/llrt/releases/download/v0.1.10-beta/llrt-linux-x64.zip && unzip llrt-linux-x64.zip"
+    "install-llrt-test-runner-mac": "curl -LJO https://github.com/awslabs/llrt/releases/download/v0.1.15-beta/llrt-darwin-x64.zip && unzip llrt-darwin-x64.zip",
+    "install-llrt-test-runner-linux": "curl -LJO https://github.com/awslabs/llrt/releases/download/v0.1.15-beta/llrt-linux-x64.zip && unzip llrt-linux-x64.zip"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.525.0",

@@ -4,40 +4,39 @@ import { encodeNumber, hexStringToNumber } from "../dist/index.js";
 
 describe("Number encoder tests", () => {
   it("Should encode various numbers correctly", () => {
-    assert.equal(encodeNumber(0), "aaaaaaa");
-    assert.equal(encodeNumber(9), "aaaaaaj");
-    assert.equal(encodeNumber(51), "aaaaaaZ");
-    assert.equal(encodeNumber(52), "aaaaaba");
-    assert.equal(encodeNumber(2703), "aaaaaZZ");
-    assert.equal(encodeNumber(2704), "aaaabaa");
-    assert.equal(encodeNumber(8367293458), "awatXnE");
-    assert.equal(encodeNumber(19770609663), "aZZZZZZ");
-    assert.equal(encodeNumber(78367293458), "dYgjVlM");
-    assert.equal(encodeNumber(1028071702526), "ZZZZZZY");
-    assert.equal(encodeNumber(1028071702527), "ZZZZZZZ");
+    expect(encodeNumber(0)).toEqual("aaaaaaa");
+    expect(encodeNumber(9)).toEqual("aaaaaaj");
+    expect(encodeNumber(51)).toEqual("aaaaaaZ");
+    expect(encodeNumber(52)).toEqual("aaaaaba");
+    expect(encodeNumber(2703)).toEqual("aaaaaZZ");
+    expect(encodeNumber(2704)).toEqual("aaaabaa");
+    expect(encodeNumber(8367293458)).toEqual("awatXnE");
+    expect(encodeNumber(19770609663)).toEqual("aZZZZZZ");
+    expect(encodeNumber(78367293458)).toEqual("dYgjVlM");
+    expect(encodeNumber(1028071702526)).toEqual("ZZZZZZY");
+    expect(encodeNumber(1028071702527)).toEqual("ZZZZZZZ");
   });
 });
 
 describe("Hex string to number", () => {
   it("Should convert various hex strings correctly", () => {
     // lowercase
-    assert.equal(hexStringToNumber('1a'), 26);
-    assert.equal(hexStringToNumber('ff'), 255);
-    assert.equal(hexStringToNumber('2e'), 46);
-    assert.equal(hexStringToNumber('ffff'), 65535);
+    expect(hexStringToNumber("1a")).toEqual(26);
+    expect(hexStringToNumber("ff")).toEqual(255);
+    expect(hexStringToNumber("2e")).toEqual(46);
+    expect(hexStringToNumber("ffff")).toEqual(65535);
     // uppercase
-    assert.equal(hexStringToNumber('2B'), 43);
-    assert.equal(hexStringToNumber('FE'), 254);
-    assert.equal(hexStringToNumber('A7'), 167);
+    expect(hexStringToNumber("2B")).toEqual(43);
+    expect(hexStringToNumber("FE")).toEqual(254);
+    expect(hexStringToNumber("A7")).toEqual(167);
     // zero
-    assert.equal(hexStringToNumber('0'), 0);
-    assert.equal(hexStringToNumber('00'), 0);
+    expect(hexStringToNumber("0")).toEqual(0);
+    expect(hexStringToNumber("00")).toEqual(0);
   });
 
-  // https://github.com/awslabs/llrt/issues/240
-  // it("Should return NaN when an invalid hex string is provided", () => {
-  //   assert.equal(hexStringToNumber('xyz'), NaN);
-  //   assert.equal(hexStringToNumber('0xg'), NaN);
-  //   assert.equal(hexStringToNumber('0Xh'), NaN);
-  // });
+  it("Should return NaN when an invalid hex string is provided", () => {
+    expect(hexStringToNumber("xyz")).toEqual(NaN);
+    expect(hexStringToNumber("0xg")).toEqual(NaN);
+    expect(hexStringToNumber("0Xh")).toEqual(NaN);
+  });
 });

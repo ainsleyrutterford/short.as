@@ -4,15 +4,16 @@
  * - https://short.as/site/folder/ -> https://short.as/site/folder/index.html
  * - https://short.as/site/page -> https://short.as/site/page.html
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handler(event) {
   const request = event.request;
 
-  if (request.uri === '/site') {
-    request.uri += '/index.html';
-  } else if (request.uri.endsWith('/')) {
-    request.uri += 'index.html';
-  } else if (!request.uri.includes('.')) {
-    request.uri += '.html';
+  if (request.uri === "/site") {
+    request.uri += "/index.html";
+  } else if (request.uri.endsWith("/")) {
+    request.uri += "index.html";
+  } else if (!request.uri.includes(".")) {
+    request.uri += ".html";
   }
 
   return request;

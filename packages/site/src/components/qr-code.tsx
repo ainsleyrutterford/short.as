@@ -26,9 +26,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const QR_CODE_ID = "QRCode";
 const FILENAME = "Short.as QRCode";
 
-type QRCodeProps = {
+interface QRCodeProps {
   shortUrl: string;
-};
+}
 
 const downloadAsPng = () => {
   const svg = document.getElementById(QR_CODE_ID);
@@ -42,6 +42,7 @@ const downloadAsPng = () => {
   image.onload = () => {
     canvas.width = image.width;
     canvas.height = image.height;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ctx!.drawImage(image, 0, 0);
     const pngFile = canvas.toDataURL("image/png");
     const link = document.createElement("a");
@@ -68,30 +69,43 @@ const downloadAsSvg = () => {
   link.click();
 };
 
-const StyledQRCode = ({ shortUrl }: QRCodeProps) =>
-  <div style={{ height: '128px', width: '128px', marginLeft: 'auto', marginRight: 'auto', marginTop: '20px', marginBottom: '20px' }}>
+const StyledQRCode = ({ shortUrl }: QRCodeProps) => (
+  <div
+    style={{
+      height: "128px",
+      width: "128px",
+      marginLeft: "auto",
+      marginRight: "auto",
+      marginTop: "20px",
+      marginBottom: "20px",
+    }}
+  >
     <ReactQRCode
-    fgColor="hsl(var(--foreground))"
-    bgColor="hsl(var(--background))"
-    id={QR_CODE_ID}
-    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-    value={shortUrl}
+      fgColor="hsl(var(--foreground))"
+      bgColor="hsl(var(--background))"
+      id={QR_CODE_ID}
+      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+      value={shortUrl}
     />
-  </div>;
+  </div>
+);
 
 export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
   // Uses state to prevent the modal closing from making the QR code tooltip reappear
   // https://github.com/radix-ui/primitives/issues/617#issuecomment-2067420500
   const [isTooltipAllowed, setIsTooltipAllowed] = React.useState(true);
 
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const isDesktop = useMediaQuery("(min-width: 640px)");
 
   return isDesktop ? (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      setIsTooltipAllowed(false);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen);
+        setIsTooltipAllowed(false);
+      }}
+    >
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DialogTrigger asChild>
@@ -100,9 +114,11 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
-        {isTooltipAllowed && <TooltipContent>
-          <p>Generate QR code</p>
-        </TooltipContent>}
+        {isTooltipAllowed && (
+          <TooltipContent>
+            <p>Generate QR code</p>
+          </TooltipContent>
+        )}
       </Tooltip>
       <DialogContent className="sm:max-w-[340px]">
         <DialogHeader>
@@ -125,10 +141,13 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
       </DialogContent>
     </Dialog>
   ) : (
-    <Drawer open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
-      setIsTooltipAllowed(false);
-    }}>
+    <Drawer
+      open={open}
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen);
+        setIsTooltipAllowed(false);
+      }}
+    >
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DrawerTrigger asChild>
@@ -137,30 +156,32 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
             </Button>
           </DrawerTrigger>
         </TooltipTrigger>
-        {isTooltipAllowed && <TooltipContent>
-          <p>Generate QR code</p>
-        </TooltipContent>}
+        {isTooltipAllowed && (
+          <TooltipContent>
+            <p>Generate QR code</p>
+          </TooltipContent>
+        )}
       </Tooltip>
       <DrawerContent>
-        <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-        <DrawerHeader className="text-left">
-          <DrawerTitle>QR Code</DrawerTitle>
-          <DrawerDescription>
-            Here&apos;s a QR Code that will navigate people to your short link when scanned
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="grid items-start gap-4 px-4">
-          <StyledQRCode shortUrl={shortUrl} />
-          <Button type="submit" onClick={downloadAsPng}>
-            <Download className="mr-2 h-4 w-4" />
-            PNG
-          </Button>
-          <Button type="submit" onClick={downloadAsSvg}>
-            <Download className="mr-2 h-4 w-4" />
-            SVG
-          </Button>
-        </div>
-        <DrawerFooter className="pt-2" />
+        <div style={{ maxHeight: "90vh", overflowY: "auto" }}>
+          <DrawerHeader className="text-left">
+            <DrawerTitle>QR Code</DrawerTitle>
+            <DrawerDescription>
+              Here&apos;s a QR Code that will navigate people to your short link when scanned
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="grid items-start gap-4 px-4">
+            <StyledQRCode shortUrl={shortUrl} />
+            <Button type="submit" onClick={downloadAsPng}>
+              <Download className="mr-2 h-4 w-4" />
+              PNG
+            </Button>
+            <Button type="submit" onClick={downloadAsSvg}>
+              <Download className="mr-2 h-4 w-4" />
+              SVG
+            </Button>
+          </div>
+          <DrawerFooter className="pt-2" />
         </div>
       </DrawerContent>
     </Drawer>
