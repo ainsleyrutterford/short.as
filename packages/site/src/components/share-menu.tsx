@@ -14,7 +14,6 @@ import {
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import Link from "next/link";
 import React from "react";
 
 const sharingTitle = "Check out my short.as link!";
@@ -53,36 +52,36 @@ export const ShareMenu = ({ shortUrl }: { shortUrl: string }) => {
         <DropdownMenuLabel>Share</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <Link href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
+          <a href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
             <DropdownMenuItem>
               <SiFacebook className="mr-2 h-4 w-4" />
               <span>Facebook</span>
             </DropdownMenuItem>
-          </Link>
-          <Link href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
+          </a>
+          <a href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
             <DropdownMenuItem>
               <SiX className="mr-2 h-4 w-4" />
               <span>Twitter</span>
             </DropdownMenuItem>
-          </Link>
-          <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
+          </a>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
             <DropdownMenuItem>
               <SiLinkedin className="mr-2 h-4 w-4" />
               <span>LinkedIn</span>
             </DropdownMenuItem>
-          </Link>
-          <Link href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
+          </a>
+          <a href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
             <DropdownMenuItem>
               <SiReddit className="mr-2 h-4 w-4" />
               <span>Reddit</span>
             </DropdownMenuItem>
-          </Link>
-          <Link href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
+          </a>
+          <a href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
             <DropdownMenuItem>
               <Mail className="mr-2 h-4 w-4" />
               <span>Email</span>
             </DropdownMenuItem>
-          </Link>
+          </a>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -115,34 +114,34 @@ export const ShareMenu = ({ shortUrl }: { shortUrl: string }) => {
           </DrawerHeader>
           <div className="grid items-start gap-1">
             <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-              <Link href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
+              <a href={`https://www.facebook.com/sharer.php?u=${shortUrl}`}>
                 <SiFacebook className="mr-2 h-4 w-4" />
                 <span>Facebook</span>
-              </Link>
+              </a>
             </Button>
             <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-              <Link href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
+              <a href={`https://twitter.com/intent/tweet?url=${shortUrl}&text=${sharingTitle}&hashtags=short.as`}>
                 <SiX className="mr-2 h-4 w-4" />
                 <span>Twitter</span>
-              </Link>
+              </a>
             </Button>
             <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-              <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
+              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shortUrl}`}>
                 <SiLinkedin className="mr-2 h-4 w-4" />
                 <span>LinkedIn</span>
-              </Link>
+              </a>
             </Button>
             <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-              <Link href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
+              <a href={`https://reddit.com/submit?url=${shortUrl}&title=${sharingTitle}`}>
                 <SiReddit className="mr-2 h-4 w-4" />
                 <span>Reddit</span>
-              </Link>
+              </a>
             </Button>
             <Button asChild type="submit" variant="ghost" style={{ justifyContent: "flex-start" }}>
-              <Link href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
+              <a href={`mailto:?subject=${sharingTitle}&body=${shortUrl}`}>
                 <Mail className="mr-2 h-4 w-4" />
                 <span>Email</span>
-              </Link>
+              </a>
             </Button>
           </div>
           <DrawerFooter className="pt-2" />

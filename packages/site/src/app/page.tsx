@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { QRCodeDrawerDialog } from "@/components/qr-code";
 import { ArrowUpRight, ClipboardCopy, Minimize2, Repeat } from "lucide-react";
 import { SetStateAction, useState } from "react";
-import Link from "next/link";
 import { ShareMenu } from "@/components/share-menu";
 
 // Data fetching from the client in Next.js:
@@ -127,9 +126,9 @@ const HasShortenedCard = ({ longUrl, setLongUrl, shortUrlId, setShortUrlId, setI
             <Tooltip delayDuration={250}>
               <TooltipTrigger>
                 <Button variant="outline" size="icon" asChild>
-                  <Link href={shortUrl}>
+                  <a href={shortUrl}>
                     <ArrowUpRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
