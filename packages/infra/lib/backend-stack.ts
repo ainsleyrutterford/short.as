@@ -6,6 +6,7 @@ import { Construct } from "constructs";
 import { LlrtFunction } from "cdk-lambda-llrt";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
+import { Architecture } from "aws-cdk-lib/aws-lambda";
 
 export class BackendStack extends cdk.Stack {
   public httpApi: apigateway.HttpApi;
@@ -35,6 +36,7 @@ export class BackendStack extends cdk.Stack {
       // This filepath is relative to the root of the infra package I believe
       entry: "../lambda/src/index.ts",
       handler: "createShortUrlHandler",
+      architecture: Architecture.ARM_64,
       functionName: this.createResourceName("CreateShortUrlLambda"),
       environment: {
         COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
@@ -46,6 +48,7 @@ export class BackendStack extends cdk.Stack {
       // This filepath is relative to the root of the infra package I believe
       entry: "../lambda/src/index.ts",
       handler: "getLongUrlHandler",
+      architecture: Architecture.ARM_64,
       functionName: this.createResourceName("GetLongUrlLambda"),
       environment: {
         URLS_TABLE_NAME: urlsTable.tableName,
