@@ -60,6 +60,6 @@ export const createBareBonesDynamoDBDocumentClient = () => {
 };
 
 export const response = (value: APIGatewayProxyStructuredResultV2): APIGatewayProxyStructuredResultV2 => {
-  console.log(`Returning response: ${value}`);
+  console.log(`Returning response: ${JSON.stringify(value)}`);
   return value;
 };
