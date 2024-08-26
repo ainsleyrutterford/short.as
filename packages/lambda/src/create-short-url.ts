@@ -4,7 +4,7 @@ import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import {
   createBareBonesDynamoDBDocumentClient,
   encodeNumber,
-  getCountBucketId,
+  getRandomCountBucketId,
   getStringEnvironmentVariable,
   response,
 } from "./utils";
@@ -105,10 +105,10 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _co
 
   console.log("Received long URL: ", longUrl);
 
-  const countBucketId = getCountBucketId(longUrl);
+  const countBucketId = getRandomCountBucketId();
 
   // There are up to 65536 count buckets, and each counter can reach up to 15,000,000
-  console.log("Count bucket ID: ", countBucketId);
+  console.log("Random count bucket ID chosen: ", countBucketId);
 
   let attempt = 1;
   let shortUrlId: string;

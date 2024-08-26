@@ -7,6 +7,8 @@ const BASE = 52;
 const ENCODING_ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 // 52^7 - 1
 const MAX_POSSIBLE_NUM = 1028071702527;
+// 16^4 = 65,536 possible short hashes
+const NUM_COUNT_BUCKETS = 65535;
 
 /**
  * Returns the base52 encoding of a number. Pads with the string "a" to ensure that the
@@ -41,7 +43,11 @@ export const getStringEnvironmentVariable = (name: string) => {
 
 export const hexStringToNumber = (hex: string) => Number(`0x${hex}`);
 
-export const getCountBucketId = (longUrl: string) => {
+/**
+ * @deprecated This is no longer used since we just use use {@link getRandomCountBucketId} to
+ * pick the count bucket ID randomly instead
+ */
+export const getHashedCountBucketId = (longUrl: string) => {
   const hash = crypto.createHash("sha256").update(longUrl).digest("hex");
 
   // 16^4 = 65,536 possible short hashes
@@ -49,6 +55,8 @@ export const getCountBucketId = (longUrl: string) => {
   // A number between 0 and 65,535
   return hexStringToNumber(shortHash);
 };
+
+export const getRandomCountBucketId = () => crypto.randomInt(NUM_COUNT_BUCKETS);
 
 export const createBareBonesDynamoDBDocumentClient = () => {
   // Bare-bones DynamoDB Client for smaller bundle sizes:
