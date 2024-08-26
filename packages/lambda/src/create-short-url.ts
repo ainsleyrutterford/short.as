@@ -6,6 +6,7 @@ import {
   encodeNumber,
   getCountBucketId,
   getStringEnvironmentVariable,
+  response,
 } from "./utils";
 import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
 
@@ -88,13 +89,18 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
   return shortUrlId;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, context) => {
+export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
+  // Logging the entire event for now
+  console.log(event);
+
   const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? "", "base64").toString() : event.body;
   const { longUrl } = JSON.parse(bodyString ?? "{}") as Body;
 
   if (!longUrl) {
-    return { statusCode: 400, body: JSON.stringify({ message: "a longUrl must be provided in the request body" }) };
+    return response({
+      statusCode: 400,
+      body: JSON.stringify({ message: "A longUrl must be provided in the request body" }),
+    });
   }
 
   console.log("Received long URL: ", longUrl);
@@ -115,7 +121,7 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, con
 
       console.log("Successfully generated short URL ID: ", shortUrlId);
 
-      return { statusCode: 200, body: JSON.stringify({ shortUrlId }) };
+      return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
     } catch (error) {
       console.error("An error occurred while trying to update the DynamoDB tables: ", error);
 
@@ -125,11 +131,11 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, con
         attempt += 1;
       } else {
         // Otherwise, just return an error
-        return { statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) };
+        return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
       }
     }
   }
 
   // We shouldn't ever reach here so return an error incase
-  return { statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) };
+  return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
 };
