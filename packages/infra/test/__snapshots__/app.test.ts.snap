@@ -37,6 +37,9 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "CreateShortUrlLambdaServiceRole009F038F",
       ],
       "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
         "Code": {
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
@@ -142,6 +145,9 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "GetLongUrlLambdaServiceRole025A1693",
       ],
       "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
         "Code": {
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
