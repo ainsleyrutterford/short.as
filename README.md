@@ -5,11 +5,12 @@ A URL shortener built for fun. See the design [here](wiki-link).
 ### Development
 
 ```text
+npm ci
 npx lerna run build
 npx lerna run test
 ```
 
-See instructions in [`packages/infra/README.md`](packages/infra/README.md) for how to deploy.
+See [`packages/infra/README.md`](packages/infra/README.md) for instructions on how to deploy the backend and website infrastructure.
 
 ### Deployment
 
