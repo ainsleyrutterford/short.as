@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { MainNav } from "@/components/ui/main-nav";
 import { ModeToggle } from "@/components/ui/mode-toggle";
@@ -13,9 +11,9 @@ export function SiteHeader() {
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-1">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="https://github.com/ainsleyrutterford/short.as">
+              <a href="https://github.com/ainsleyrutterford/short.as">
                 <MarkGithubIcon className="h-[1.2rem] w-[1.2rem]" />
-              </Link>
+              </a>
             </Button>
             <ModeToggle />
           </nav>
