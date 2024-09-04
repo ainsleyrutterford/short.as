@@ -5,9 +5,9 @@ const nextConfig = {
   output: "export",
 
   // This is required because in the CloudFront Distribution we serve website files only if the user
-  // visits the '/site/*' path
+  // visits the '/create/*' path
   // https://nextjs.org/docs/app/api-reference/next-config-js/basePath
-  basePath: "/site",
+  basePath: "/create",
 };
 
 export default nextConfig;

@@ -11,7 +11,7 @@ const validateUrl = (url: string) => {
  * Checks if the URL is valid as is, and also checks if the URL would be valid if
  * the `https://` protocol was prepended to it.
  * @param url the URL to check.
- * @returns a valid URL that could be the original URL or could have `https://` protocol was
+ * @returns a valid URL that could be the original URL or could have the `https://` protocol
  * prepended to it. If the URL is not and cannot be made valid, `undefined` is returned.
  */
 export const getValidUrl = (url: string): string | undefined => {

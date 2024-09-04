@@ -70,7 +70,7 @@ export class WebsiteStack extends cdk.Stack {
       },
       // S3 origin behavior
       additionalBehaviors: {
-        "/site*": {
+        "/create*": {
           origin: new S3Origin(bucket, { originAccessIdentity }),
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -85,7 +85,7 @@ export class WebsiteStack extends cdk.Stack {
         {
           httpStatus: 404,
           responseHttpStatus: 404,
-          responsePagePath: "/site/404.html",
+          responsePagePath: "/create/404.html",
         },
       ],
     });
@@ -127,7 +127,7 @@ export class WebsiteStack extends cdk.Stack {
     new BucketDeployment(this, "BucketDeployment", {
       destinationBucket: bucket,
       distribution,
-      destinationKeyPrefix: "site/",
+      destinationKeyPrefix: "create/",
       sources: [Source.asset(path.resolve(__dirname, "../../site/out"))],
     });
   }

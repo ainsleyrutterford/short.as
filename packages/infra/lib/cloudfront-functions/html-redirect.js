@@ -1,14 +1,14 @@
 /**
  * Redirects the following:
- * - https://short.as/site -> https://short.as/site/index.html
- * - https://short.as/site/folder/ -> https://short.as/site/folder/index.html
- * - https://short.as/site/page -> https://short.as/site/page.html
+ * - https://short.as/create -> https://short.as/create/index.html
+ * - https://short.as/create/folder/ -> https://short.as/create/folder/index.html
+ * - https://short.as/create/page -> https://short.as/create/page.html
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handler(event) {
   const request = event.request;
 
-  if (request.uri === "/site") {
+  if (request.uri === "/create") {
     request.uri += "/index.html";
   } else if (request.uri.endsWith("/")) {
     request.uri += "index.html";
