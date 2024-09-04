@@ -55,6 +55,17 @@ export class BackendStack extends cdk.Stack {
       },
     });
 
+    const getLongUrlDetailsLambda = new LlrtFunction(this, "GetLongUrlDetailsLambda", {
+      // This filepath is relative to the root of the infra package I believe
+      entry: "../lambda/src/index.ts",
+      handler: "getLongUrlDetailsHandler",
+      architecture: Architecture.ARM_64,
+      functionName: this.createResourceName("GetLongUrlDetailsLambda"),
+      environment: {
+        URLS_TABLE_NAME: urlsTable.tableName,
+      },
+    });
+
     createShortUrlLambda.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -64,6 +75,14 @@ export class BackendStack extends cdk.Stack {
     );
 
     getLongUrlLambda.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+        resources: [urlsTable.tableArn],
+      }),
+    );
+
+    getLongUrlDetailsLambda.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
         actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
@@ -98,6 +117,12 @@ export class BackendStack extends cdk.Stack {
       path: "/get-long-url/{shortUrlId}",
       methods: [apigateway.HttpMethod.GET],
       integration: new HttpLambdaIntegration("GetLongUrlLambdaIntegration", getLongUrlLambda),
+    });
+
+    httpApi.addRoutes({
+      path: "/get-long-url-details/{shortUrlId}",
+      methods: [apigateway.HttpMethod.GET],
+      integration: new HttpLambdaIntegration("GetLongUrlDetailsLambdaIntegration", getLongUrlDetailsLambda),
     });
 
     this.httpApi = httpApi;

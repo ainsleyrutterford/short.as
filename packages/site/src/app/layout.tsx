@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SiteHeader } from "@/components/site-header";
+import { IdsProvider } from "@/contexts/ids";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,7 +35,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            {children}
+            {/* TODO: the about page has a messed up color scheme now (always seems to be dark) */}
+            <SiteHeader />
+            <IdsProvider>
+              <div className="max-w-screen-md mx-auto px-4 pt-10 sm:pt-16">{children}</div>
+            </IdsProvider>
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>

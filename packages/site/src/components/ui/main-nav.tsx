@@ -13,6 +13,7 @@ export function MainNav({
     >
       <Link
         href="/"
+        // TODO: highlight the link if it is for the page we are currently on, use the location hook to check or something
         className="text-sm font-medium transition-colors hover:text-primary"
       >
         Create
