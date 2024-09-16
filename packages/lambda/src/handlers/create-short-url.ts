@@ -1,37 +1,37 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+
+import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
+import { encodeNumber } from "../encoding";
+import { createCloudWatchClient, publishCorruptBucketMetric } from "../metrics";
 import {
   createBareBonesDynamoDBDocumentClient,
-  encodeNumber,
-  getRandomCountBucketId,
+  exponentialBackoffWithJitter,
   getStringEnvironmentVariable,
   response,
-} from "./utils";
-import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+  wait,
+} from "../utils";
 
 interface Body {
   longUrl?: string;
 }
 
-const BUCKET_SIZE = 15000000;
-const MAX_COUNT = BUCKET_SIZE - 1;
+const MAX_ATTEMPTS = 3;
 
 const dynamoClient = createBareBonesDynamoDBDocumentClient();
+const cloudWatchClient = createCloudWatchClient();
 
 const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string) => {
   const countBucketsTableName = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
   const urlsTableName = getStringEnvironmentVariable("URLS_TABLE_NAME");
 
   const { Item } = await dynamoClient.send(
-    new GetCommand({
-      TableName: countBucketsTableName,
-      ConsistentRead: true,
-      Key: { id: countBucketId },
-    }),
+    new GetCommand({ TableName: countBucketsTableName, Key: { id: countBucketId } }),
   );
 
-  const count = Item ? Item.count : 0;
+  const count: number = Item ? Item.count : 0;
 
   if (count >= MAX_COUNT) {
     throw new Error(`The count for a bucket cannot exceed ${MAX_COUNT}`);
@@ -63,7 +63,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
         Put: {
           TableName: countBucketsTableName,
           // Set the count to 1
-          Item: { id: countBucketId, count: 1, base },
+          Item: { id: countBucketId, count: 1 },
           // Ensure this item hasn't been created in the mean time
           ConditionExpression: "attribute_not_exists(id)",
         },
@@ -72,6 +72,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
   // Update both tables at the same time using a transaction
   await dynamoClient.send(
     new TransactWriteCommand({
+      // The order of this Transactions array matters for the `foundCorruptBucket` function below
       TransactItems: [
         countBucketTransactWriteItem,
         {
@@ -88,6 +89,20 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
 
   return shortUrlId;
 };
+
+/**
+ * If we are attempting to create a short URL and the countBucketTable does not have a
+ * `ConditionalCheckFailed` but the urlTables does, then every time this bucket is chosen,
+ * the request will fail again. We alarm if we find this case as we need to manually increment the
+ * bucket's counter. Since we use transactions for creating the items in the two tables, this *should*
+ * never happen, but it can happen if we change the count bucket sizes for example (I've actually
+ * done that once already, so there are probably a handful of corrupt buckets out there,
+ * but I won't do it again!).
+ *
+ * TODO: clean up the databases so far
+ */
+const foundCorruptBucket = (error: TransactionCanceledException) =>
+  error.CancellationReasons?.[0]?.Code === "None" && error.CancellationReasons?.[1]?.Code !== "None";
 
 export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
   // Logging the entire event for now
@@ -107,13 +122,12 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _co
 
   const countBucketId = getRandomCountBucketId();
 
-  // There are up to 65536 count buckets, and each counter can reach up to 15,000,000
   console.log("Random count bucket ID chosen: ", countBucketId);
 
   let attempt = 1;
   let shortUrlId: string;
 
-  while (attempt <= 3) {
+  while (attempt <= MAX_ATTEMPTS) {
     try {
       console.log(`Starting attempt ${attempt} to update the DynamoDB tables...`);
 
@@ -125,10 +139,22 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _co
     } catch (error) {
       console.error("An error occurred while trying to update the DynamoDB tables: ", error);
 
+      // If it was a transaction canceled due to a race condition, try again
       // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-dynamodb/Class/TransactionCanceledException/
       if (error instanceof TransactionCanceledException) {
-        // If it was a transaction cancel due to a race condition, try again
+        if (foundCorruptBucket(error)) {
+          await publishCorruptBucketMetric(cloudWatchClient, countBucketId);
+          console.error(`Found a corrupt bucket whose count must be incremented manually: ${countBucketId}`);
+          return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
+        }
         attempt += 1;
+        if (attempt > MAX_ATTEMPTS) {
+          return response({ statusCode: 503, body: JSON.stringify({ message: "Server is currently overloaded" }) });
+        }
+        // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html#standardvsadaptiveimplementation
+        const delay = exponentialBackoffWithJitter(attempt);
+        console.log(`Waiting ${(delay / 1000).toFixed(2)} seconds before next attempt...`);
+        await wait(delay);
       } else {
         // Otherwise, just return an error
         return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
