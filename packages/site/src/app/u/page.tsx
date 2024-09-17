@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ReadOnlyInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,19 +50,20 @@ const ShortUrlDetailsContents = () => {
       {!!searchParamShortUrlId && (
         <Card>
           <CardHeader>
-            <CardTitle>Wow, that really is short.as!</CardTitle>
+            <CardTitle>
+              Wow, that really is <TextGradient text="short.as!" />
+            </CardTitle>
             {/* <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="grid gap-y-6">
               <div className="grid gap-2">
-                {/* TODO: for some reason, when tapping on this in iOS, the autofill menu shows up at the top of the screen */}
-                <Label htmlFor="entered-long-url">Long URL</Label>
-                <Input type="text" id="entered-long-url" defaultValue={longUrl} readOnly />
+                <Label>Long URL</Label>
+                <ReadOnlyInput>{longUrl}</ReadOnlyInput>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="short-as-url">Short.as URL</Label>
-                <Input type="text" id="short-as-url" defaultValue={shortUrl} readOnly />
+                <ReadOnlyInput>{shortUrl}</ReadOnlyInput>
               </div>
             </div>
           </CardContent>
