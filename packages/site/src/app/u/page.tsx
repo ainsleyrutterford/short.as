@@ -12,8 +12,22 @@ import { ShareMenu } from "@/components/share-menu";
 import { useIds } from "@/contexts/ids";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
+
+const TextGradient = ({ text }: { text: string }) => {
+  const { resolvedTheme } = useTheme();
+  const bgGradient =
+    resolvedTheme === "light"
+      ? "bg-[linear-gradient(to_right,theme(colors.violet.600),theme(colors.fuchsia.500),theme(colors.purple.500),theme(colors.violet.600))]"
+      : "bg-[linear-gradient(to_right,theme(colors.violet.300),theme(colors.fuchsia.300),theme(colors.purple.100),theme(colors.violet.300))]";
+  return (
+    <span className={`font-black bg-clip-text text-transparent ${bgGradient} bg-[length:200%_auto] animate-gradient`}>
+      {text}
+    </span>
+  );
+};
 
 const ShortUrlDetailsContents = () => {
   const router = useRouter();
@@ -21,6 +35,7 @@ const ShortUrlDetailsContents = () => {
   const searchParamShortUrlId = searchParams.get("i");
 
   const { longUrl, setLongUrl } = useIds();
+  const [fadeIn, setFadeIn] = useState(true);
 
   const shortUrl =
     process.env.NEXT_PUBLIC_STAGE === "prod"
@@ -35,7 +50,11 @@ const ShortUrlDetailsContents = () => {
         return;
       }
 
-      if (!longUrl) {
+      if (longUrl) {
+        // We only fade in the longUrl if it is loaded from an API, if we have it straight away
+        // then we can just show it straight away
+        setFadeIn(false);
+      } else {
         const data = await window.fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/get-long-url-details/${searchParamShortUrlId}`,
         );
@@ -59,11 +78,11 @@ const ShortUrlDetailsContents = () => {
             <div className="grid gap-y-6">
               <div className="grid gap-2">
                 <Label>Long URL</Label>
-                <ReadOnlyInput>{longUrl}</ReadOnlyInput>
+                <ReadOnlyInput text={longUrl} fadeIn={fadeIn} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="short-as-url">Short.as URL</Label>
-                <ReadOnlyInput>{shortUrl}</ReadOnlyInput>
+                <ReadOnlyInput text={shortUrl} />
               </div>
             </div>
           </CardContent>

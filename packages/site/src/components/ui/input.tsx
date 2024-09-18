@@ -33,9 +33,11 @@ Input.displayName = "Input"
  * look nice at all. Both of these issues happened with an unstyled `<input>` tag, so I've
  * just gone with a `<div>` instead.
  */
-const ReadOnlyInput = ({ children }: { children: React.ReactNode }) =>
+const ReadOnlyInput = ({ text, fadeIn }: { text: string; fadeIn?: boolean }) =>
   <div className="flex items-center h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-    {children}
+    {text && <div className={fadeIn ? "animate-fade-in-zoom" : ""}>
+      {text}
+    </div>}
   </div>;
 
 export { Input, ReadOnlyInput }
