@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 const TextGradient = ({ text }: { text: string }) => {
   const { resolvedTheme } = useTheme();
@@ -93,12 +94,16 @@ const ShortUrlDetailsContents = () => {
                   className="w-full"
                   onClick={async () => {
                     navigator.clipboard.writeText(shortUrl);
+                    toast("Copied to clipboard!", {
+                      description: shortUrl,
+                      duration: 3000,
+                    });
                   }}
                 >
                   <ClipboardCopy className="mr-2 h-4 w-4" />
                   Copy short URL
                 </Button>
-                <Link href="/">
+                <Link href="/" prefetch={false}>
                   <Button className="w-full" variant="secondary">
                     <Repeat className="mr-2 h-4 w-4" />
                     Shorten another

@@ -35,7 +35,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            {/* TODO: the about page has a messed up color scheme now (always seems to be dark) */}
             <SiteHeader />
             <IdsProvider>
               <div className="max-w-screen-md mx-auto px-4 pt-10 sm:pt-16">{children}</div>

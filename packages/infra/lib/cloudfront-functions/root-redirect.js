@@ -1,14 +1,13 @@
 /**
  * Redirects the following:
- * - https://short.as/ -> https://short.as/create/ so that CloudFront redirects to the S3 website
+ * - https://short.as/ -> https://short.as/create so that CloudFront redirects to the S3 website
  * - https://short.as/aaaaaaa/ -> https://short.as/aaaaaaa so that CloudFront calls the `get-long-url` API correctly
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handler(event) {
   const request = event.request;
   const host = request.headers.host.value;
-  // TODO: remove the trailing slash?
-  const newUrl = `https://${host}/create/`;
+  const newUrl = `https://${host}/create`;
 
   if (request.uri === "/") {
     return {
