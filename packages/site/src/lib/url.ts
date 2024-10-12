@@ -15,6 +15,7 @@ const validateUrl = (url: string) => {
  * prepended to it. If the URL is not and cannot be made valid, `undefined` is returned.
  */
 export const getValidUrl = (url: string): string | undefined => {
+  url = url.trim();
   try {
     return validateUrl(url);
   } catch {
