@@ -9,6 +9,7 @@ import { useState } from "react";
 import { getValidUrl } from "@/lib/url";
 import { useRouter } from "next/navigation";
 import { useIds } from "@/contexts/ids";
+import { toast } from "sonner";
 
 // Data fetching from the client in Next.js:
 // https://nextjs.org/docs/app/building-your-application/deploying/static-exports#client-components
@@ -19,53 +20,83 @@ const ToShortenCard = () => {
   const { setShortUrlId, setLongUrl } = useIds();
 
   const [urlToShorten, setUrlToShorten] = useState("");
+  const [isValidUrl, setIsValidUrl] = useState(true);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Let's shorten a URL</CardTitle>
-        {/* <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription> */}
-      </CardHeader>
-      <CardContent>
-        <div className="grid w-full items-center gap-2">
-          <Label htmlFor="long-url">Long URL</Label>
-          <Input
-            id="long-url"
-            type="text"
-            autoCorrect="off"
-            autoCapitalize="none"
-            placeholder="Enter the URL to shorten"
-            value={urlToShorten}
-            onChange={(event) => setUrlToShorten(event.target.value)}
-          />
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button
-          className="w-full"
-          onClick={async () => {
-            const validatedUrl = getValidUrl(urlToShorten);
-            if (validatedUrl) {
-              setLongUrl(validatedUrl);
-              const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
-                method: "POST",
-                body: JSON.stringify({ longUrl: validatedUrl }),
-              });
-              const json = await data.json();
-              setShortUrlId(json.shortUrlId);
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const validatedUrl = getValidUrl(urlToShorten);
 
-              router.push(`/u?i=${json.shortUrlId}`);
-            } else {
-              // TODO: error state!
-              console.log("Error! Not a valid URL!");
-            }
-          }}
-        >
-          {/* <EnvelopeOpenIcon className="mr-2 h-4 w-4" />  */}
-          <Minimize2 className="mr-2 h-4 w-4" />
-          Make it short as
-        </Button>
-      </CardFooter>
+          if (!validatedUrl) {
+            console.log("Error! Not a valid URL!");
+            return;
+          }
+
+          try {
+            setLongUrl(validatedUrl);
+            const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
+              method: "POST",
+              body: JSON.stringify({ longUrl: validatedUrl }),
+            });
+            const json = await data.json();
+            setShortUrlId(json.shortUrlId);
+
+            router.push(`/u?i=${json.shortUrlId}`);
+          } catch (error) {
+            toast.error("Server Error", {
+              description: "Please try again later",
+              duration: 5000,
+            });
+            console.error(error);
+          }
+        }}
+      >
+        <CardHeader>
+          <CardTitle>Let's shorten a URL</CardTitle>
+          {/* <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription> */}
+        </CardHeader>
+        <CardContent>
+          <div className="grid w-full items-center">
+            <Label htmlFor="long-url">Long URL</Label>
+            <Input
+              id="long-url"
+              type="text"
+              autoCorrect="off"
+              autoCapitalize="none"
+              autoComplete="off"
+              placeholder="Enter the URL to shorten"
+              className="mt-2"
+              value={urlToShorten}
+              onChange={(event) => {
+                const validatedUrl = getValidUrl(event.target.value);
+
+                if (validatedUrl || event.target.value === "") {
+                  setIsValidUrl(true);
+                } else {
+                  setIsValidUrl(false);
+                }
+
+                setUrlToShorten(event.target.value);
+              }}
+            />
+            <div className={`transition-[height] duration-300 ${isValidUrl ? "h-0" : "h-7"}`}>
+              <p
+                className={`text-sm text-destructive mt-2 transition-[height] transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
+              >
+                Please enter a valid URL
+              </p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit" className="w-full">
+            <Minimize2 className="mr-2 h-4 w-4" />
+            Make it short as
+          </Button>
+        </CardFooter>
+      </form>
     </Card>
   );
 };

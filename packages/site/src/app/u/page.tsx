@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeDrawerDialog } from "@/components/qr-code";
-import { ArrowUpRight, ClipboardCopy, Repeat } from "lucide-react";
+import { ArrowUpRight, Check, ClipboardCopy, Repeat } from "lucide-react";
 import { ShareMenu } from "@/components/share-menu";
 import { useIds } from "@/contexts/ids";
 
@@ -24,7 +24,9 @@ const TextGradient = ({ text }: { text: string }) => {
       ? "bg-[linear-gradient(to_right,theme(colors.violet.600),theme(colors.fuchsia.500),theme(colors.purple.500),theme(colors.violet.600))]"
       : "bg-[linear-gradient(to_right,theme(colors.violet.300),theme(colors.fuchsia.300),theme(colors.purple.100),theme(colors.violet.300))]";
   return (
-    <span className={`font-black bg-clip-text text-transparent ${bgGradient} bg-[length:200%_auto] animate-gradient`}>
+    <span
+      className={`font-black bg-clip-text text-transparent ${bgGradient} bg-[length:200%_auto] animate-gradient direction-reverse`}
+    >
       {text}
     </span>
   );
@@ -37,6 +39,7 @@ const ShortUrlDetailsContents = () => {
 
   const { longUrl, setLongUrl } = useIds();
   const [fadeIn, setFadeIn] = useState(true);
+  const [isCopied, setIsCopied] = useState(false);
 
   const shortUrl =
     process.env.NEXT_PUBLIC_STAGE === "prod"
@@ -64,6 +67,13 @@ const ShortUrlDetailsContents = () => {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (isCopied) {
+      const timer = setTimeout(() => setIsCopied(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isCopied]);
 
   return (
     <>
@@ -93,15 +103,24 @@ const ShortUrlDetailsContents = () => {
                 <Button
                   className="w-full"
                   onClick={async () => {
-                    navigator.clipboard.writeText(shortUrl);
+                    await navigator.clipboard.writeText(shortUrl);
+                    setIsCopied(true);
                     toast("Copied to clipboard!", {
                       description: shortUrl,
                       duration: 3000,
                     });
                   }}
                 >
-                  <ClipboardCopy className="mr-2 h-4 w-4" />
-                  Copy short URL
+                  <span className="flex items-center">
+                    <ClipboardCopy
+                      className={`mr-2 h-4 w-4 transition-all duration-250 ${isCopied ? "opacity-0" : "opacity-100"}`}
+                    />
+                    <Check
+                      strokeWidth={3}
+                      className={`absolute mr-2 h-4 w-4 text-green-600 transition-all duration-250 ${isCopied ? "opacity-100" : "opacity-0"}`}
+                    />
+                    Copy short URL
+                  </span>
                 </Button>
                 <Link href="/" prefetch={false}>
                   <Button className="w-full" variant="secondary">
