@@ -62,8 +62,22 @@ const ShortUrlDetailsContents = () => {
         const data = await window.fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/get-long-url-details/${searchParamShortUrlId}`,
         );
+        if (data.status / 100 === 5) {
+          toast.error("Server Error", {
+            description: "Please try again later",
+            duration: 5000,
+          });
+          return;
+        } else if (data.status === 404) {
+          toast.error("URL not found", {
+            description: "We could not find a short URL with this ID",
+            duration: 5000,
+          });
+          return;
+        }
         const json = await data.json();
-        setLongUrl(json.longUrl);
+
+        setLongUrl(json?.longUrl ?? "");
       }
     })();
   }, []);

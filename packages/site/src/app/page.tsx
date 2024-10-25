@@ -36,10 +36,13 @@ const ToShortenCard = () => {
 
           try {
             setLongUrl(validatedUrl);
+
             const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
               method: "POST",
               body: JSON.stringify({ longUrl: validatedUrl }),
             });
+            if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
+
             const json = await data.json();
             setShortUrlId(json.shortUrlId);
 

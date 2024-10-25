@@ -3,15 +3,19 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import { Construct } from "constructs";
 
-import { LlrtFunction } from "cdk-lambda-llrt";
+import { LlrtBinaryType, LlrtFunction } from "cdk-lambda-llrt";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
 
+interface BackendStackProps extends cdk.StackProps {
+  isProd?: boolean;
+}
+
 export class BackendStack extends cdk.Stack {
   public httpApi: apigateway.HttpApi;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: BackendStackProps) {
     super(scope, id, props);
 
     const countBucketsTable = new dynamodb.Table(this, "CountBucketsTable", {
@@ -34,10 +38,13 @@ export class BackendStack extends cdk.Stack {
 
     const createShortUrlLambda = new LlrtFunction(this, "CreateShortUrlLambda", {
       // This filepath is relative to the root of the infra package I believe
-      entry: "../lambda/src/index.ts",
+      entry: "../lambda/src/handlers/create-short-url.ts",
       handler: "createShortUrlHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("CreateShortUrlLambda"),
+      // Only this handler uses the CloudWatch client so it needs the full SDK,
+      // the other handlers can just use the standard SDKs that are bundled
+      llrtBinaryType: LlrtBinaryType.FULL_SDK,
       environment: {
         COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
         URLS_TABLE_NAME: urlsTable.tableName,
@@ -46,7 +53,7 @@ export class BackendStack extends cdk.Stack {
 
     const getLongUrlLambda = new LlrtFunction(this, "GetLongUrlLambda", {
       // This filepath is relative to the root of the infra package I believe
-      entry: "../lambda/src/index.ts",
+      entry: "../lambda/src/handlers/get-long-url.ts",
       handler: "getLongUrlHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("GetLongUrlLambda"),
@@ -57,7 +64,7 @@ export class BackendStack extends cdk.Stack {
 
     const getLongUrlDetailsLambda = new LlrtFunction(this, "GetLongUrlDetailsLambda", {
       // This filepath is relative to the root of the infra package I believe
-      entry: "../lambda/src/index.ts",
+      entry: "../lambda/src/handlers/get-long-url.ts",
       handler: "getLongUrlDetailsHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("GetLongUrlDetailsLambda"),
@@ -72,6 +79,10 @@ export class BackendStack extends cdk.Stack {
         actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
         resources: [countBucketsTable.tableArn, urlsTable.tableArn],
       }),
+    );
+
+    createShortUrlLambda.addToRolePolicy(
+      new PolicyStatement({ effect: Effect.ALLOW, actions: ["cloudwatch:PutMetricData"], resources: ["*"] }),
     );
 
     getLongUrlLambda.addToRolePolicy(
@@ -90,20 +101,17 @@ export class BackendStack extends cdk.Stack {
       }),
     );
 
+    const allowOrigins = ["https://short.as", "https://www.short.as", "https://dev.short.as"];
+
+    if (!props?.isProd) {
+      allowOrigins.push(...["http://localhost", "http://localhost:3000"]);
+    }
+
     const httpApi = new apigateway.HttpApi(this, "HttpAPI", {
       apiName: this.createResourceName("HttpAPI"),
       corsPreflight: {
         allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
-        // I can't add the CloudFront distribution here since we need to create that after this,
-        // so maybe we set these as headers in the Lambda instead and pass in the CloudFront
-        // distribution URL to the Lambda as an environment variable
-        allowOrigins: [
-          "https://short.as",
-          "https://www.short.as",
-          "https://dev.short.as",
-          "http://localhost",
-          "http://localhost:3000",
-        ],
+        allowOrigins,
       },
     });
 

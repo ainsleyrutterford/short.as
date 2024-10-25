@@ -48,7 +48,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "COUNT_BUCKETS_TABLE_NAME": {
               "Ref": "CountBucketsTable09F12BD0",
             },
@@ -127,6 +126,11 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                 },
               ],
             },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
           ],
           "Version": "2012-10-17",
         },
@@ -156,7 +160,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },
@@ -253,7 +256,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },

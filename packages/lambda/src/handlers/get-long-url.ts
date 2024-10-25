@@ -1,7 +1,7 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { createBareBonesDynamoDBDocumentClient, getStringEnvironmentVariable, response } from "./utils";
+import { createBareBonesDynamoDBDocumentClient, getStringEnvironmentVariable, response } from "../utils";
 
 interface PathParameters {
   shortUrlId?: string;
@@ -9,12 +9,9 @@ interface PathParameters {
 
 const dynamoClient = createBareBonesDynamoDBDocumentClient();
 
-// TODO: this handler is extremely similar to the getLongUrlHandler, maybe pull
-// TODO: out some core logic into a function
-export const getLongUrlDetailsHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
-  // Logging the entire event for now
-  console.log(event);
-
+export const getLongUrl = async (
+  event: APIGatewayProxyEventV2,
+): Promise<APIGatewayProxyStructuredResultV2 | string> => {
   const { shortUrlId } = event.pathParameters as PathParameters;
 
   if (!shortUrlId) {
@@ -46,5 +43,21 @@ export const getLongUrlDetailsHandler: APIGatewayProxyHandlerV2 = async (event, 
 
   console.log("Successfully fetched long URL: ", longUrl);
 
-  return response({ statusCode: 200, body: JSON.stringify({ longUrl }) });
+  return longUrl as string;
+};
+
+export const getLongUrlDetailsHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
+  console.log(event);
+  const maybeLongUrl = await getLongUrl(event);
+  return typeof maybeLongUrl === "string"
+    ? response({ statusCode: 200, body: JSON.stringify({ longUrl: maybeLongUrl }) })
+    : maybeLongUrl;
+};
+
+export const getLongUrlHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
+  console.log(event);
+  const maybeLongUrl = await getLongUrl(event);
+  return typeof maybeLongUrl === "string"
+    ? response({ statusCode: 302, headers: { Location: maybeLongUrl } })
+    : maybeLongUrl;
 };
