@@ -70,16 +70,16 @@ const config = {
         gradient: {
           to: { "background-position": "200% center" },
         },
-        "fade-in-zoom": {
-          "0%": { opacity: "0", transform: "scale(0.97)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         gradient: "gradient 6.5s linear infinite",
-        "fade-in-zoom": "fade-in-zoom 0.3s ease-in-out",
+        "fade-in": "fade-in 0.3s ease-in-out",
       },
     },
   },

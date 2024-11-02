@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Minimize2 } from "lucide-react";
+import { Loader2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { getValidUrl } from "@/lib/url";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ const ToShortenCard = () => {
 
   const [urlToShorten, setUrlToShorten] = useState("");
   const [isValidUrl, setIsValidUrl] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   return (
     <Card>
@@ -36,6 +37,7 @@ const ToShortenCard = () => {
 
           try {
             setLongUrl(validatedUrl);
+            setLoading(true);
 
             const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
               method: "POST",
@@ -45,6 +47,7 @@ const ToShortenCard = () => {
 
             const json = await data.json();
             setShortUrlId(json.shortUrlId);
+            setLoading(false);
 
             router.push(`/u?i=${json.shortUrlId}`);
           } catch (error) {
@@ -95,7 +98,7 @@ const ToShortenCard = () => {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full">
-            <Minimize2 className="mr-2 h-4 w-4" />
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Minimize2 className="mr-2 h-4 w-4" />}
             Make it short as
           </Button>
         </CardFooter>

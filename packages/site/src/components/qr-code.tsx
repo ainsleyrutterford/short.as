@@ -22,6 +22,7 @@ import {
 import { Download, QrCode } from "lucide-react";
 import ReactQRCode from "react-qr-code";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "next-themes";
 
 const QR_CODE_ID = "QRCode";
 const FILENAME = "Short.as QRCode";
@@ -39,11 +40,13 @@ const downloadAsPng = () => {
   const ctx = canvas.getContext("2d");
   const image = new Image();
 
+  const resolution = 1024;
+
   image.onload = () => {
-    canvas.width = image.width;
-    canvas.height = image.height;
+    canvas.width = resolution;
+    canvas.height = resolution;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    ctx!.drawImage(image, 0, 0);
+    ctx!.drawImage(image, 0, 0, canvas.width, canvas.height);
     const pngFile = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.download = `${FILENAME}.png`;
@@ -69,26 +72,30 @@ const downloadAsSvg = () => {
   link.click();
 };
 
-const StyledQRCode = ({ shortUrl }: QRCodeProps) => (
-  <div
-    style={{
-      height: "128px",
-      width: "128px",
-      marginLeft: "auto",
-      marginRight: "auto",
-      marginTop: "20px",
-      marginBottom: "20px",
-    }}
-  >
-    <ReactQRCode
-      fgColor="hsl(var(--foreground))"
-      bgColor="hsl(var(--background))"
-      id={QR_CODE_ID}
-      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-      value={shortUrl}
-    />
-  </div>
-);
+const StyledQRCode = ({ shortUrl }: QRCodeProps) => {
+  const { resolvedTheme } = useTheme();
+
+  return (
+    <div
+      style={{
+        height: "128px",
+        width: "128px",
+        marginLeft: "auto",
+        marginRight: "auto",
+        marginTop: "20px",
+        marginBottom: "20px",
+      }}
+    >
+      <ReactQRCode
+        fgColor={resolvedTheme === "light" ? "#000000" : "#FFFFFF"}
+        bgColor="rgba(0, 0, 0, 0)"
+        id={QR_CODE_ID}
+        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+        value={shortUrl}
+      />
+    </div>
+  );
+};
 
 export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
   const [open, setOpen] = React.useState(false);
