@@ -34,10 +34,10 @@ Input.displayName = "Input"
  * just gone with a `<div>` instead.
  */
 const ReadOnlyInput = ({ text, fadeIn }: { text: string; fadeIn?: boolean }) =>
-  <div className="flex items-center h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
-    {text && <div className={fadeIn ? "animate-fade-in-zoom" : ""}>
+  <div className="flex overflow-hidden items-center h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+    {text && <p className={`whitespace-nowrap ${fadeIn ? "animate-fade-in" : ""}`}>
       {text}
-    </div>}
+    </p>}
   </div>;
 
 export { Input, ReadOnlyInput }
