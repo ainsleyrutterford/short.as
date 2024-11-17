@@ -116,7 +116,7 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button className="z-10" variant="outline" size="icon">
               <QrCode className="h-4 w-4" />
             </Button>
           </DialogTrigger>
@@ -158,7 +158,7 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DrawerTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button className="z-10" variant="outline" size="icon">
               <QrCode className="h-4 w-4" />
             </Button>
           </DrawerTrigger>

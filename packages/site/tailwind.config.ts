@@ -78,8 +78,9 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        gradient: "gradient 6.5s linear infinite",
+        gradient: "gradient 5s linear infinite",
         "fade-in": "fade-in 0.3s ease-in-out",
+        "fade-in-slow": "fade-in 1.5s ease-in-out",
       },
     },
   },

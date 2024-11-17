@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ReadOnlyInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeDrawerDialog } from "@/components/qr-code";
 import { ArrowUpRight, Check, ClipboardCopy, Repeat } from "lucide-react";
@@ -16,6 +16,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { GradientCard } from "@/components/gradient-card";
 
 const TextGradient = ({ text }: { text: string }) => {
   const { resolvedTheme } = useTheme();
@@ -92,7 +93,7 @@ const ShortUrlDetailsContents = () => {
   return (
     <>
       {!!searchParamShortUrlId && (
-        <Card>
+        <GradientCard>
           <CardHeader>
             <CardTitle>
               Wow, that really is <TextGradient text="short.as!" />
@@ -115,7 +116,7 @@ const ShortUrlDetailsContents = () => {
             <div className="grid w-full items-center gap-y-6">
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 grid-cols-1">
                 <Button
-                  className="w-full"
+                  className="w-full z-10"
                   onClick={async () => {
                     await navigator.clipboard.writeText(shortUrl);
                     setIsCopied(true);
@@ -136,7 +137,7 @@ const ShortUrlDetailsContents = () => {
                     Copy short URL
                   </span>
                 </Button>
-                <Link href="/" prefetch={false}>
+                <Link className="z-10" href="/" prefetch={false}>
                   <Button className="w-full" variant="secondary">
                     <Repeat className="mr-2 h-4 w-4" />
                     Shorten another
@@ -148,7 +149,7 @@ const ShortUrlDetailsContents = () => {
                 <ShareMenu shortUrl={shortUrl} />
                 <QRCodeDrawerDialog shortUrl={shortUrl} />
                 <Tooltip delayDuration={250}>
-                  <TooltipTrigger>
+                  <TooltipTrigger className="z-10">
                     <Button variant="outline" size="icon" asChild>
                       <a href={shortUrl}>
                         <ArrowUpRight className="h-4 w-4" />
@@ -162,7 +163,7 @@ const ShortUrlDetailsContents = () => {
               </div>
             </div>
           </CardFooter>
-        </Card>
+        </GradientCard>
       )}
     </>
   );
