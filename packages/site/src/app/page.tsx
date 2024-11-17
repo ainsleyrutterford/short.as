@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 import { getValidUrl } from "@/lib/url";
 import { useRouter } from "next/navigation";
 import { useIds } from "@/contexts/ids";
 import { toast } from "sonner";
+import { GradientCard } from "@/components/gradient-card";
 
 // Data fetching from the client in Next.js:
 // https://nextjs.org/docs/app/building-your-application/deploying/static-exports#client-components
@@ -24,7 +25,7 @@ const ToShortenCard = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <Card>
+    <GradientCard>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -97,13 +98,13 @@ const ToShortenCard = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full z-10" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Minimize2 className="mr-2 h-4 w-4" />}
             Make it short as
           </Button>
         </CardFooter>
       </form>
-    </Card>
+    </GradientCard>
   );
 };
 

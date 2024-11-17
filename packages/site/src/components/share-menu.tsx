@@ -37,7 +37,7 @@ export const ShareMenu = ({ shortUrl }: { shortUrl: string }) => {
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button className="z-10" variant="outline" size="icon">
               <Share className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -96,7 +96,7 @@ export const ShareMenu = ({ shortUrl }: { shortUrl: string }) => {
       <Tooltip delayDuration={250}>
         <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
           <DrawerTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button className="z-10" variant="outline" size="icon">
               <Share className="h-4 w-4" />
             </Button>
           </DrawerTrigger>
