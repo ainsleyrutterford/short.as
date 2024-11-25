@@ -4,9 +4,10 @@ import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import { Construct } from "constructs";
 
 import { LlrtBinaryType, LlrtFunction } from "cdk-lambda-llrt";
-import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
+import { PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
 
 interface BackendStackProps extends cdk.StackProps {
   isProd?: boolean;
@@ -115,6 +116,10 @@ export class BackendStack extends cdk.Stack {
       },
     });
 
+    if (!props?.isProd) {
+      this.enableLogging(httpApi);
+    }
+
     httpApi.addRoutes({
       path: "/create-short-url",
       methods: [apigateway.HttpMethod.POST],
@@ -138,5 +143,30 @@ export class BackendStack extends cdk.Stack {
 
   createResourceName(suffix: string) {
     return `${this.stackName}-${suffix}`;
+  }
+
+  // https://www.kevinwmcconnell.com/cdk/http-api-logs-with-cdk
+  enableLogging(api: apigateway.HttpApi) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const stage = api.defaultStage!.node.defaultChild as apigateway.CfnStage;
+    const logGroup = new LogGroup(api, "AccessLogs", { retention: 90 });
+
+    stage.accessLogSettings = {
+      destinationArn: logGroup.logGroupArn,
+      // https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging.html#http-api-enable-logging.examples
+      format: JSON.stringify({
+        requestId: "$context.requestId",
+        ip: "$context.identity.sourceIp",
+        requestTime: "$context.requestTime",
+        httpMethod: "$context.httpMethod",
+        routeKey: "$context.routeKey",
+        status: "$context.status",
+        protocol: "$context.protocol",
+        responseLength: "$context.responseLength",
+        extendedRequestId: "$context.extendedRequestId",
+      }),
+    };
+
+    logGroup.grantWrite(new ServicePrincipal("apigateway.amazonaws.com"));
   }
 }
