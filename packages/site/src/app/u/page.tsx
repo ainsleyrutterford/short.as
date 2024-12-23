@@ -14,24 +14,10 @@ import { useIds } from "@/contexts/ids";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { GradientCard } from "@/components/gradient-card";
-
-const TextGradient = ({ text }: { text: string }) => {
-  const { resolvedTheme } = useTheme();
-  const bgGradient =
-    resolvedTheme === "light"
-      ? "bg-[linear-gradient(to_right,theme(colors.violet.600),theme(colors.fuchsia.500),theme(colors.purple.500),theme(colors.violet.600))]"
-      : "bg-[linear-gradient(to_right,theme(colors.violet.300),theme(colors.fuchsia.300),theme(colors.purple.100),theme(colors.violet.300))]";
-  return (
-    <span
-      className={`font-black bg-clip-text text-transparent ${bgGradient} bg-[length:200%_auto] animate-gradient direction-reverse`}
-    >
-      {text}
-    </span>
-  );
-};
+import { TextGradient } from "@/components/text-gradient";
+import { BlurCard } from "@/components/blur-card";
 
 const ShortUrlDetailsContents = () => {
   const router = useRouter();
@@ -91,28 +77,25 @@ const ShortUrlDetailsContents = () => {
   }, [isCopied]);
 
   return (
-    <>
+    <div className="flex flex-col">
+      <h3 className="text-xl font-semibold leading-none mb-4">
+        Wow, that really is <TextGradient text="short.as!" />
+      </h3>
       {!!searchParamShortUrlId && (
-        <GradientCard>
-          <CardHeader>
-            <CardTitle>
-              Wow, that really is <TextGradient text="short.as!" />
-            </CardTitle>
-            {/* <CardDescription>Card Description. Stage: {process.env.NEXT_PUBLIC_STAGE}</CardDescription> */}
-          </CardHeader>
-          <CardContent>
+        <BlurCard>
+          <CardContent className="p-5">
             <div className="grid gap-y-6">
               <div className="grid gap-2">
                 <Label>Long URL</Label>
-                <ReadOnlyInput text={longUrl} fadeIn={fadeIn} />
+                <ReadOnlyInput text={longUrl} fadeIn={fadeIn} className="bg-white" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="short-as-url">Short.as URL</Label>
-                <ReadOnlyInput text={shortUrl} />
+                <ReadOnlyInput text={shortUrl} className="bg-white" />
               </div>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="p-5 pt-0">
             <div className="grid w-full items-center gap-y-6">
               <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 grid-cols-1">
                 <Button
@@ -163,9 +146,17 @@ const ShortUrlDetailsContents = () => {
               </div>
             </div>
           </CardFooter>
-        </GradientCard>
+        </BlurCard>
       )}
-    </>
+      <div className="mt-8 flex w-full items-center justify-center flex-row">
+        <p className="text-sm text-muted-foreground text-center">
+          Want to manage, update, or track analytics for your URLs?{"  "}
+          <Link className="text-primary underline-offset-4 hover:underline" href="/login" prefetch={false}>
+            Create a free account!
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 };
 

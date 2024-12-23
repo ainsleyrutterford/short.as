@@ -32,7 +32,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
+      {/* #dfdbca, #8fb6d3, #bd99e5 */}
       <body className={inter.className}>
+        <div
+          style={{
+            background:
+              "radial-gradient(circle at right bottom, rgb(213, 201, 154), rgb(111, 169, 213), rgb(165, 111, 225)), radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85)), linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 1))",
+            backgroundBlendMode: "overlay",
+            opacity: 0.55,
+            // backgroundAttachment: "fixed",
+            height: "90vh",
+            width: "100vw",
+            position: "absolute",
+            zIndex: -1,
+          }}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
             <SiteHeader />

@@ -1,6 +1,4 @@
 import crypto from "crypto";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 
 export const getStringEnvironmentVariable = (name: string) => {
@@ -11,15 +9,7 @@ export const getStringEnvironmentVariable = (name: string) => {
   return environmentVariable;
 };
 
-export const createBareBonesDynamoDBDocumentClient = () => {
-  console.log("Creating a barebones DynamoDB client...");
-  // Bare-bones DynamoDB Client for smaller bundle sizes:
-  // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/introduction/#high-level-concepts
-  const dynamoClient = new DynamoDBClient({});
-  // The document client simplifies working with items by abstracting away the notion of attribute values
-  // https://www.npmjs.com/package/@aws-sdk/lib-dynamodb
-  return DynamoDBDocumentClient.from(dynamoClient);
-};
+export const isProd = process.env.IS_PROD === "true";
 
 export const response = (value: APIGatewayProxyStructuredResultV2): APIGatewayProxyStructuredResultV2 => {
   console.log(`Returning response: ${JSON.stringify(value)}`);

@@ -11,10 +11,15 @@
     "@aws-sdk/client-cloudwatch": "^3.651.1",
     "@aws-sdk/client-dynamodb": "^3.525.0",
     "@aws-sdk/client-s3": "^3.509.0",
-    "@aws-sdk/lib-dynamodb": "^3.525.0"
+    "@aws-sdk/client-ssm": "^3.716.0",
+    "@aws-sdk/lib-dynamodb": "^3.525.0",
+    "cookie": "^1.0.2",
+    "jsrsasign": "^11.1.0",
+    "jsrsasign-util": "^1.0.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.133",
+    "@types/jsrsasign": "^10.5.15",
     "esbuild": "^0.20.0"
   }
 }

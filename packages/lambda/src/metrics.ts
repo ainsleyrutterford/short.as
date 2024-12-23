@@ -2,11 +2,6 @@ import { CloudWatchClient, PutMetricDataCommand } from "@aws-sdk/client-cloudwat
 
 const METRIC_NAMESPACE = "short.as";
 
-export const createCloudWatchClient = () => {
-  console.log("Creating CloudWatch client...");
-  return new CloudWatchClient();
-};
-
 export const publishCorruptBucketMetric = (client: CloudWatchClient, countBucketId: number) => {
   console.log(`Publishing corrupt bucket metric for countBucketId: ${countBucketId}`);
   return client.send(
