@@ -5,7 +5,7 @@ import { MarkGithubIcon } from "@primer/octicons-react";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
+    <header className="sticky top-0 z-40 w-full border-b backdrop-blur">
       <div className="container flex h-12 items-center space-x-4 sm:justify-between sm:space-x-0">
         <MainNav />
         <div className="flex flex-1 items-center justify-end space-x-4">

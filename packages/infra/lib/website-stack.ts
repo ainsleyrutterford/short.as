@@ -84,7 +84,10 @@ export class WebsiteStack extends cdk.Stack {
         // S3 origin behavior
         "/create*": {
           origin: new S3Origin(bucket, { originAccessIdentity }),
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          // We don't need to worry about serving stale content as the S3 BucketDeployment docs say:
+          // "Files in the distribution's edge caches will be invalidated after files are uploaded to the destination bucket."
+          // This should also enable compression which helps for Google Lighthouse
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           functionAssociations: [
             // Allows users to visit just 'domain/hello', rather than 'domain/hello.html'. Also redirects
@@ -95,10 +98,12 @@ export class WebsiteStack extends cdk.Stack {
         "/api/*": {
           origin: new HttpOrigin(httpApiDomainName),
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          cachePolicy: new cloudfront.CachePolicy(this, "ApiCachePolicy", {
-            // Include query strings in the requests
-            queryStringBehavior: cloudfront.CacheQueryStringBehavior.all(),
-          }),
+          // Include all cookies, and query strings in the requests, and all headers except for the Host
+          // header as API Gateway expects the Host header to contain the origin domain name instead of the domain
+          // name of the CloudFront distribution
+          // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-all-viewer-except-host-header
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           functionAssociations: [
             // Strips the /api prefix from the request so that it is mapped to the API Gateway routes successfully

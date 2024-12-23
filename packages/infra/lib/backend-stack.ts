@@ -19,6 +19,8 @@ export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: BackendStackProps) {
     super(scope, id, props);
 
+    const { region, account } = cdk.Stack.of(this);
+
     const countBucketsTable = new dynamodb.Table(this, "CountBucketsTable", {
       partitionKey: {
         name: "id",
@@ -37,13 +39,22 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UrlsTable"),
     });
 
+    const usersTable = new dynamodb.Table(this, "UsersTable", {
+      partitionKey: {
+        name: "id",
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      tableName: this.createResourceName("UsersTable"),
+    });
+
     const createShortUrlLambda = new LlrtFunction(this, "CreateShortUrlLambda", {
       // This filepath is relative to the root of the infra package I believe
       entry: "../lambda/src/handlers/create-short-url.ts",
       handler: "createShortUrlHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("CreateShortUrlLambda"),
-      // Only this handler uses the CloudWatch client so it needs the full SDK,
+      // This handler uses the CloudWatch client so it needs the full SDK,
       // the other handlers can just use the standard SDKs that are bundled
       llrtBinaryType: LlrtBinaryType.FULL_SDK,
       environment: {
@@ -53,7 +64,6 @@ export class BackendStack extends cdk.Stack {
     });
 
     const getLongUrlLambda = new LlrtFunction(this, "GetLongUrlLambda", {
-      // This filepath is relative to the root of the infra package I believe
       entry: "../lambda/src/handlers/get-long-url.ts",
       handler: "getLongUrlHandler",
       architecture: Architecture.ARM_64,
@@ -64,13 +74,25 @@ export class BackendStack extends cdk.Stack {
     });
 
     const getLongUrlDetailsLambda = new LlrtFunction(this, "GetLongUrlDetailsLambda", {
-      // This filepath is relative to the root of the infra package I believe
       entry: "../lambda/src/handlers/get-long-url.ts",
       handler: "getLongUrlDetailsHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("GetLongUrlDetailsLambda"),
       environment: {
         URLS_TABLE_NAME: urlsTable.tableName,
+      },
+    });
+
+    const oAuthLambda = new LlrtFunction(this, "OAuthLambda", {
+      entry: "../lambda/src/handlers/oauth/index.ts",
+      handler: "oAuthHandler",
+      architecture: Architecture.ARM_64,
+      functionName: this.createResourceName("OAuthLambda"),
+      // This handler uses the SSM client so it needs the full SDK
+      llrtBinaryType: LlrtBinaryType.FULL_SDK,
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName,
+        IS_PROD: props?.isProd ? "true" : "false",
       },
     });
 
@@ -99,6 +121,22 @@ export class BackendStack extends cdk.Stack {
         effect: Effect.ALLOW,
         actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
         resources: [urlsTable.tableArn],
+      }),
+    );
+
+    oAuthLambda.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+        resources: [usersTable.tableArn],
+      }),
+    );
+
+    oAuthLambda.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["ssm:GetParameter"],
+        resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
       }),
     );
 
@@ -136,6 +174,12 @@ export class BackendStack extends cdk.Stack {
       path: "/get-long-url-details/{shortUrlId}",
       methods: [apigateway.HttpMethod.GET],
       integration: new HttpLambdaIntegration("GetLongUrlDetailsLambdaIntegration", getLongUrlDetailsLambda),
+    });
+
+    httpApi.addRoutes({
+      path: "/oauth/{proxy+}",
+      methods: [apigateway.HttpMethod.GET],
+      integration: new HttpLambdaIntegration("OAuthLambdaIntegration", oAuthLambda),
     });
 
     this.httpApi = httpApi;

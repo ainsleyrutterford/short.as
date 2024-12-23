@@ -1,13 +1,12 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { createBareBonesDynamoDBDocumentClient, getStringEnvironmentVariable, response } from "../utils";
+import { getStringEnvironmentVariable, response } from "../utils";
+import { dynamoClient } from "../clients";
 
 interface PathParameters {
   shortUrlId?: string;
 }
-
-const dynamoClient = createBareBonesDynamoDBDocumentClient();
 
 export const getLongUrl = async (
   event: APIGatewayProxyEventV2,

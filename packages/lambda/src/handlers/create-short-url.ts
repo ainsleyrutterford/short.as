@@ -5,23 +5,15 @@ import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
 
 import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
 import { encodeNumber } from "../encoding";
-import { createCloudWatchClient, publishCorruptBucketMetric } from "../metrics";
-import {
-  createBareBonesDynamoDBDocumentClient,
-  exponentialBackoffWithJitter,
-  getStringEnvironmentVariable,
-  response,
-  wait,
-} from "../utils";
+import { publishCorruptBucketMetric } from "../metrics";
+import { exponentialBackoffWithJitter, getStringEnvironmentVariable, response, wait } from "../utils";
+import { cloudWatchClient, dynamoClient } from "../clients";
 
 interface Body {
   longUrl?: string;
 }
 
 const MAX_ATTEMPTS = 3;
-
-const dynamoClient = createBareBonesDynamoDBDocumentClient();
-const cloudWatchClient = createCloudWatchClient();
 
 const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string) => {
   const countBucketsTableName = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
