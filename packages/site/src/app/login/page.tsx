@@ -1,13 +1,11 @@
 "use client";
 
-import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GradientCard } from "@/components/gradient-card";
 import { Button } from "@/components/ui/button";
 import { MarkGithubIcon } from "@primer/octicons-react";
-import { TextGradient } from "@/components/text-gradient";
 import Link from "next/link";
 import { FacebookLogo } from "@/assets/facebook";
 import { GoogleLogo } from "@/assets/google";
+import { PageContainer } from "@/components/page-container";
 
 const createGoogleOAuthUrl = () => {
   const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -47,59 +45,56 @@ const createFacebookOAuthUrl = () => {
   return `${baseUrl}?${queryStrings.toString()}`;
 };
 
-/*
-https://www.facebook.com/v21.0/dialog/oauth?
-  client_id={app-id}
-*/
-
 const Login = () => {
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        console.log(e);
-      }}
-    >
-      <div className="mb-8 flex flex-col w-full">
-        <p className="mb-4 text-xl font-semibold text-foreground text-center">Welcome to short.as</p>
-        <p className="text-sm text-muted-foreground text-center">
-          Login to manage, update, or track analytics for your URLs with ease.
-        </p>
-      </div>
-      <div className="grid w-full items-center gap-y-2">
-        <Link className="z-10" href={createGoogleOAuthUrl()} prefetch={false}>
-          <Button className="w-full" variant="secondary">
-            <GoogleLogo className="mr-2 h-4 w-4" />
-            Continue with Google
-          </Button>
-        </Link>
-        <Link className="z-10" href={createFacebookOAuthUrl()} prefetch={false}>
-          <Button className="w-full z-10" variant="secondary">
-            <FacebookLogo className="mr-2 h-4 w-4" />
-            Continue with Facebook
-          </Button>
-        </Link>
-        <Link className="z-10" href={createGitHubOAuthUrl()} prefetch={false}>
-          <Button className="w-full z-10" variant="secondary">
-            <MarkGithubIcon className="mr-2 h-4 w-4" />
-            Continue with GitHub
-          </Button>
-        </Link>
-      </div>
-      <div className="mt-8 flex w-full items-center justify-center flex-row">
-        <p className="text-xs text-muted-foreground text-center">
-          By signing up, you agree to the{" "}
-          <Link className="underline" href="/tos" prefetch={false}>
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link className="underline" href="/privacy" prefetch={false}>
-            Privacy Policy
+    <PageContainer>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          console.log(e);
+        }}
+      >
+        <div className="mb-8 flex flex-col w-full">
+          <p className="mb-4 text-xl font-semibold text-foreground text-center">Welcome to short.as</p>
+          <p className="text-sm text-muted-foreground text-center">
+            Login to manage, update, or track analytics for your URLs with ease.
+          </p>
+        </div>
+        <div className="grid w-full items-center gap-y-2">
+          <Link className="z-10" href={createGoogleOAuthUrl()} prefetch={false}>
+            <Button className="w-full" variant="secondary">
+              <GoogleLogo className="mr-2 h-4 w-4" />
+              Continue with Google
+            </Button>
           </Link>
-          .
-        </p>
-      </div>
-    </form>
+          <Link className="z-10" href={createFacebookOAuthUrl()} prefetch={false}>
+            <Button className="w-full z-10" variant="secondary">
+              <FacebookLogo className="mr-2 h-4 w-4" />
+              Continue with Facebook
+            </Button>
+          </Link>
+          <Link className="z-10" href={createGitHubOAuthUrl()} prefetch={false}>
+            <Button className="w-full z-10" variant="secondary">
+              <MarkGithubIcon className="mr-2 h-4 w-4" />
+              Continue with GitHub
+            </Button>
+          </Link>
+        </div>
+        <div className="mt-8 flex w-full items-center justify-center flex-row">
+          <p className="text-xs text-muted-foreground text-center">
+            By signing up, you agree to the{" "}
+            <Link className="underline" href="/tos">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link className="underline" href="/privacy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
+      </form>
+    </PageContainer>
   );
 };
 

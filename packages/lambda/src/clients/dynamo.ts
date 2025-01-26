@@ -1,12 +1,5 @@
-import { CloudWatchClient } from "@aws-sdk/client-cloudwatch";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { SSMClient } from "@aws-sdk/client-ssm";
-
-const createCloudWatchClient = () => {
-  console.log("Creating CloudWatch client...");
-  return new CloudWatchClient();
-};
 
 export const createBareBonesDynamoDBDocumentClient = () => {
   console.log("Creating a barebones DynamoDB client...");
@@ -18,11 +11,4 @@ export const createBareBonesDynamoDBDocumentClient = () => {
   return DynamoDBDocumentClient.from(dynamoClient);
 };
 
-const createSSMClient = () => {
-  console.log("Creating SSM client...");
-  return new SSMClient();
-};
-
-export const cloudWatchClient = createCloudWatchClient();
 export const dynamoClient = createBareBonesDynamoDBDocumentClient();
-export const ssmClient = createSSMClient();

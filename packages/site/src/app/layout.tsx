@@ -4,8 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SiteHeader } from "@/components/site-header";
+import SiteHeader from "@/components/site-header";
 import { IdsProvider } from "@/contexts/ids";
+import { AuthProvider } from "@/contexts/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,11 +31,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head />
       {/* #dfdbca, #8fb6d3, #bd99e5 */}
       <body className={inter.className}>
-        <div
+        {/* <div
           style={{
             background:
               "radial-gradient(circle at right bottom, rgb(213, 201, 154), rgb(111, 169, 213), rgb(165, 111, 225)), radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85)), linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 1))",
@@ -46,15 +47,15 @@ export default function RootLayout({
             position: "absolute",
             zIndex: -1,
           }}
-        />
+        /> */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider>
-            <SiteHeader />
-            <IdsProvider>
-              <div className="max-w-screen-md mx-auto px-4 pt-10 sm:pt-16">{children}</div>
-            </IdsProvider>
-            <Toaster />
-          </TooltipProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <SiteHeader />
+              <IdsProvider>{children}</IdsProvider>
+              <Toaster />
+            </TooltipProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

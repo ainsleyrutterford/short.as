@@ -7,7 +7,9 @@
 async function handler(event) {
   const request = event.request;
   const host = request.headers.host.value;
-  const newUrl = `https://${host}/create`;
+  // TODO: when we update the CloudFront distribution so that S3 is the default,
+  // TODO: this can be changed to just /create
+  const newUrl = `https://${host}/create/shorten`;
 
   if (request.uri === "/") {
     return {

@@ -1,3 +1,8 @@
+import createMDX from "@next/mdx";
+
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enables static exports
@@ -8,6 +13,20 @@ const nextConfig = {
   // visits the '/create/*' path
   // https://nextjs.org/docs/app/api-reference/next-config-js/basePath
   basePath: "/create",
+
+  // Configure `pageExtensions` to include markdown and MDX files
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  options: {
+    // Add slugs (hrefs of headers) and autolinks to the headers
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: "wrap", properties: { className: "rehype-autolink" } }],
+    ],
+  },
+});
+
+// Merge MDX config with Next.js config
+export default withMDX(nextConfig);

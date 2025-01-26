@@ -2,7 +2,7 @@ import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyStruct
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { getStringEnvironmentVariable, response } from "../utils";
-import { dynamoClient } from "../clients";
+import { dynamoClient } from "../clients/dynamo";
 
 interface PathParameters {
   shortUrlId?: string;
