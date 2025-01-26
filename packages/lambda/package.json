@@ -4,8 +4,8 @@
   "scripts": {
     "build": "esbuild src/index.ts --platform=node --target=es2020 --outdir=dist --format=esm --bundle --minify --external:@aws-sdk --external:uuid",
     "test": "./llrt test",
-    "install-llrt-test-runner-mac": "curl -LO https://github.com/awslabs/llrt/releases/download/v0.1.15-beta/llrt-darwin-x64.zip && unzip -o llrt-darwin-x64.zip",
-    "install-llrt-test-runner-linux": "curl -LO https://github.com/awslabs/llrt/releases/download/v0.1.15-beta/llrt-linux-x64.zip && unzip -o llrt-linux-x64.zip"
+    "install-llrt-test-runner-mac": "curl -LO https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-x64-full-sdk.zip && unzip -o llrt-darwin-x64-full-sdk.zip",
+    "install-llrt-test-runner-linux": "curl -LO https://github.com/awslabs/llrt/releases/latest/download/llrt-linux-x64-full-sdk.zip && unzip -o llrt-linux-x64-full-sdk.zip"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.651.1",

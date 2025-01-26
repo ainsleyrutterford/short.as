@@ -7,7 +7,8 @@ import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
 import { encodeNumber } from "../encoding";
 import { publishCorruptBucketMetric } from "../metrics";
 import { exponentialBackoffWithJitter, getStringEnvironmentVariable, response, wait } from "../utils";
-import { cloudWatchClient, dynamoClient } from "../clients";
+import { dynamoClient } from "../clients/dynamo";
+import { cloudWatchClient } from "../clients/cloudwatch";
 
 interface Body {
   longUrl?: string;

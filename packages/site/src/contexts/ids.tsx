@@ -14,14 +14,17 @@ const IdsContext = React.createContext<IdsContextInterface | undefined>(undefine
 export const useIds = () => {
   const context = useContext(IdsContext);
   if (context) return context;
-  throw new Error("Using the IdsContext when it hasn't been provided yet.");
+  throw new Error("Tried to use the IdsContext when it hasn't been provided yet.");
 };
 
 export const IdsProvider = ({ children }: { children: React.ReactNode }) => {
   const [shortUrlId, setShortUrlId] = React.useState("");
   const [longUrl, setLongUrl] = React.useState("");
 
-  return (
-    <IdsContext.Provider value={{ shortUrlId, setShortUrlId, longUrl, setLongUrl }}>{children}</IdsContext.Provider>
+  const value = React.useMemo(
+    () => ({ shortUrlId, setShortUrlId, longUrl, setLongUrl }),
+    [shortUrlId, setShortUrlId, longUrl, setLongUrl],
   );
+
+  return <IdsContext.Provider value={value}>{children}</IdsContext.Provider>;
 };

@@ -1,5 +1,13 @@
-"use client";
+import type { Metadata } from "next";
 
-export default function Privacy() {
-  return <h1>This is a privacy page!</h1>;
+import Content from "@/markdown/privacy.mdx";
+import { SimpleInformationPage } from "@/components/simple-info-page";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "The short.as Privacy Policy",
+};
+
+export default async function Privacy() {
+  return <SimpleInformationPage content={<Content />} mdxPath="./src/markdown/privacy.mdx" />;
 }

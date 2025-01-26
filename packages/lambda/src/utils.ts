@@ -11,6 +11,8 @@ export const getStringEnvironmentVariable = (name: string) => {
 
 export const isProd = process.env.IS_PROD === "true";
 
+export const siteUrl = isProd ? "https://short.as" : "https://dev.short.as";
+
 export const response = (value: APIGatewayProxyStructuredResultV2): APIGatewayProxyStructuredResultV2 => {
   console.log(`Returning response: ${JSON.stringify(value)}`);
   return value;

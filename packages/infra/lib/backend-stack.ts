@@ -84,7 +84,7 @@ export class BackendStack extends cdk.Stack {
     });
 
     const oAuthLambda = new LlrtFunction(this, "OAuthLambda", {
-      entry: "../lambda/src/handlers/oauth/index.ts",
+      entry: "../lambda/src/handlers/oauth-proxy.ts",
       handler: "oAuthHandler",
       architecture: Architecture.ARM_64,
       functionName: this.createResourceName("OAuthLambda"),
@@ -143,7 +143,9 @@ export class BackendStack extends cdk.Stack {
     const allowOrigins = ["https://short.as", "https://www.short.as", "https://dev.short.as"];
 
     if (!props?.isProd) {
-      allowOrigins.push(...["http://localhost", "http://localhost:3000"]);
+      allowOrigins.push(
+        ...["http://localhost", "http://localhost:3000", "https://localhost", "https://localhost:3000"],
+      );
     }
 
     const httpApi = new apigateway.HttpApi(this, "HttpAPI", {
@@ -151,6 +153,8 @@ export class BackendStack extends cdk.Stack {
       corsPreflight: {
         allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
         allowOrigins,
+        // Needed for cookies
+        allowCredentials: true,
       },
     });
 

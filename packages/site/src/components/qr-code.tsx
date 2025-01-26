@@ -127,7 +127,7 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
           </TooltipContent>
         )}
       </Tooltip>
-      <DialogContent className="sm:max-w-[340px]">
+      <DialogContent className="sm:max-w-[340px] p-5">
         <DialogHeader>
           <DialogTitle>QR Code</DialogTitle>
           <DialogDescription>
