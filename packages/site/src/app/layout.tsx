@@ -32,7 +32,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
-      <head />
+      <head>
+        {/* https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs */}
+        <link rel="manifest" href={`${process.env.basePath}/icons/manifest.webmanifest`} />
+        <link rel="icon" href={`${process.env.basePath}/icons/favicon.ico`} sizes="32x32" />
+        <link rel="icon" href={`${process.env.basePath}/icons/icon.svg`} type="image/svg+xml" />
+        <link rel="apple-touch-icon" href={`${process.env.basePath}/icons/apple-icon.png`} />
+      </head>
       {/* #dfdbca, #8fb6d3, #bd99e5 */}
       <body className={inter.className}>
         {/* <div

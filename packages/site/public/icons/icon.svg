@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="3 3 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @media (prefers-color-scheme: light) {
+      .customStroke { stroke: #0F172A }
+    }
+    @media (prefers-color-scheme: dark) {
+      .customStroke { stroke: #ffffff }
+    }
+  </style>
+  <path class="customStroke" d="M12 17L12 7" stroke="#0F172A" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="round"/>
+  <path class="customStroke" d="M5.00001 8.5L8.5 11.9999L5.00001 15.4999" stroke="#0F172A" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="bevel"/>
+  <path class="customStroke" d="M19 15.5L15.5 12.0001L19 8.5001" stroke="#0F172A" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="bevel"/>
+</svg>
