@@ -3,6 +3,8 @@ import createMDX from "@next/mdx";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
+const basePath = "/create";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enables static exports
@@ -12,7 +14,9 @@ const nextConfig = {
   // This is required because in the CloudFront Distribution we serve website files only if the user
   // visits the '/create/*' path
   // https://nextjs.org/docs/app/api-reference/next-config-js/basePath
-  basePath: "/create",
+  basePath,
+  // Also set it as an env variable so we can access it in the code: https://stackoverflow.com/a/77164437
+  env: { basePath },
 
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
