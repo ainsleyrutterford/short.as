@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/auth";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
+import { isProd } from "@/lib/utils";
 
 // Data fetching from the client in Next.js:
 // https://nextjs.org/docs/app/building-your-application/deploying/static-exports#client-components
@@ -161,7 +162,8 @@ const ShortenPage = () => {
             </CardContent>
           </form>
         </Card>
-        {!loggedIn && <CreateAccountSuggestion />}
+        {/* For now, only show login for dev */}
+        {!isProd && !loggedIn && <CreateAccountSuggestion />}
       </div>
     </PageContainer>
   );

@@ -21,7 +21,7 @@ describe("Snapshot tests", () => {
     const app = new cdk.App();
 
     /* When */
-    const stack = new BackendStack(app, "TestBackendStack");
+    const stack = new BackendStack(app, "TestBackendStack", { isProd: true });
     const template = Template.fromStack(stack);
 
     /* Then */

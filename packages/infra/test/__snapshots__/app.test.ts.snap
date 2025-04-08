@@ -338,6 +338,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
     "HttpAPI8D545486": {
       "Properties": {
         "CorsConfiguration": {
+          "AllowCredentials": true,
           "AllowMethods": [
             "GET",
             "POST",
@@ -346,8 +347,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "https://short.as",
             "https://www.short.as",
             "https://dev.short.as",
-            "http://localhost",
-            "http://localhost:3000",
           ],
         },
         "Name": "TestBackendStack-HttpAPI",
@@ -355,46 +354,8 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
-    "HttpAPIAccessLogs0FE03634": {
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "RetentionInDays": 90,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "HttpAPIAccessLogsPolicyResourcePolicy8B2BE1A4": {
-      "Properties": {
-        "PolicyDocument": {
-          "Fn::Join": [
-            "",
-            [
-              "{"Statement":[{"Action":["logs:CreateLogStream","logs:PutLogEvents"],"Effect":"Allow","Principal":{"Service":"apigateway.amazonaws.com"},"Resource":"",
-              {
-                "Fn::GetAtt": [
-                  "HttpAPIAccessLogs0FE03634",
-                  "Arn",
-                ],
-              },
-              ""}],"Version":"2012-10-17"}",
-            ],
-          ],
-        },
-        "PolicyName": "TestBackendStackHttpAPIAccessLogsPolicy11E11AB6",
-      },
-      "Type": "AWS::Logs::ResourcePolicy",
-    },
     "HttpAPIDefaultStage1BC7D78F": {
       "Properties": {
-        "AccessLogSettings": {
-          "DestinationArn": {
-            "Fn::GetAtt": [
-              "HttpAPIAccessLogs0FE03634",
-              "Arn",
-            ],
-          },
-          "Format": "{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","routeKey":"$context.routeKey","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","extendedRequestId":"$context.extendedRequestId"}",
-        },
         "ApiId": {
           "Ref": "HttpAPI8D545486",
         },
@@ -551,6 +512,80 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Permission",
     },
+    "HttpAPIGEToauthproxyA599B7BC": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpAPI8D545486",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /oauth/{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "HttpAPIGEToauthproxyOAuthLambdaIntegrationC97BA312",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "HttpAPIGEToauthproxyOAuthLambdaIntegrationC97BA312": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpAPI8D545486",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "OAuthLambda063A5DDC",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "HttpAPIGEToauthproxyOAuthLambdaIntegrationPermission9253165E": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "OAuthLambda063A5DDC",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "HttpAPI8D545486",
+              },
+              "/*/*/oauth/{proxy+}",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "HttpAPIPOSTcreateshorturlCreateShortUrlLambdaIntegration86374E1F": {
       "Properties": {
         "ApiId": {
@@ -625,6 +660,123 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
+    "OAuthLambda063A5DDC": {
+      "DependsOn": [
+        "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D",
+        "OAuthLambdaServiceRole8CEB87E6",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "[S3 KEY]",
+        },
+        "Environment": {
+          "Variables": {
+            "IS_PROD": "true",
+            "USERS_TABLE_NAME": {
+              "Ref": "UsersTable9725E9C8",
+            },
+          },
+        },
+        "FunctionName": "TestBackendStack-OAuthLambda",
+        "Handler": "index.oAuthHandler",
+        "Role": {
+          "Fn::GetAtt": [
+            "OAuthLambdaServiceRole8CEB87E6",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "OAuthLambdaServiceRole8CEB87E6": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:ConditionCheckItem",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UsersTable9725E9C8",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:ssm:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/prod/oauth/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D",
+        "Roles": [
+          {
+            "Ref": "OAuthLambdaServiceRole8CEB87E6",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "UrlsTable60368425": {
       "DeletionPolicy": "Retain",
       "Properties": {
@@ -642,6 +794,27 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           },
         ],
         "TableName": "TestBackendStack-UrlsTable",
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UsersTable9725E9C8": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH",
+          },
+        ],
+        "TableName": "TestBackendStack-UsersTable",
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
@@ -687,40 +860,6 @@ exports[`Snapshot tests Website stack matches snapshot 1`] = `
     },
   },
   "Resources": {
-    "ApiCachePolicyF71AA3E6": {
-      "Properties": {
-        "CachePolicyConfig": {
-          "DefaultTTL": 86400,
-          "MaxTTL": 31536000,
-          "MinTTL": 0,
-          "Name": {
-            "Fn::Join": [
-              "",
-              [
-                "TestWebsiteStackApiCachePolicy041F8314-",
-                {
-                  "Ref": "AWS::Region",
-                },
-              ],
-            ],
-          },
-          "ParametersInCacheKeyAndForwardedToOrigin": {
-            "CookiesConfig": {
-              "CookieBehavior": "none",
-            },
-            "EnableAcceptEncodingBrotli": false,
-            "[S3 KEY]": false,
-            "HeadersConfig": {
-              "HeaderBehavior": "none",
-            },
-            "QueryStringsConfig": {
-              "QueryStringBehavior": "all",
-            },
-          },
-        },
-      },
-      "Type": "AWS::CloudFront::CachePolicy",
-    },
     "ApiRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb712F63709": {
       "Properties": {
         "AutoPublish": true,
@@ -1051,7 +1190,7 @@ async function handler(event) {
           ],
           "CacheBehaviors": [
             {
-              "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
               "Compress": true,
               "FunctionAssociations": [
                 {
@@ -1078,9 +1217,7 @@ async function handler(event) {
                 "POST",
                 "DELETE",
               ],
-              "CachePolicyId": {
-                "Ref": "ApiCachePolicyF71AA3E6",
-              },
+              "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
               "Compress": true,
               "FunctionAssociations": [
                 {
@@ -1093,6 +1230,7 @@ async function handler(event) {
                   },
                 },
               ],
+              "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
               "PathPattern": "/api/*",
               "TargetOriginId": "TestWebsiteStackDistributionOrigin34C5B183F",
               "ViewerProtocolPolicy": "redirect-to-https",
@@ -1293,7 +1431,9 @@ async function handler(event) {
 async function handler(event) {
   const request = event.request;
   const host = request.headers.host.value;
-  const newUrl = \`https://\${host}/create\`;
+  // TODO: when we update the CloudFront distribution so that S3 is the default,
+  // TODO: this can be changed to just /create
+  const newUrl = \`https://\${host}/create/shorten\`;
 
   if (request.uri === "/") {
     return {

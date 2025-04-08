@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FacebookLogo } from "@/assets/facebook";
 import { GoogleLogo } from "@/assets/google";
 import { PageContainer } from "@/components/page-container";
+import { useRouter } from "next/navigation";
 
 const createGoogleOAuthUrl = () => {
   const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -46,6 +47,7 @@ const createFacebookOAuthUrl = () => {
 };
 
 const Login = () => {
+  const router = useRouter();
   return (
     <PageContainer>
       <form
@@ -61,24 +63,18 @@ const Login = () => {
           </p>
         </div>
         <div className="grid w-full items-center gap-y-2">
-          <Link className="z-10" href={createGoogleOAuthUrl()} prefetch={false}>
-            <Button className="w-full" variant="secondary">
-              <GoogleLogo className="mr-2 h-4 w-4" />
-              Continue with Google
-            </Button>
-          </Link>
-          <Link className="z-10" href={createFacebookOAuthUrl()} prefetch={false}>
-            <Button className="w-full z-10" variant="secondary">
-              <FacebookLogo className="mr-2 h-4 w-4" />
-              Continue with Facebook
-            </Button>
-          </Link>
-          <Link className="z-10" href={createGitHubOAuthUrl()} prefetch={false}>
-            <Button className="w-full z-10" variant="secondary">
-              <MarkGithubIcon className="mr-2 h-4 w-4" />
-              Continue with GitHub
-            </Button>
-          </Link>
+          <Button className="w-full" variant="secondary" onClick={() => router.push(createGoogleOAuthUrl())}>
+            <GoogleLogo className="mr-2 h-4 w-4" />
+            Continue with Google
+          </Button>
+          <Button className="w-full z-10" variant="secondary" onClick={() => router.push(createFacebookOAuthUrl())}>
+            <FacebookLogo className="mr-2 h-4 w-4" />
+            Continue with Facebook
+          </Button>
+          <Button className="w-full z-10" variant="secondary" onClick={() => router.push(createGitHubOAuthUrl())}>
+            <MarkGithubIcon className="mr-2 h-4 w-4" />
+            Continue with GitHub
+          </Button>
         </div>
         <div className="mt-8 flex w-full items-center justify-center flex-row">
           <p className="text-xs text-muted-foreground text-center">

@@ -19,6 +19,7 @@ import { TextGradient } from "@/components/text-gradient";
 import { useAuth } from "@/contexts/auth";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
+import { isProd } from "@/lib/utils";
 
 const ShortUrlDetailsPage = () => {
   const router = useRouter();
@@ -152,7 +153,8 @@ const ShortUrlDetailsPage = () => {
             </CardFooter>
           </Card>
         )}
-        {!loggedIn && <CreateAccountSuggestion />}
+        {/* For now, only show login for dev */}
+        {!isProd && !loggedIn && <CreateAccountSuggestion />}
       </div>
     </PageContainer>
   );
