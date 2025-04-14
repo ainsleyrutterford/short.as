@@ -143,6 +143,55 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
+    "CreateShortUrlLambdaWarmingRuleAllowEventRuleTestBackendStackCreateShortUrlLambdaCA169B5AABC6240B": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "CreateShortUrlLambda0AED869B",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CreateShortUrlLambdaWarmingRuleB803B886",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "CreateShortUrlLambdaWarmingRuleB803B886": {
+      "Properties": {
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Warming rule for ",
+              {
+                "Ref": "CreateShortUrlLambda0AED869B",
+              },
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "CreateShortUrlLambda0AED869B",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"warming":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
     "GetLongUrlDetailsLambda3B6B278A": {
       "DependsOn": [
         "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyE8B99266",
@@ -334,6 +383,55 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "GetLongUrlLambdaWarmingRule8130972C": {
+      "Properties": {
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Warming rule for ",
+              {
+                "Ref": "GetLongUrlLambdaC5112ECB",
+              },
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "GetLongUrlLambdaC5112ECB",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"warming":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "GetLongUrlLambdaWarmingRuleAllowEventRuleTestBackendStackGetLongUrlLambdaCE717209AFA84177": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambdaC5112ECB",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambdaWarmingRule8130972C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "HttpAPI8D545486": {
       "Properties": {

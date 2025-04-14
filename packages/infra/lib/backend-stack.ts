@@ -8,6 +8,8 @@ import { PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 
 interface BackendStackProps extends cdk.StackProps {
   isProd?: boolean;
@@ -63,6 +65,15 @@ export class BackendStack extends cdk.Stack {
       },
     });
 
+    const createShortUrlLambdaWarmingRule = new Rule(this, "CreateShortUrlLambdaWarmingRule", {
+      description: `Warming rule for ${createShortUrlLambda.functionName}`,
+      schedule: Schedule.rate(cdk.Duration.minutes(5)),
+    });
+
+    createShortUrlLambdaWarmingRule.addTarget(
+      new LambdaFunction(createShortUrlLambda, { event: RuleTargetInput.fromObject({ warming: true }) }),
+    );
+
     const getLongUrlLambda = new LlrtFunction(this, "GetLongUrlLambda", {
       entry: "../lambda/src/handlers/get-long-url.ts",
       handler: "getLongUrlHandler",
@@ -72,6 +83,15 @@ export class BackendStack extends cdk.Stack {
         URLS_TABLE_NAME: urlsTable.tableName,
       },
     });
+
+    const getLongUrlLambdaWarmingRule = new Rule(this, "GetLongUrlLambdaWarmingRule", {
+      description: `Warming rule for ${getLongUrlLambda.functionName}`,
+      schedule: Schedule.rate(cdk.Duration.minutes(5)),
+    });
+
+    getLongUrlLambdaWarmingRule.addTarget(
+      new LambdaFunction(getLongUrlLambda, { event: RuleTargetInput.fromObject({ warming: true }) }),
+    );
 
     const getLongUrlDetailsLambda = new LlrtFunction(this, "GetLongUrlDetailsLambda", {
       entry: "../lambda/src/handlers/get-long-url.ts",
