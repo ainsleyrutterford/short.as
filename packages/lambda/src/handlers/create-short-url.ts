@@ -6,7 +6,14 @@ import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
 import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
 import { encodeNumber } from "../encoding";
 import { publishCorruptBucketMetric } from "../metrics";
-import { exponentialBackoffWithJitter, getStringEnvironmentVariable, response, wait } from "../utils";
+import {
+  exponentialBackoffWithJitter,
+  getStringEnvironmentVariable,
+  parseBody,
+  response,
+  wait,
+  warmingWrapper,
+} from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 import { cloudWatchClient } from "../clients/cloudwatch";
 
@@ -97,12 +104,11 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
 const foundCorruptBucket = (error: TransactionCanceledException) =>
   error.CancellationReasons?.[0]?.Code === "None" && error.CancellationReasons?.[1]?.Code !== "None";
 
-export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
+export const createShortUrlHandler: APIGatewayProxyHandlerV2 = warmingWrapper(async (event, _context) => {
   // Logging the entire event for now
   console.log(event);
 
-  const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? "", "base64").toString() : event.body;
-  const { longUrl } = JSON.parse(bodyString ?? "{}") as Body;
+  const { longUrl } = parseBody(event) as Body;
 
   if (!longUrl) {
     return response({
@@ -157,4 +163,4 @@ export const createShortUrlHandler: APIGatewayProxyHandlerV2 = async (event, _co
 
   // We shouldn't ever reach here so return an error incase
   return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
-};
+});

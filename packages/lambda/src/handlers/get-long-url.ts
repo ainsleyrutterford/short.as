@@ -1,7 +1,7 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import { getStringEnvironmentVariable, response } from "../utils";
+import { getStringEnvironmentVariable, response, warmingWrapper } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 
 interface PathParameters {
@@ -53,10 +53,10 @@ export const getLongUrlDetailsHandler: APIGatewayProxyHandlerV2 = async (event, 
     : maybeLongUrl;
 };
 
-export const getLongUrlHandler: APIGatewayProxyHandlerV2 = async (event, _context) => {
+export const getLongUrlHandler: APIGatewayProxyHandlerV2 = warmingWrapper(async (event, _context) => {
   console.log(event);
   const maybeLongUrl = await getLongUrl(event);
   return typeof maybeLongUrl === "string"
     ? response({ statusCode: 302, headers: { Location: maybeLongUrl } })
     : maybeLongUrl;
-};
+});

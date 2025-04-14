@@ -1,5 +1,10 @@
 import crypto from "crypto";
-import { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyHandlerV2,
+  APIGatewayProxyResultV2,
+  APIGatewayProxyStructuredResultV2,
+} from "aws-lambda";
 
 export const getStringEnvironmentVariable = (name: string) => {
   const environmentVariable = process.env[name];
@@ -17,6 +22,25 @@ export const response = (value: APIGatewayProxyStructuredResultV2): APIGatewayPr
   console.log(`Returning response: ${JSON.stringify(value)}`);
   return value;
 };
+
+export const parseBody = (event: APIGatewayProxyEventV2) => {
+  const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? "", "base64").toString() : event.body;
+  return JSON.parse(bodyString ?? "{}");
+};
+
+interface WarmingEvent {
+  warming?: boolean;
+}
+
+/**
+ * If a warming event is received then return early, otherwise call the wrapped handler
+ */
+export const warmingWrapper =
+  (handler: APIGatewayProxyHandlerV2): APIGatewayProxyHandlerV2 =>
+  async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
+    if ((event as WarmingEvent).warming) return response({ body: "Warming event handled" });
+    return handler(event, context, callback) ?? response({ body: "Callback event handled" });
+  };
 
 /**
  * Returns a random value x where 0 <= x < 1.
