@@ -1,8 +1,8 @@
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
+import { OAuthProvider } from "@short-as/types";
 
 import { isProd } from "../utils";
 import { ssmClient } from "../clients/ssm";
-import { OAuthProvider } from "./types";
 
 // TODO: LLRT doesn't support URL safe encoding until this is released: https://github.com/awslabs/llrt/pull/777
 export const replaceUrlSafeEncoding = (s: string) => s.replace(/_/g, "/").replace(/-/g, "+");

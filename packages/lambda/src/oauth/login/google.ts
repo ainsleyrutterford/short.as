@@ -1,7 +1,8 @@
 import { URLSearchParams } from "url";
+import { OAuthProvider } from "@short-as/types";
 
 import { fetchOAuthClientInformation } from "../utils";
-import { OAuthProvider, UserDdbInput } from "../types";
+import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
 import { decodeJwtPayload } from "../jwt";
 import { siteUrl } from "../../utils";
@@ -64,8 +65,7 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
       email: googleUser.email,
       name: googleUser.name,
       profilePictureUrl: googleUser.picture,
-      lastOAuthLoginTime: now,
-      lastRefreshLoginTime: now,
+      now,
     };
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "lambda",
+  "name": "@short-as/lambda",
   "version": "0.0.1",
   "scripts": {
     "build": "esbuild src/index.ts --platform=node --target=es2020 --outdir=dist --format=esm --bundle --minify --external:@aws-sdk --external:uuid",

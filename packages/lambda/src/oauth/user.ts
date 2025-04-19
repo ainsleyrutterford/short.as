@@ -1,10 +1,11 @@
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ReturnValue } from "@aws-sdk/client-dynamodb";
+import { User } from "@short-as/types";
 
 import { getStringEnvironmentVariable } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
-import { User, UserDdbInput } from "./types";
+import { UserDdbInput } from "./types";
 
 const generateUserUpdateCommandInputs = (user: UserDdbInput) => {
   const updateExpressions: string[] = [];
@@ -12,8 +13,8 @@ const generateUserUpdateCommandInputs = (user: UserDdbInput) => {
   const userExpressionAttributeValues: Record<string, unknown> = {};
 
   Object.entries(user).forEach(([key, value]) => {
-    // Update expression shouldn't contain the id
-    if (key !== "id") {
+    // Update expression shouldn't contain the id or "now"
+    if (key !== "id" && key !== "now") {
       updateExpressions.push(`#${key} = :${key}`);
       userExpressionAttributeNames[`#${key}`] = key;
       userExpressionAttributeValues[`:${key}`] = value;
@@ -45,12 +46,15 @@ export const createOrUpdateUser = async (user: UserDdbInput): Promise<User> => {
         "oAuthLogins = if_not_exists(oAuthLogins, :zero) + :one, " +
         // refreshTokenVersion starts at 1 and is incremented elsewhere in the code when a
         // user requests to log out of all devices
-        "refreshTokenVersion = if_not_exists(refreshTokenVersion, :one)",
+        "refreshTokenVersion = if_not_exists(refreshTokenVersion, :one), " +
+        "firstLoginTimestamp = if_not_exists(firstLoginTimestamp, :now), " +
+        "lastOAuthLoginTimestamp = :now",
       ExpressionAttributeNames: userExpressionAttributeNames,
       ExpressionAttributeValues: {
         ...userExpressionAttributeValues,
         ":zero": 0,
         ":one": 1,
+        ":now": user.now,
       },
       ReturnValues: ReturnValue.ALL_NEW,
     }),

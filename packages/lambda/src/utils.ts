@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { randomInt } from "crypto";
 import {
   APIGatewayProxyEventV2,
   APIGatewayProxyHandlerV2,
@@ -39,13 +39,14 @@ export const warmingWrapper =
   (handler: APIGatewayProxyHandlerV2): APIGatewayProxyHandlerV2 =>
   async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
     if ((event as WarmingEvent).warming) return response({ body: "Warming event handled" });
-    return handler(event, context, callback) ?? response({ body: "Callback event handled" });
+    const handlerResponse = handler(event, context, callback);
+    return handlerResponse ? handlerResponse : response({ body: "Callback event handled" });
   };
 
 /**
  * Returns a random value x where 0 <= x < 1.
  */
-const randomDecimalValue = () => crypto.randomInt(2 ** 16) / 2 ** 16;
+const randomDecimalValue = () => randomInt(2 ** 16) / 2 ** 16;
 
 /**
  * The max time a retry can wait in milliseconds.

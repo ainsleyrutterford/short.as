@@ -2,11 +2,12 @@ import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-l
 import * as cookie from "cookie";
 
 import { response } from "../utils";
-import { AccessToken, RefreshToken, User } from "./types";
+import { AccessToken, RefreshToken } from "./types";
 import { getUser } from "./user";
 import { nowInSeconds } from "./utils";
 import { decodeJwtPayload, isValidJwt } from "./jwt";
 import { createLoggedInCookies } from "./cookies";
+import { User } from "@short-as/types";
 
 export type AuthenticatedCallback = ({
   event,

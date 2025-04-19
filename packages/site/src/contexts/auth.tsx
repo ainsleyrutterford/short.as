@@ -2,24 +2,7 @@
 
 import React, { useContext } from "react";
 
-// TODO: maybe try and sync this with the backend type? Is it time to
-// TODO: start looking into tRPC or some OpenAPI generator?
-export enum OAuthProvider {
-  Google = "google",
-  GitHub = "github",
-  Facebook = "facebook",
-}
-
-// TODO: if we sync with backend, sync this too
-interface User {
-  id: string;
-  oAuthProvider: OAuthProvider;
-  email: string;
-  name: string;
-  profilePictureUrl: string;
-  lastOAuthLoginTime: number;
-  lastRefreshLoginTime: number;
-}
+import type { User } from "@short-as/types";
 
 interface AuthContextInterface {
   loggedIn: boolean;

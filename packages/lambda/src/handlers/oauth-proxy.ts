@@ -1,8 +1,8 @@
 import { APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { OAuthProvider } from "@short-as/types";
 
 import { response } from "../utils";
 import { handleMeRequest } from "../oauth/me";
-import { OAuthProvider } from "../oauth/types";
 import { GoogleLoginHandler } from "../oauth/login/google";
 import { FacebookLoginHandler } from "../oauth/login/facebook";
 import { GitHubLoginHandler } from "../oauth/login/github";
