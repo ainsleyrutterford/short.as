@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { randomInt } from "crypto";
 
 // Arbitrary number with high enough value to avoid DynamoDB collisions at high volumes:
 // 52^3
@@ -12,4 +12,4 @@ export const BUCKET_SIZE = 7311610;
 // E.g. the first bucket goes from 0 to 7311609, the next bucket from 7311610 onwards, etc.
 export const MAX_COUNT = BUCKET_SIZE - 1;
 
-export const getRandomCountBucketId = () => crypto.randomInt(NUM_COUNT_BUCKETS);
+export const getRandomCountBucketId = () => randomInt(NUM_COUNT_BUCKETS);

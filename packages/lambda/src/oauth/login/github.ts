@@ -1,5 +1,7 @@
+import { OAuthProvider } from "@short-as/types";
+
 import { fetchOAuthClientInformation } from "../utils";
-import { OAuthProvider, UserDdbInput } from "../types";
+import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
 
 interface GitHubOAuthResponse {
@@ -80,8 +82,7 @@ export class GitHubLoginHandler extends OAuthLoginHandler {
       email: githubUser.email,
       name: githubUser.name,
       profilePictureUrl: githubUser.avatar_url,
-      lastOAuthLoginTime: now,
-      lastRefreshLoginTime: now,
+      now,
     };
   }
 }

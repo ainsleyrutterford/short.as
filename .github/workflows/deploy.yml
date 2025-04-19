@@ -21,7 +21,7 @@ jobs:
         run: npm run lint
 
       - name: Install LLRT test runner
-        run: npx lerna run install-llrt-test-runner-linux --scope=lambda
+        run: npx lerna run install-llrt-test-runner-linux --scope=@short-as/lambda
 
       - name: Run tests
         run: npx lerna run test

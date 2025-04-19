@@ -7,8 +7,9 @@ import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { OAuthProvider, useAuth } from "@/contexts/auth";
+import { useAuth } from "@/contexts/auth";
 import { MarkGithubIcon } from "@primer/octicons-react";
+import { OAuthProvider } from "@short-as/types";
 import { useRouter } from "next/navigation";
 import React from "react";
 

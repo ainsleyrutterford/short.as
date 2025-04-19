@@ -1,8 +1,10 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { OAuthProvider } from "@short-as/types";
+
 import { nowInSeconds } from "../utils";
 import { response, siteUrl } from "../../utils";
 import { createOrUpdateUser } from "../user";
-import { OAuthProvider, UserDdbInput } from "../types";
+import { UserDdbInput } from "../types";
 import { createLoggedInCookies, TESTING_LOCALHOST } from "../cookies";
 
 export abstract class OAuthLoginHandler {

@@ -1,6 +1,7 @@
 import * as cookie from "cookie";
+import { OAuthProvider } from "@short-as/types";
 
-import { AccessToken, OAuthProvider, RefreshToken } from "./types";
+import { AccessToken, RefreshToken } from "./types";
 import { ACCESS_TOKEN_TTL, createSignedJwt, REFRESH_TOKEN_TTL } from "./jwt";
 
 // Set this to true when testing with localhost

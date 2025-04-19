@@ -1,8 +1,4 @@
-export enum OAuthProvider {
-  Google = "google",
-  GitHub = "github",
-  Facebook = "facebook",
-}
+import type { OAuthProvider, User } from "@short-as/types";
 
 export interface AccessToken {
   userId: string;
@@ -13,16 +9,13 @@ export interface RefreshToken extends AccessToken {
   version: number;
 }
 
-export interface User {
-  id: string;
-  oAuthProvider: OAuthProvider;
-  email: string;
-  name: string;
-  profilePictureUrl: string;
-  lastOAuthLoginTime: number;
-  lastRefreshLoginTime: number;
-  oAuthLogins: number;
-  refreshTokenVersion: number;
-}
-
-export type UserDdbInput = Omit<User, "oAuthLogins" | "refreshTokenVersion">;
+export type UserDdbInput = Omit<
+  User,
+  | "oAuthLogins"
+  | "refreshTokenVersion"
+  | "firstLoginTimestamp"
+  | "lastOAuthLoginTimestamp"
+  | "lastRefreshLoginTimestamp"
+> & {
+  now: number;
+};
