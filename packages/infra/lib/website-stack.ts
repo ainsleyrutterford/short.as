@@ -4,7 +4,7 @@ import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import { HttpOrigin, S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { HttpOrigin, S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
@@ -83,7 +83,7 @@ export class WebsiteStack extends cdk.Stack {
       additionalBehaviors: {
         // S3 origin behavior
         "/create*": {
-          origin: new S3Origin(bucket, { originAccessIdentity }),
+          origin: S3BucketOrigin.withOriginAccessIdentity(bucket, { originAccessIdentity }),
           // We don't need to worry about serving stale content as the S3 BucketDeployment docs say:
           // "Files in the distribution's edge caches will be invalidated after files are uploaded to the destination bucket."
           // This should also enable compression which helps for Google Lighthouse

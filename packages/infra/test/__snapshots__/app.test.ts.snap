@@ -1170,6 +1170,7 @@ async function handler(event) {
         "DistributionId": {
           "Ref": "Distribution830FAC52",
         },
+        "OutputObjectKeys": true,
         "Prune": true,
         "ServiceToken": {
           "Fn::GetAtt": [
@@ -1295,7 +1296,7 @@ async function handler(event) {
             "Arn",
           ],
         },
-        "Runtime": "python3.9",
+        "Runtime": "python3.11",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",

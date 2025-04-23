@@ -10,11 +10,11 @@
     "cdk": "cdk"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.131.0",
+    "aws-cdk-lib": "^2.191.0",
     "cdk-lambda-llrt": "^0.0.15",
     "constructs": "^10.0.0",
-    "lambda": "*",
-    "site": "*",
+    "@short-as/lambda": "*",
+    "@short-as/site": "*",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
