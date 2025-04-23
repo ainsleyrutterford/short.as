@@ -4,6 +4,8 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { getStringEnvironmentVariable, response, warmingWrapper } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 
+const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
+
 interface PathParameters {
   shortUrlId?: string;
 }
@@ -22,14 +24,7 @@ export const getLongUrl = async (
 
   console.log("Received short URL ID: ", shortUrlId);
 
-  const urlsTableName = getStringEnvironmentVariable("URLS_TABLE_NAME");
-
-  const { Item } = await dynamoClient.send(
-    new GetCommand({
-      TableName: urlsTableName,
-      Key: { shortUrlId },
-    }),
-  );
+  const { Item } = await dynamoClient.send(new GetCommand({ TableName: URLS_TABLE_NAME, Key: { shortUrlId } }));
 
   if (!Item) {
     return response({

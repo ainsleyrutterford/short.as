@@ -17,6 +17,9 @@ import {
 import { dynamoClient } from "../clients/dynamo";
 import { cloudWatchClient } from "../clients/cloudwatch";
 
+const COUNT_BUCKETS_TABLE_NAME = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
+const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
+
 interface Body {
   longUrl?: string;
 }
@@ -24,11 +27,8 @@ interface Body {
 const MAX_ATTEMPTS = 3;
 
 const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string) => {
-  const countBucketsTableName = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
-  const urlsTableName = getStringEnvironmentVariable("URLS_TABLE_NAME");
-
   const { Item } = await dynamoClient.send(
-    new GetCommand({ TableName: countBucketsTableName, Key: { id: countBucketId } }),
+    new GetCommand({ TableName: COUNT_BUCKETS_TABLE_NAME, Key: { id: countBucketId } }),
   );
 
   const count: number = Item ? Item.count : 0;
@@ -45,7 +45,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
   const countBucketTransactWriteItem = Item
     ? {
         Update: {
-          TableName: countBucketsTableName,
+          TableName: COUNT_BUCKETS_TABLE_NAME,
           Key: { id: countBucketId },
           UpdateExpression: "ADD #count :one",
           // Ensure this item hasn't been updated in the mean time
@@ -61,7 +61,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
       }
     : {
         Put: {
-          TableName: countBucketsTableName,
+          TableName: COUNT_BUCKETS_TABLE_NAME,
           // Set the count to 1
           Item: { id: countBucketId, count: 1 },
           // Ensure this item hasn't been created in the mean time
@@ -77,7 +77,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
         countBucketTransactWriteItem,
         {
           Put: {
-            TableName: urlsTableName,
+            TableName: URLS_TABLE_NAME,
             Item: { shortUrlId, longUrl, createdAt: new Date().toISOString() },
             // Ensure this item hasn't been created in the mean time
             ConditionExpression: "attribute_not_exists(shortUrlId)",

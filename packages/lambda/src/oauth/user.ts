@@ -7,14 +7,16 @@ import { getStringEnvironmentVariable } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 import { UserDdbInput } from "./types";
 
+const USERS_TABLE_NAME = getStringEnvironmentVariable("USERS_TABLE_NAME");
+
 const generateUserUpdateCommandInputs = (user: UserDdbInput) => {
   const updateExpressions: string[] = [];
   const userExpressionAttributeNames: Record<string, string> = {};
   const userExpressionAttributeValues: Record<string, unknown> = {};
 
   Object.entries(user).forEach(([key, value]) => {
-    // Update expression shouldn't contain the id or "now"
-    if (key !== "id" && key !== "now") {
+    // Update expression shouldn't contain the id
+    if (key !== "id") {
       updateExpressions.push(`#${key} = :${key}`);
       userExpressionAttributeNames[`#${key}`] = key;
       userExpressionAttributeValues[`:${key}`] = value;
@@ -31,14 +33,12 @@ const generateUserUpdateCommandInputs = (user: UserDdbInput) => {
 export const createOrUpdateUser = async (user: UserDdbInput): Promise<User> => {
   console.log("Creating or updating user in DynamoDB...");
 
-  const usersTableName = getStringEnvironmentVariable("USERS_TABLE_NAME");
-
   const { userUpdateExpression, userExpressionAttributeNames, userExpressionAttributeValues } =
     generateUserUpdateCommandInputs(user);
 
   const response = await dynamoClient.send(
     new UpdateCommand({
-      TableName: usersTableName,
+      TableName: USERS_TABLE_NAME,
       Key: { id: user.id },
       UpdateExpression:
         `SET ${userUpdateExpression}, ` +
@@ -54,7 +54,7 @@ export const createOrUpdateUser = async (user: UserDdbInput): Promise<User> => {
         ...userExpressionAttributeValues,
         ":zero": 0,
         ":one": 1,
-        ":now": user.now,
+        ":now": new Date().toISOString(),
       },
       ReturnValues: ReturnValue.ALL_NEW,
     }),
@@ -75,9 +75,7 @@ export const createOrUpdateUser = async (user: UserDdbInput): Promise<User> => {
 export const getUser = async (id: string): Promise<User> => {
   console.log(`Getting user ${id} from DynamoDB...`);
 
-  const usersTableName = getStringEnvironmentVariable("USERS_TABLE_NAME");
-
-  const response = await dynamoClient.send(new GetCommand({ TableName: usersTableName, Key: { id } }));
+  const response = await dynamoClient.send(new GetCommand({ TableName: USERS_TABLE_NAME, Key: { id } }));
 
   if (response.Item) {
     return response.Item as User;

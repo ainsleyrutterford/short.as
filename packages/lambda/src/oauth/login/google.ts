@@ -54,7 +54,7 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
     return response.json();
   }
 
-  async fetchUserData(now: number, code: string): Promise<UserDdbInput> {
+  async fetchUserData(code: string): Promise<UserDdbInput> {
     const { id_token } = await this.fetchGoogleOAuthTokens(code);
     const googleUser = decodeJwtPayload<GoogleUser>(id_token);
 
@@ -65,7 +65,6 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
       email: googleUser.email,
       name: googleUser.name,
       profilePictureUrl: googleUser.picture,
-      now,
     };
   }
 }

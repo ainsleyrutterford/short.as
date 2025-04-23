@@ -18,7 +18,7 @@ export abstract class OAuthLoginHandler {
       : siteUrl
   }/create/shorten?loggedIn=true`;
 
-  abstract fetchUserData(now: number, code: string): Promise<UserDdbInput>;
+  abstract fetchUserData(code: string): Promise<UserDdbInput>;
 
   async handleRequest(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> {
     console.log(`Handling ${this.oAuthProvider} OAuth request...`);
@@ -33,7 +33,7 @@ export abstract class OAuthLoginHandler {
       });
     }
 
-    const user = await this.fetchUserData(now, code);
+    const user = await this.fetchUserData(code);
 
     const { id: userId, oAuthProvider, refreshTokenVersion } = await createOrUpdateUser(user);
 

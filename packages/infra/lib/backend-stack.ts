@@ -38,6 +38,14 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UrlsTable"),
     });
 
+    const urlsTableUserIdGsi = "user-id-gsi";
+
+    urlsTable.addGlobalSecondaryIndex({
+      indexName: urlsTableUserIdGsi,
+      partitionKey: { name: "owningUserId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "createdAt", type: dynamodb.AttributeType.STRING },
+    });
+
     const usersTable = new dynamodb.Table(this, "UsersTable", {
       partitionKey: {
         name: "id",
@@ -167,6 +175,29 @@ export class BackendStack extends cdk.Stack {
           effect: Effect.ALLOW,
           actions: ["ssm:GetParameter"],
           resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
+        }),
+      ],
+    });
+
+    new ApiRouteLambda(this, "GetAllUrlsForUserLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        entry: "../lambda/src/handlers/get-all-urls-for-user.ts",
+        handler: "getAllUrlsForUserHandler",
+        functionName: this.createResourceName("GetAllUrlsForUserLambda"),
+        environment: {
+          URLS_TABLE_NAME: urlsTable.tableName,
+          USER_ID_GSI_NAME: urlsTableUserIdGsi,
+        },
+      },
+      path: "/users/{userId}/urls",
+      methods: [apigateway.HttpMethod.GET],
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["dynamodb:QueryItem"],
+          resources: [`${urlsTable.tableArn}/index/${urlsTableUserIdGsi}`],
         }),
       ],
     });

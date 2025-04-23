@@ -16,6 +16,4 @@ export type UserDdbInput = Omit<
   | "firstLoginTimestamp"
   | "lastOAuthLoginTimestamp"
   | "lastRefreshLoginTimestamp"
-> & {
-  now: number;
-};
+>;

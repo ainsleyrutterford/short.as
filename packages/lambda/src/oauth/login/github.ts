@@ -72,7 +72,7 @@ export class GitHubLoginHandler extends OAuthLoginHandler {
     return response.json();
   }
 
-  async fetchUserData(now: number, code: string): Promise<UserDdbInput> {
+  async fetchUserData(code: string): Promise<UserDdbInput> {
     const { access_token } = await this.fetchGitHubOAuthTokens(code);
     const githubUser = await this.fetchGitHubUserData(access_token);
 
@@ -82,7 +82,6 @@ export class GitHubLoginHandler extends OAuthLoginHandler {
       email: githubUser.email,
       name: githubUser.name,
       profilePictureUrl: githubUser.avatar_url,
-      now,
     };
   }
 }
