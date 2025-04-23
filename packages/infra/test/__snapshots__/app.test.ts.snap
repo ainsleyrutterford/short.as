@@ -56,7 +56,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-CreateShortUrlLambda2",
+        "FunctionName": "TestBackendStack-CreateShortUrlLambda",
         "Handler": "index.createShortUrlHandler",
         "LoggingConfig": {
           "LogGroup": {
@@ -76,7 +76,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
     "CreateShortUrlLambdaLogGroup6C68F8CF": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "LogGroupName": "/aws/lambda/TestBackendStack-CreateShortUrlLambda2",
+        "LogGroupName": "/aws/lambda/TestBackendStack-CreateShortUrlLambda",
         "RetentionInDays": 731,
       },
       "Type": "AWS::Logs::LogGroup",
@@ -228,7 +228,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-GetLongUrlDetailsLambda2",
+        "FunctionName": "TestBackendStack-GetLongUrlDetailsLambda",
         "Handler": "index.getLongUrlDetailsHandler",
         "LoggingConfig": {
           "LogGroup": {
@@ -248,7 +248,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
     "GetLongUrlDetailsLambdaLogGroup88E4D7C1": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlDetailsLambda2",
+        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlDetailsLambda",
         "RetentionInDays": 731,
       },
       "Type": "AWS::Logs::LogGroup",
@@ -387,7 +387,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-GetLongUrlLambda2",
+        "FunctionName": "TestBackendStack-GetLongUrlLambda",
         "Handler": "index.getLongUrlHandler",
         "LoggingConfig": {
           "LogGroup": {
@@ -407,7 +407,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
     "GetLongUrlLambdaLogGroupAC3AA164": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlLambda2",
+        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlLambda",
         "RetentionInDays": 731,
       },
       "Type": "AWS::Logs::LogGroup",
@@ -872,7 +872,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-OAuthLambda2",
+        "FunctionName": "TestBackendStack-OAuthLambda",
         "Handler": "index.oAuthHandler",
         "LoggingConfig": {
           "LogGroup": {
@@ -892,7 +892,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
     "OAuthLambdaLogGroupB299A621": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "LogGroupName": "/aws/lambda/TestBackendStack-OAuthLambda2",
+        "LogGroupName": "/aws/lambda/TestBackendStack-OAuthLambda",
         "RetentionInDays": 731,
       },
       "Type": "AWS::Logs::LogGroup",

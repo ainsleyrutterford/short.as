@@ -75,7 +75,7 @@ export class BackendStack extends cdk.Stack {
         // This filepath is relative to the root of the infra package I believe
         entry: "../lambda/src/handlers/create-short-url.ts",
         handler: "createShortUrlHandler",
-        functionName: this.createResourceName("CreateShortUrlLambda2"),
+        functionName: this.createResourceName("CreateShortUrlLambda"),
         // This handler uses the CloudWatch client so it needs the full SDK,
         // the other handlers can just use the standard SDKs that are bundled
         llrtBinaryType: LlrtBinaryType.FULL_SDK,
@@ -102,7 +102,7 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
         handler: "getLongUrlHandler",
-        functionName: this.createResourceName("GetLongUrlLambda2"),
+        functionName: this.createResourceName("GetLongUrlLambda"),
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
         },
@@ -124,7 +124,7 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
         handler: "getLongUrlDetailsHandler",
-        functionName: this.createResourceName("GetLongUrlDetailsLambda2"),
+        functionName: this.createResourceName("GetLongUrlDetailsLambda"),
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
         },
@@ -146,7 +146,7 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/oauth-proxy.ts",
         handler: "oAuthHandler",
-        functionName: this.createResourceName("OAuthLambda2"),
+        functionName: this.createResourceName("OAuthLambda"),
         // This handler uses the SSM client so it needs the full SDK
         llrtBinaryType: LlrtBinaryType.FULL_SDK,
         environment: {
