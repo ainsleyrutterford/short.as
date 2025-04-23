@@ -3,13 +3,10 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import { Construct } from "constructs";
 
-import { LlrtBinaryType, LlrtFunction } from "cdk-lambda-llrt";
+import { LlrtBinaryType } from "cdk-lambda-llrt";
 import { PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
-import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
-import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { ApiRouteLambda } from "./constructs/api-route-lambda";
 
 interface BackendStackProps extends cdk.StackProps {
   isProd?: boolean;
@@ -50,116 +47,6 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UsersTable"),
     });
 
-    const createShortUrlLambda = new LlrtFunction(this, "CreateShortUrlLambda", {
-      // This filepath is relative to the root of the infra package I believe
-      entry: "../lambda/src/handlers/create-short-url.ts",
-      handler: "createShortUrlHandler",
-      architecture: Architecture.ARM_64,
-      functionName: this.createResourceName("CreateShortUrlLambda"),
-      // This handler uses the CloudWatch client so it needs the full SDK,
-      // the other handlers can just use the standard SDKs that are bundled
-      llrtBinaryType: LlrtBinaryType.FULL_SDK,
-      environment: {
-        COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
-        URLS_TABLE_NAME: urlsTable.tableName,
-      },
-    });
-
-    const createShortUrlLambdaWarmingRule = new Rule(this, "CreateShortUrlLambdaWarmingRule", {
-      description: `Warming rule for ${createShortUrlLambda.functionName}`,
-      schedule: Schedule.rate(cdk.Duration.minutes(5)),
-    });
-
-    createShortUrlLambdaWarmingRule.addTarget(
-      new LambdaFunction(createShortUrlLambda, { event: RuleTargetInput.fromObject({ warming: true }) }),
-    );
-
-    const getLongUrlLambda = new LlrtFunction(this, "GetLongUrlLambda", {
-      entry: "../lambda/src/handlers/get-long-url.ts",
-      handler: "getLongUrlHandler",
-      architecture: Architecture.ARM_64,
-      functionName: this.createResourceName("GetLongUrlLambda"),
-      environment: {
-        URLS_TABLE_NAME: urlsTable.tableName,
-      },
-    });
-
-    const getLongUrlLambdaWarmingRule = new Rule(this, "GetLongUrlLambdaWarmingRule", {
-      description: `Warming rule for ${getLongUrlLambda.functionName}`,
-      schedule: Schedule.rate(cdk.Duration.minutes(5)),
-    });
-
-    getLongUrlLambdaWarmingRule.addTarget(
-      new LambdaFunction(getLongUrlLambda, { event: RuleTargetInput.fromObject({ warming: true }) }),
-    );
-
-    const getLongUrlDetailsLambda = new LlrtFunction(this, "GetLongUrlDetailsLambda", {
-      entry: "../lambda/src/handlers/get-long-url.ts",
-      handler: "getLongUrlDetailsHandler",
-      architecture: Architecture.ARM_64,
-      functionName: this.createResourceName("GetLongUrlDetailsLambda"),
-      environment: {
-        URLS_TABLE_NAME: urlsTable.tableName,
-      },
-    });
-
-    const oAuthLambda = new LlrtFunction(this, "OAuthLambda", {
-      entry: "../lambda/src/handlers/oauth-proxy.ts",
-      handler: "oAuthHandler",
-      architecture: Architecture.ARM_64,
-      functionName: this.createResourceName("OAuthLambda"),
-      // This handler uses the SSM client so it needs the full SDK
-      llrtBinaryType: LlrtBinaryType.FULL_SDK,
-      environment: {
-        USERS_TABLE_NAME: usersTable.tableName,
-        IS_PROD: props?.isProd ? "true" : "false",
-      },
-    });
-
-    createShortUrlLambda.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-        resources: [countBucketsTable.tableArn, urlsTable.tableArn],
-      }),
-    );
-
-    createShortUrlLambda.addToRolePolicy(
-      new PolicyStatement({ effect: Effect.ALLOW, actions: ["cloudwatch:PutMetricData"], resources: ["*"] }),
-    );
-
-    getLongUrlLambda.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-        resources: [urlsTable.tableArn],
-      }),
-    );
-
-    getLongUrlDetailsLambda.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-        resources: [urlsTable.tableArn],
-      }),
-    );
-
-    oAuthLambda.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-        resources: [usersTable.tableArn],
-      }),
-    );
-
-    oAuthLambda.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["ssm:GetParameter"],
-        resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
-      }),
-    );
-
     const allowOrigins = ["https://short.as", "https://www.short.as", "https://dev.short.as"];
 
     if (!props?.isProd) {
@@ -168,7 +55,7 @@ export class BackendStack extends cdk.Stack {
       );
     }
 
-    const httpApi = new apigateway.HttpApi(this, "HttpAPI", {
+    this.httpApi = new apigateway.HttpApi(this, "HttpAPI", {
       apiName: this.createResourceName("HttpAPI"),
       corsPreflight: {
         allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
@@ -179,34 +66,110 @@ export class BackendStack extends cdk.Stack {
     });
 
     if (!props?.isProd) {
-      this.enableLogging(httpApi);
+      this.enableHttpApiLogging();
     }
 
-    httpApi.addRoutes({
+    new ApiRouteLambda(this, "CreateShortUrlLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        // This filepath is relative to the root of the infra package I believe
+        entry: "../lambda/src/handlers/create-short-url.ts",
+        handler: "createShortUrlHandler",
+        functionName: this.createResourceName("CreateShortUrlLambda2"),
+        // This handler uses the CloudWatch client so it needs the full SDK,
+        // the other handlers can just use the standard SDKs that are bundled
+        llrtBinaryType: LlrtBinaryType.FULL_SDK,
+        environment: {
+          COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
+          URLS_TABLE_NAME: urlsTable.tableName,
+        },
+      },
       path: "/create-short-url",
       methods: [apigateway.HttpMethod.POST],
-      integration: new HttpLambdaIntegration("CreateShortUrlLambdaIntegration", createShortUrlLambda),
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+          resources: [countBucketsTable.tableArn, urlsTable.tableArn],
+        }),
+        new PolicyStatement({ effect: Effect.ALLOW, actions: ["cloudwatch:PutMetricData"], resources: ["*"] }),
+      ],
     });
 
-    httpApi.addRoutes({
+    new ApiRouteLambda(this, "GetLongUrlLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        entry: "../lambda/src/handlers/get-long-url.ts",
+        handler: "getLongUrlHandler",
+        functionName: this.createResourceName("GetLongUrlLambda2"),
+        environment: {
+          URLS_TABLE_NAME: urlsTable.tableName,
+        },
+      },
       path: "/get-long-url/{shortUrlId}",
       methods: [apigateway.HttpMethod.GET],
-      integration: new HttpLambdaIntegration("GetLongUrlLambdaIntegration", getLongUrlLambda),
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+          resources: [urlsTable.tableArn],
+        }),
+      ],
     });
 
-    httpApi.addRoutes({
+    new ApiRouteLambda(this, "GetLongUrlDetailsLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        entry: "../lambda/src/handlers/get-long-url.ts",
+        handler: "getLongUrlDetailsHandler",
+        functionName: this.createResourceName("GetLongUrlDetailsLambda2"),
+        environment: {
+          URLS_TABLE_NAME: urlsTable.tableName,
+        },
+      },
       path: "/get-long-url-details/{shortUrlId}",
       methods: [apigateway.HttpMethod.GET],
-      integration: new HttpLambdaIntegration("GetLongUrlDetailsLambdaIntegration", getLongUrlDetailsLambda),
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+          resources: [urlsTable.tableArn],
+        }),
+      ],
     });
 
-    httpApi.addRoutes({
+    new ApiRouteLambda(this, "OAuthLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        entry: "../lambda/src/handlers/oauth-proxy.ts",
+        handler: "oAuthHandler",
+        functionName: this.createResourceName("OAuthLambda2"),
+        // This handler uses the SSM client so it needs the full SDK
+        llrtBinaryType: LlrtBinaryType.FULL_SDK,
+        environment: {
+          USERS_TABLE_NAME: usersTable.tableName,
+          IS_PROD: props?.isProd ? "true" : "false",
+        },
+      },
       path: "/oauth/{proxy+}",
       methods: [apigateway.HttpMethod.GET],
-      integration: new HttpLambdaIntegration("OAuthLambdaIntegration", oAuthLambda),
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+          resources: [usersTable.tableArn],
+        }),
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["ssm:GetParameter"],
+          resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
+        }),
+      ],
     });
-
-    this.httpApi = httpApi;
   }
 
   createResourceName(suffix: string) {
@@ -214,10 +177,10 @@ export class BackendStack extends cdk.Stack {
   }
 
   // https://www.kevinwmcconnell.com/cdk/http-api-logs-with-cdk
-  enableLogging(api: apigateway.HttpApi) {
+  enableHttpApiLogging() {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const stage = api.defaultStage!.node.defaultChild as apigateway.CfnStage;
-    const logGroup = new LogGroup(api, "AccessLogs", { retention: 90 });
+    const stage = this.httpApi.defaultStage!.node.defaultChild as apigateway.CfnStage;
+    const logGroup = new LogGroup(this.httpApi, "AccessLogs", { retention: 90 });
 
     stage.accessLogSettings = {
       destinationArn: logGroup.logGroupArn,
