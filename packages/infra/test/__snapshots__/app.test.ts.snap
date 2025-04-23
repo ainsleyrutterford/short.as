@@ -31,10 +31,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
-    "CreateShortUrlLambda0AED869B": {
+    "CreateShortUrlLambda8EAB433A": {
       "DependsOn": [
-        "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861",
-        "CreateShortUrlLambdaServiceRole009F038F",
+        "CreateShortUrlLambdaServiceRoleDefaultPolicy1D5B5086",
+        "CreateShortUrlLambdaServiceRole05A03927",
       ],
       "Properties": {
         "Architectures": [
@@ -56,11 +56,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-CreateShortUrlLambda",
+        "FunctionName": "TestBackendStack-CreateShortUrlLambda2",
         "Handler": "index.createShortUrlHandler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "CreateShortUrlLambdaLogGroup6C68F8CF",
+          },
+        },
         "Role": {
           "Fn::GetAtt": [
-            "CreateShortUrlLambdaServiceRole009F038F",
+            "CreateShortUrlLambdaServiceRole05A03927",
             "Arn",
           ],
         },
@@ -68,7 +73,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "CreateShortUrlLambdaServiceRole009F038F": {
+    "CreateShortUrlLambdaLogGroup6C68F8CF": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/TestBackendStack-CreateShortUrlLambda2",
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "CreateShortUrlLambdaServiceRole05A03927": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -99,7 +113,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861": {
+    "CreateShortUrlLambdaServiceRoleDefaultPolicy1D5B5086": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -134,68 +148,68 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "CreateShortUrlLambdaServiceRoleDefaultPolicy64776861",
+        "PolicyName": "CreateShortUrlLambdaServiceRoleDefaultPolicy1D5B5086",
         "Roles": [
           {
-            "Ref": "CreateShortUrlLambdaServiceRole009F038F",
+            "Ref": "CreateShortUrlLambdaServiceRole05A03927",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "CreateShortUrlLambdaWarmingRuleAllowEventRuleTestBackendStackCreateShortUrlLambdaCA169B5AABC6240B": {
+    "CreateShortUrlLambdaWarmingRule75FFEA04": {
+      "Properties": {
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Warming rule for ",
+              {
+                "Ref": "CreateShortUrlLambda8EAB433A",
+              },
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "CreateShortUrlLambda8EAB433A",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"warming":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "CreateShortUrlLambdaWarmingRuleAllowEventRuleTestBackendStackCreateShortUrlLambdaD129AA37DDDCA692": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "CreateShortUrlLambda0AED869B",
+            "CreateShortUrlLambda8EAB433A",
             "Arn",
           ],
         },
         "Principal": "events.amazonaws.com",
         "SourceArn": {
           "Fn::GetAtt": [
-            "CreateShortUrlLambdaWarmingRuleB803B886",
+            "CreateShortUrlLambdaWarmingRule75FFEA04",
             "Arn",
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "CreateShortUrlLambdaWarmingRuleB803B886": {
-      "Properties": {
-        "Description": {
-          "Fn::Join": [
-            "",
-            [
-              "Warming rule for ",
-              {
-                "Ref": "CreateShortUrlLambda0AED869B",
-              },
-            ],
-          ],
-        },
-        "ScheduleExpression": "rate(5 minutes)",
-        "State": "ENABLED",
-        "Targets": [
-          {
-            "Arn": {
-              "Fn::GetAtt": [
-                "CreateShortUrlLambda0AED869B",
-                "Arn",
-              ],
-            },
-            "Id": "Target0",
-            "Input": "{"warming":true}",
-          },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
-    "GetLongUrlDetailsLambda3B6B278A": {
+    "GetLongUrlDetailsLambdaBD420BC9": {
       "DependsOn": [
-        "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyE8B99266",
-        "GetLongUrlDetailsLambdaServiceRoleD4E13140",
+        "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyD5ED6EEE",
+        "GetLongUrlDetailsLambdaServiceRole25655083",
       ],
       "Properties": {
         "Architectures": [
@@ -214,11 +228,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-GetLongUrlDetailsLambda",
+        "FunctionName": "TestBackendStack-GetLongUrlDetailsLambda2",
         "Handler": "index.getLongUrlDetailsHandler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "GetLongUrlDetailsLambdaLogGroup88E4D7C1",
+          },
+        },
         "Role": {
           "Fn::GetAtt": [
-            "GetLongUrlDetailsLambdaServiceRoleD4E13140",
+            "GetLongUrlDetailsLambdaServiceRole25655083",
             "Arn",
           ],
         },
@@ -226,7 +245,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "GetLongUrlDetailsLambdaServiceRoleD4E13140": {
+    "GetLongUrlDetailsLambdaLogGroup88E4D7C1": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlDetailsLambda2",
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "GetLongUrlDetailsLambdaServiceRole25655083": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -257,7 +285,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyE8B99266": {
+    "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyD5ED6EEE": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -279,112 +307,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyE8B99266",
+        "PolicyName": "GetLongUrlDetailsLambdaServiceRoleDefaultPolicyD5ED6EEE",
         "Roles": [
           {
-            "Ref": "GetLongUrlDetailsLambdaServiceRoleD4E13140",
+            "Ref": "GetLongUrlDetailsLambdaServiceRole25655083",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "GetLongUrlLambdaC5112ECB": {
-      "DependsOn": [
-        "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8",
-        "GetLongUrlLambdaServiceRole025A1693",
-      ],
-      "Properties": {
-        "Architectures": [
-          "arm64",
-        ],
-        "Code": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "[S3 KEY]",
-        },
-        "Environment": {
-          "Variables": {
-            "URLS_TABLE_NAME": {
-              "Ref": "UrlsTable60368425",
-            },
-          },
-        },
-        "FunctionName": "TestBackendStack-GetLongUrlLambda",
-        "Handler": "index.getLongUrlHandler",
-        "Role": {
-          "Fn::GetAtt": [
-            "GetLongUrlLambdaServiceRole025A1693",
-            "Arn",
-          ],
-        },
-        "Runtime": "provided.al2023",
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "GetLongUrlLambdaServiceRole025A1693": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "dynamodb:GetItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:ConditionCheckItem",
-              ],
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "UrlsTable60368425",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "GetLongUrlLambdaServiceRoleDefaultPolicy0DF8ACD8",
-        "Roles": [
-          {
-            "Ref": "GetLongUrlLambdaServiceRole025A1693",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "GetLongUrlLambdaWarmingRule8130972C": {
+    "GetLongUrlDetailsLambdaWarmingRule289F9C19": {
       "Properties": {
         "Description": {
           "Fn::Join": [
@@ -392,7 +324,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             [
               "Warming rule for ",
               {
-                "Ref": "GetLongUrlLambdaC5112ECB",
+                "Ref": "GetLongUrlDetailsLambdaBD420BC9",
               },
             ],
           ],
@@ -403,7 +335,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           {
             "Arn": {
               "Fn::GetAtt": [
-                "GetLongUrlLambdaC5112ECB",
+                "GetLongUrlDetailsLambdaBD420BC9",
                 "Arn",
               ],
             },
@@ -414,19 +346,178 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Events::Rule",
     },
-    "GetLongUrlLambdaWarmingRuleAllowEventRuleTestBackendStackGetLongUrlLambdaCE717209AFA84177": {
+    "GetLongUrlDetailsLambdaWarmingRuleAllowEventRuleTestBackendStackGetLongUrlDetailsLambda9320ED081BE857DF": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "GetLongUrlLambdaC5112ECB",
+            "GetLongUrlDetailsLambdaBD420BC9",
             "Arn",
           ],
         },
         "Principal": "events.amazonaws.com",
         "SourceArn": {
           "Fn::GetAtt": [
-            "GetLongUrlLambdaWarmingRule8130972C",
+            "GetLongUrlDetailsLambdaWarmingRule289F9C19",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "GetLongUrlLambda1C69761E": {
+      "DependsOn": [
+        "GetLongUrlLambdaServiceRoleDefaultPolicyA405D6BA",
+        "GetLongUrlLambdaServiceRole6B2DF149",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "[S3 KEY]",
+        },
+        "Environment": {
+          "Variables": {
+            "URLS_TABLE_NAME": {
+              "Ref": "UrlsTable60368425",
+            },
+          },
+        },
+        "FunctionName": "TestBackendStack-GetLongUrlLambda2",
+        "Handler": "index.getLongUrlHandler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "GetLongUrlLambdaLogGroupAC3AA164",
+          },
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambdaServiceRole6B2DF149",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "GetLongUrlLambdaLogGroupAC3AA164": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/TestBackendStack-GetLongUrlLambda2",
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "GetLongUrlLambdaServiceRole6B2DF149": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "GetLongUrlLambdaServiceRoleDefaultPolicyA405D6BA": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:ConditionCheckItem",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UrlsTable60368425",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetLongUrlLambdaServiceRoleDefaultPolicyA405D6BA",
+        "Roles": [
+          {
+            "Ref": "GetLongUrlLambdaServiceRole6B2DF149",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetLongUrlLambdaWarmingRule95F8EFD9": {
+      "Properties": {
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Warming rule for ",
+              {
+                "Ref": "GetLongUrlLambda1C69761E",
+              },
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "GetLongUrlLambda1C69761E",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"warming":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "GetLongUrlLambdaWarmingRuleAllowEventRuleTestBackendStackGetLongUrlLambda0D45BD487BA77012": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambda1C69761E",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "GetLongUrlLambdaWarmingRule95F8EFD9",
             "Arn",
           ],
         },
@@ -475,7 +566,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             [
               "integrations/",
               {
-                "Ref": "HttpAPIGETgetlongurldetailsshortUrlIdGetLongUrlDetailsLambdaIntegrationCAE9D52F",
+                "Ref": "HttpAPIGETgetlongurldetailsshortUrlIdLambdaIntegration4BF7D545",
               },
             ],
           ],
@@ -483,7 +574,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "HttpAPIGETgetlongurldetailsshortUrlIdGetLongUrlDetailsLambdaIntegrationCAE9D52F": {
+    "HttpAPIGETgetlongurldetailsshortUrlIdLambdaIntegration4BF7D545": {
       "Properties": {
         "ApiId": {
           "Ref": "HttpAPI8D545486",
@@ -491,7 +582,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {
           "Fn::GetAtt": [
-            "GetLongUrlDetailsLambda3B6B278A",
+            "GetLongUrlDetailsLambdaBD420BC9",
             "Arn",
           ],
         },
@@ -499,12 +590,12 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "HttpAPIGETgetlongurldetailsshortUrlIdGetLongUrlDetailsLambdaIntegrationPermissionB0B6E88C": {
+    "HttpAPIGETgetlongurldetailsshortUrlIdLambdaIntegrationPermission408FA10A": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "GetLongUrlDetailsLambda3B6B278A",
+            "GetLongUrlDetailsLambdaBD420BC9",
             "Arn",
           ],
         },
@@ -549,7 +640,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             [
               "integrations/",
               {
-                "Ref": "HttpAPIGETgetlongurlshortUrlIdGetLongUrlLambdaIntegrationF0B88EFF",
+                "Ref": "HttpAPIGETgetlongurlshortUrlIdLambdaIntegration3D1D06C8",
               },
             ],
           ],
@@ -557,7 +648,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "HttpAPIGETgetlongurlshortUrlIdGetLongUrlLambdaIntegrationF0B88EFF": {
+    "HttpAPIGETgetlongurlshortUrlIdLambdaIntegration3D1D06C8": {
       "Properties": {
         "ApiId": {
           "Ref": "HttpAPI8D545486",
@@ -565,7 +656,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {
           "Fn::GetAtt": [
-            "GetLongUrlLambdaC5112ECB",
+            "GetLongUrlLambda1C69761E",
             "Arn",
           ],
         },
@@ -573,12 +664,12 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "HttpAPIGETgetlongurlshortUrlIdGetLongUrlLambdaIntegrationPermission117D995A": {
+    "HttpAPIGETgetlongurlshortUrlIdLambdaIntegrationPermissionC7FC2A03": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "GetLongUrlLambdaC5112ECB",
+            "GetLongUrlLambda1C69761E",
             "Arn",
           ],
         },
@@ -623,7 +714,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             [
               "integrations/",
               {
-                "Ref": "HttpAPIGEToauthproxyOAuthLambdaIntegrationC97BA312",
+                "Ref": "HttpAPIGEToauthproxyLambdaIntegration9E23C3F5",
               },
             ],
           ],
@@ -631,7 +722,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "HttpAPIGEToauthproxyOAuthLambdaIntegrationC97BA312": {
+    "HttpAPIGEToauthproxyLambdaIntegration9E23C3F5": {
       "Properties": {
         "ApiId": {
           "Ref": "HttpAPI8D545486",
@@ -639,7 +730,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {
           "Fn::GetAtt": [
-            "OAuthLambda063A5DDC",
+            "OAuthLambda5A654FC4",
             "Arn",
           ],
         },
@@ -647,12 +738,12 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "HttpAPIGEToauthproxyOAuthLambdaIntegrationPermission9253165E": {
+    "HttpAPIGEToauthproxyLambdaIntegrationPermission3970BAFE": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "OAuthLambda063A5DDC",
+            "OAuthLambda5A654FC4",
             "Arn",
           ],
         },
@@ -684,7 +775,28 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "HttpAPIPOSTcreateshorturlCreateShortUrlLambdaIntegration86374E1F": {
+    "HttpAPIPOSTcreateshorturlF335CED1": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpAPI8D545486",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /create-short-url",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "HttpAPIPOSTcreateshorturlLambdaIntegration6080C311",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "HttpAPIPOSTcreateshorturlLambdaIntegration6080C311": {
       "Properties": {
         "ApiId": {
           "Ref": "HttpAPI8D545486",
@@ -692,7 +804,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "IntegrationType": "AWS_PROXY",
         "IntegrationUri": {
           "Fn::GetAtt": [
-            "CreateShortUrlLambda0AED869B",
+            "CreateShortUrlLambda8EAB433A",
             "Arn",
           ],
         },
@@ -700,12 +812,12 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "HttpAPIPOSTcreateshorturlCreateShortUrlLambdaIntegrationPermissionF47EDEC2": {
+    "HttpAPIPOSTcreateshorturlLambdaIntegrationPermission2AD59C79": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
           "Fn::GetAtt": [
-            "CreateShortUrlLambda0AED869B",
+            "CreateShortUrlLambda8EAB433A",
             "Arn",
           ],
         },
@@ -737,31 +849,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "HttpAPIPOSTcreateshorturlF335CED1": {
-      "Properties": {
-        "ApiId": {
-          "Ref": "HttpAPI8D545486",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "POST /create-short-url",
-        "Target": {
-          "Fn::Join": [
-            "",
-            [
-              "integrations/",
-              {
-                "Ref": "HttpAPIPOSTcreateshorturlCreateShortUrlLambdaIntegration86374E1F",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "OAuthLambda063A5DDC": {
+    "OAuthLambda5A654FC4": {
       "DependsOn": [
-        "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D",
-        "OAuthLambdaServiceRole8CEB87E6",
+        "OAuthLambdaServiceRoleDefaultPolicy6729CF8D",
+        "OAuthLambdaServiceRole36582DA5",
       ],
       "Properties": {
         "Architectures": [
@@ -781,11 +872,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             },
           },
         },
-        "FunctionName": "TestBackendStack-OAuthLambda",
+        "FunctionName": "TestBackendStack-OAuthLambda2",
         "Handler": "index.oAuthHandler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "OAuthLambdaLogGroupB299A621",
+          },
+        },
         "Role": {
           "Fn::GetAtt": [
-            "OAuthLambdaServiceRole8CEB87E6",
+            "OAuthLambdaServiceRole36582DA5",
             "Arn",
           ],
         },
@@ -793,7 +889,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "OAuthLambdaServiceRole8CEB87E6": {
+    "OAuthLambdaLogGroupB299A621": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/TestBackendStack-OAuthLambda2",
+        "RetentionInDays": 731,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "OAuthLambdaServiceRole36582DA5": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -824,7 +929,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D": {
+    "OAuthLambdaServiceRoleDefaultPolicy6729CF8D": {
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -866,14 +971,63 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "OAuthLambdaServiceRoleDefaultPolicyA43A0D2D",
+        "PolicyName": "OAuthLambdaServiceRoleDefaultPolicy6729CF8D",
         "Roles": [
           {
-            "Ref": "OAuthLambdaServiceRole8CEB87E6",
+            "Ref": "OAuthLambdaServiceRole36582DA5",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "OAuthLambdaWarmingRuleAllowEventRuleTestBackendStackOAuthLambdaCEAA9B8D17BFED91": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "OAuthLambda5A654FC4",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "OAuthLambdaWarmingRuleB8286C61",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "OAuthLambdaWarmingRuleB8286C61": {
+      "Properties": {
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Warming rule for ",
+              {
+                "Ref": "OAuthLambda5A654FC4",
+              },
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "OAuthLambda5A654FC4",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"warming":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
     },
     "UrlsTable60368425": {
       "DeletionPolicy": "Retain",
