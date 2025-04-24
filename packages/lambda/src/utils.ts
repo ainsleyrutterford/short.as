@@ -7,10 +7,14 @@ import {
 } from "aws-lambda";
 
 export const getStringEnvironmentVariable = (name: string) => {
+  // Only set to true when we are running unit tests
+  if (process.env.IS_LOCAL) return "fake-variable";
+
   const environmentVariable = process.env[name];
   if (environmentVariable === undefined) {
     throw new Error(`Environment variable ${name} undefined`);
   }
+
   return environmentVariable;
 };
 

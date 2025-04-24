@@ -10,10 +10,10 @@ export const REFRESH_TOKEN_TTL = 5184000; // 60 days
 
 const JWT_SIGNING_ALG = "HS256";
 
-export const decodeJwtHeader = <T = Record<string, unknown>>(token): T =>
+export const decodeJwtHeader = <T = Record<string, unknown>>(token: string): T =>
   JSON.parse(Buffer.from(replaceUrlSafeEncoding(token.split(".")[0]), "base64").toString());
 
-export const decodeJwtPayload = <T = Record<string, unknown>>(token): T =>
+export const decodeJwtPayload = <T = Record<string, unknown>>(token: string): T =>
   JSON.parse(Buffer.from(replaceUrlSafeEncoding(token.split(".")[1]), "base64").toString());
 
 let cachedJwtSigningKey: string | undefined = undefined;

@@ -69,9 +69,9 @@ export class WebsiteStack extends cdk.Stack {
       domainNames: isProd ? ["short.as", "www.short.as"] : ["dev.short.as"],
       certificate,
       enableLogging: !isProd,
-      // API Gateway origin behavior, when visiting short.as/* it redirects to APIGateway/get-long-url/*
+      // API Gateway origin behavior, when visiting short.as/* it redirects to APIGateway/urls/*
       defaultBehavior: {
-        origin: new HttpOrigin(httpApiDomainName, { originPath: "/get-long-url" }),
+        origin: new HttpOrigin(httpApiDomainName, { originPath: "/urls" }),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

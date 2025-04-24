@@ -4,7 +4,7 @@ import * as apigateway from "aws-cdk-lib/aws-apigatewayv2";
 import { Construct } from "constructs";
 
 import { LlrtBinaryType } from "cdk-lambda-llrt";
-import { PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { ApiRouteLambda } from "./constructs/api-route-lambda";
 
@@ -38,6 +38,14 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UrlsTable"),
     });
 
+    const urlsTableUserIdGsi = "user-id-gsi";
+
+    urlsTable.addGlobalSecondaryIndex({
+      indexName: urlsTableUserIdGsi,
+      partitionKey: { name: "owningUserId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "createdAt", type: dynamodb.AttributeType.STRING },
+    });
+
     const usersTable = new dynamodb.Table(this, "UsersTable", {
       partitionKey: {
         name: "id",
@@ -69,12 +77,21 @@ export class BackendStack extends cdk.Stack {
       this.enableHttpApiLogging();
     }
 
+    const putMetricDataPolicyStatement = new PolicyStatement({
+      actions: ["cloudwatch:PutMetricData"],
+      resources: ["*"],
+    });
+
+    const getOAuthSSMParameterStatement = new PolicyStatement({
+      actions: ["ssm:GetParameter"],
+      resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
+    });
+
     new ApiRouteLambda(this, "CreateShortUrlLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         // This filepath is relative to the root of the infra package I believe
         entry: "../lambda/src/handlers/create-short-url.ts",
-        handler: "createShortUrlHandler",
         functionName: this.createResourceName("CreateShortUrlLambda"),
         // This handler uses the CloudWatch client so it needs the full SDK,
         // the other handlers can just use the standard SDKs that are bundled
@@ -84,16 +101,15 @@ export class BackendStack extends cdk.Stack {
           URLS_TABLE_NAME: urlsTable.tableName,
         },
       },
-      path: "/create-short-url",
+      path: "/urls",
       methods: [apigateway.HttpMethod.POST],
       warming: true,
       policyStatements: [
         new PolicyStatement({
-          effect: Effect.ALLOW,
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
           resources: [countBucketsTable.tableArn, urlsTable.tableArn],
         }),
-        new PolicyStatement({ effect: Effect.ALLOW, actions: ["cloudwatch:PutMetricData"], resources: ["*"] }),
+        putMetricDataPolicyStatement,
       ],
     });
 
@@ -101,51 +117,21 @@ export class BackendStack extends cdk.Stack {
       httpApi: this.httpApi,
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
-        handler: "getLongUrlHandler",
         functionName: this.createResourceName("GetLongUrlLambda"),
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
         },
       },
-      path: "/get-long-url/{shortUrlId}",
+      path: "/urls/{proxy+}",
       methods: [apigateway.HttpMethod.GET],
       warming: true,
-      policyStatements: [
-        new PolicyStatement({
-          effect: Effect.ALLOW,
-          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-          resources: [urlsTable.tableArn],
-        }),
-      ],
-    });
-
-    new ApiRouteLambda(this, "GetLongUrlDetailsLambda", {
-      httpApi: this.httpApi,
-      lambdaProps: {
-        entry: "../lambda/src/handlers/get-long-url.ts",
-        handler: "getLongUrlDetailsHandler",
-        functionName: this.createResourceName("GetLongUrlDetailsLambda"),
-        environment: {
-          URLS_TABLE_NAME: urlsTable.tableName,
-        },
-      },
-      path: "/get-long-url-details/{shortUrlId}",
-      methods: [apigateway.HttpMethod.GET],
-      warming: true,
-      policyStatements: [
-        new PolicyStatement({
-          effect: Effect.ALLOW,
-          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
-          resources: [urlsTable.tableArn],
-        }),
-      ],
+      policyStatements: [new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [urlsTable.tableArn] })],
     });
 
     new ApiRouteLambda(this, "OAuthLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         entry: "../lambda/src/handlers/oauth-proxy.ts",
-        handler: "oAuthHandler",
         functionName: this.createResourceName("OAuthLambda"),
         // This handler uses the SSM client so it needs the full SDK
         llrtBinaryType: LlrtBinaryType.FULL_SDK,
@@ -155,19 +141,43 @@ export class BackendStack extends cdk.Stack {
         },
       },
       path: "/oauth/{proxy+}",
-      methods: [apigateway.HttpMethod.GET],
+      methods: [apigateway.HttpMethod.GET, apigateway.HttpMethod.POST],
       warming: true,
       policyStatements: [
         new PolicyStatement({
-          effect: Effect.ALLOW,
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
           resources: [usersTable.tableArn],
         }),
+        getOAuthSSMParameterStatement,
+      ],
+    });
+
+    new ApiRouteLambda(this, "UserAPIsLambda", {
+      httpApi: this.httpApi,
+      lambdaProps: {
+        entry: "../lambda/src/handlers/user-apis-proxy/index.ts",
+        functionName: this.createResourceName("UserAPIsLambda"),
+        environment: {
+          URLS_TABLE_NAME: urlsTable.tableName,
+          USER_ID_GSI_NAME: urlsTableUserIdGsi,
+          USERS_TABLE_NAME: usersTable.tableName,
+        },
+      },
+      path: "/users/{proxy+}",
+      methods: [apigateway.HttpMethod.GET, apigateway.HttpMethod.POST, apigateway.HttpMethod.PATCH],
+      warming: true,
+      policyStatements: [
+        new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [usersTable.tableArn] }),
         new PolicyStatement({
-          effect: Effect.ALLOW,
-          actions: ["ssm:GetParameter"],
-          resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
+          actions: ["dynamodb:Query"],
+          resources: [`${urlsTable.tableArn}/index/${urlsTableUserIdGsi}`],
         }),
+        new PolicyStatement({
+          actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
+          resources: [countBucketsTable.tableArn, urlsTable.tableArn, usersTable.tableArn],
+        }),
+        putMetricDataPolicyStatement,
+        getOAuthSSMParameterStatement,
       ],
     });
   }

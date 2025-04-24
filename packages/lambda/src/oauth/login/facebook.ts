@@ -61,7 +61,7 @@ export class FacebookLoginHandler extends OAuthLoginHandler {
     return { ...user, picture: pictureResponse.url };
   }
 
-  async fetchUserData(now: number, code: string): Promise<UserDdbInput> {
+  async fetchUserData(code: string): Promise<UserDdbInput> {
     const { access_token } = await this.fetchFacebookOAuthTokens(code);
     const facebookUser = await this.fetchFacebookUser(access_token);
 
@@ -71,7 +71,6 @@ export class FacebookLoginHandler extends OAuthLoginHandler {
       email: facebookUser.email,
       name: facebookUser.name,
       profilePictureUrl: facebookUser.picture,
-      now,
     };
   }
 }

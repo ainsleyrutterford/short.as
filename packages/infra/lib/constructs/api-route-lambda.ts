@@ -34,7 +34,12 @@ export class ApiRouteLambda extends Construct {
         retention: RetentionDays.TWO_YEARS,
       });
 
-    this.lambda = new LlrtFunction(this, "Lambda", { architecture: Architecture.ARM_64, logGroup, ...lambdaProps });
+    this.lambda = new LlrtFunction(this, "Lambda", {
+      architecture: Architecture.ARM_64,
+      logGroup,
+      handler: "handler",
+      ...lambdaProps,
+    });
 
     policyStatements?.forEach((statement) => this.lambda.addToRolePolicy(statement));
 

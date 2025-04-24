@@ -59,7 +59,14 @@ export default function Profile() {
             <div className="grid w-full items-center gap-y-6">
               <Separator />
               <Button
-                onClick={() => {
+                onClick={async () => {
+                  const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth/logout`, {
+                    method: "POST",
+                    // Necessary to send cookies
+                    credentials: "include",
+                  });
+                  if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
+
                   window.localStorage.setItem("loggedIn", "false");
                   setLoggedIn(false);
                   router.push("/");
