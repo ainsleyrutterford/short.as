@@ -88,7 +88,7 @@ const ShortenPage = () => {
                 setLongUrl(validatedUrl);
                 setLoading(true);
 
-                const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/create-short-url`, {
+                const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/urls`, {
                   method: "POST",
                   // Necessary to send cookies
                   credentials: "include",

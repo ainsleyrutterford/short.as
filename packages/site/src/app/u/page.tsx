@@ -51,7 +51,7 @@ const ShortUrlDetailsPage = () => {
         setFadeIn(false);
       } else {
         const data = await window.fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/get-long-url-details/${searchParamShortUrlId}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/urls/${searchParamShortUrlId}/details`,
         );
         if (data.status / 100 === 5) {
           toast.error("Server Error", {

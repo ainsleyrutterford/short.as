@@ -1,36 +1,40 @@
-import { APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { OAuthProvider } from "@short-as/types";
 
-import { response } from "../utils";
+import { response, warmingWrapper } from "../utils";
 import { handleMeRequest } from "../oauth/me";
 import { GoogleLoginHandler } from "../oauth/login/google";
 import { FacebookLoginHandler } from "../oauth/login/facebook";
 import { GitHubLoginHandler } from "../oauth/login/github";
+import { handleLogoutRequest } from "../oauth/logout";
 
 export { TESTING_LOCALHOST } from "../oauth/cookies";
 
-export const oAuthHandler: APIGatewayProxyHandlerV2 = async (
-  event,
-  _context,
-): Promise<APIGatewayProxyStructuredResultV2> => {
-  // Logging the entire event for now
-  console.log(event);
-
+export const handler = warmingWrapper(async (event, _context): Promise<APIGatewayProxyStructuredResultV2> => {
   try {
-    if (event.pathParameters?.proxy === OAuthProvider.Google) {
+    // Logging the entire event for now
+    console.log(event);
+
+    const proxy = event.pathParameters?.proxy;
+
+    if (proxy === OAuthProvider.Google) {
       return new GoogleLoginHandler().handleRequest(event);
     }
 
-    if (event.pathParameters?.proxy === OAuthProvider.Facebook) {
+    if (proxy === OAuthProvider.Facebook) {
       return new FacebookLoginHandler().handleRequest(event);
     }
 
-    if (event.pathParameters?.proxy === OAuthProvider.GitHub) {
+    if (proxy === OAuthProvider.GitHub) {
       return new GitHubLoginHandler().handleRequest(event);
     }
 
-    if (event.pathParameters?.proxy === "me") {
-      return await handleMeRequest(event);
+    if (proxy === "me") {
+      return handleMeRequest(event);
+    }
+
+    if (proxy === "logout" && event.requestContext.http.method === "POST") {
+      return handleLogoutRequest(event);
     }
 
     return response({
@@ -44,4 +48,4 @@ export const oAuthHandler: APIGatewayProxyHandlerV2 = async (
       body: JSON.stringify({ message: "An internal server error occurred while handling the OAuth request" }),
     });
   }
-};
+});

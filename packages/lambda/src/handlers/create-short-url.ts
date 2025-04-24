@@ -1,4 +1,3 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
@@ -104,7 +103,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
 const foundCorruptBucket = (error: TransactionCanceledException) =>
   error.CancellationReasons?.[0]?.Code === "None" && error.CancellationReasons?.[1]?.Code !== "None";
 
-export const createShortUrlHandler: APIGatewayProxyHandlerV2 = warmingWrapper(async (event, _context) => {
+export const handler = warmingWrapper(async (event, _context) => {
   // Logging the entire event for now
   console.log(event);
 
