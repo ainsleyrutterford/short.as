@@ -98,7 +98,6 @@ const ShortenPage = () => {
 
                 const json = await data.json();
                 setShortUrlId(json.shortUrlId);
-                setLoading(false);
 
                 router.push(`/u?i=${json.shortUrlId}`);
               } catch (error) {
