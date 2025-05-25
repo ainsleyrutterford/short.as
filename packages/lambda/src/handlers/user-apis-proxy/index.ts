@@ -1,10 +1,15 @@
+import { auth, middy, warmup, logResponse } from "../../middlewares";
 import { authWrapper } from "../../oauth/auth-wrapper";
-import { warmingWrapper } from "../../utils";
+import { response, warmingWrapper } from "../../utils";
 import { createUrlForUser } from "./create-url";
 import { getUrlDetails } from "./get-url";
 import { listUrlsForUser } from "./list-urls";
-import { Route } from "./types";
+import { APIGatewayProxyEventV2WithAuth, Route } from "./types";
 import { updateUrlDetails } from "./update-url";
+
+import { APIGatewayProxyResultV2 } from "aws-lambda";
+import httpError from "http-errors";
+import httpErrorHandler from "@middy/http-error-handler";
 
 // These RegExs are explained here: https://regex101.com/r/6ZmWMR/1
 const routes: Route[] = [
@@ -30,7 +35,7 @@ const routes: Route[] = [
   },
 ];
 
-export const handler = warmingWrapper(async (event) =>
+export const oldHandler = warmingWrapper(async (event) =>
   authWrapper(event, async ({ userId, responseWithCookies }) => {
     try {
       // Logging the entire event for now
@@ -61,3 +66,22 @@ export const handler = warmingWrapper(async (event) =>
     }
   }),
 );
+
+const testHandler = async (event: APIGatewayProxyEventV2WithAuth): Promise<APIGatewayProxyResultV2> => {
+  console.log("Hello!");
+
+  console.log(event);
+
+  console.log(JSON.stringify(event.auth));
+
+  throw new httpError.BadRequest("Ainsley's bad request");
+
+  return response({ statusCode: 200, body: JSON.stringify({ message: "Hello!" }) });
+};
+
+export const handler = middy<APIGatewayProxyEventV2WithAuth, APIGatewayProxyResultV2>()
+  .use(warmup())
+  .use(auth())
+  .use(logResponse())
+  .use(httpErrorHandler())
+  .handler(testHandler);

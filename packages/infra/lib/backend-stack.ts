@@ -157,8 +157,11 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/user-apis-proxy/index.ts",
         functionName: this.createResourceName("UserAPIsLambda"),
+        // This handler uses the SSM client so it needs the full SDK
+        llrtBinaryType: LlrtBinaryType.FULL_SDK,
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
+          COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
           USER_ID_GSI_NAME: urlsTableUserIdGsi,
           USERS_TABLE_NAME: usersTable.tableName,
         },

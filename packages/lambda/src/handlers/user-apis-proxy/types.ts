@@ -1,3 +1,4 @@
+import { User } from "@short-as/types";
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 
 export type UserApiCallback = ({
@@ -11,6 +12,10 @@ export type UserApiCallback = ({
   shortUrlId?: string;
   responseWithCookies: (value: APIGatewayProxyStructuredResultV2) => APIGatewayProxyStructuredResultV2;
 }) => Promise<APIGatewayProxyStructuredResultV2>;
+
+export type APIGatewayProxyEventV2WithAuth = APIGatewayProxyEventV2 & {
+  auth?: { user?: User; userId?: string };
+};
 
 export interface Route {
   method: "GET" | "POST" | "PATCH";
