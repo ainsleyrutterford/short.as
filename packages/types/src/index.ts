@@ -23,8 +23,8 @@ export interface Url {
   clicks: number;
   qrCodeScans: number;
   totalVisits: number;
-  createdTimestamp: number;
-  updatedTimestamp: number;
+  createdTimestamp: string;
+  updatedTimestamp: string;
   owningUserId?: string;
   metadata?: Record<string, unknown>;
   history?: Record<number, string>;

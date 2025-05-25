@@ -5,6 +5,7 @@ import {
   APIGatewayProxyResultV2,
   APIGatewayProxyStructuredResultV2,
 } from "aws-lambda";
+import { ErrorWithCode } from "./errors";
 
 export const getStringEnvironmentVariable = (name: string) => {
   // Only set to true when we are running unit tests
@@ -43,8 +44,7 @@ export const warmingWrapper =
   (handler: APIGatewayProxyHandlerV2): APIGatewayProxyHandlerV2 =>
   async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
     if ((event as WarmingEvent).warming) return response({ body: "Warming event handled" });
-    const handlerResponse = handler(event, context, callback);
-    return handlerResponse ? handlerResponse : response({ body: "Callback event handled" });
+    return (await handler(event, context, callback)) as APIGatewayProxyResultV2;
   };
 
 /**
@@ -70,3 +70,21 @@ export const exponentialBackoffWithJitter = (attempt: number) =>
 
 // eslint-disable-next-line no-promise-executor-return
 export const wait = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
+
+export const errorHandlingWrapper =
+  (
+    handler: APIGatewayProxyHandlerV2,
+    response: (value: APIGatewayProxyStructuredResultV2) => APIGatewayProxyStructuredResultV2,
+  ): APIGatewayProxyHandlerV2 =>
+  async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
+    try {
+      return handler(event, context, callback) as APIGatewayProxyResultV2;
+    } catch (error) {
+      if (error instanceof ErrorWithCode) {
+        console.error(error);
+        return response({ statusCode: error.code, body: JSON.stringify({ message: error.message }) });
+      }
+      console.error(error);
+      return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
+    }
+  };
