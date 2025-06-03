@@ -31,7 +31,10 @@ devWebsite.addDependency(devAndProdDomain);
 devWebsite.addDependency(devBackend);
 
 // The prod stacks that the GitHub action deploys
-const prodBackend = new BackendStack(app, "Backend-prod", { env: { account: ACCOUNT_ID, region: REGION } });
+const prodBackend = new BackendStack(app, "Backend-prod", {
+  env: { account: ACCOUNT_ID, region: REGION },
+  isProd: true,
+});
 const prodWebsite = new WebsiteStack(app, "Website-prod", {
   isProd: true,
   hostedZone: devAndProdDomain.hostedZone,

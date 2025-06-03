@@ -33,10 +33,12 @@ interface GoogleUser {
 }
 
 export class GoogleLoginHandler extends OAuthLoginHandler {
+  oAuthProvider = OAuthProvider.Google;
+
   async fetchGoogleOAuthTokens(code: string): Promise<GoogleOAuthResponse> {
     const baseUrl = "https://oauth2.googleapis.com/token";
 
-    const { client_id, client_secret } = await fetchOAuthClientInformation(OAuthProvider.Google);
+    const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
 
     const queryStrings = new URLSearchParams({
       code,
@@ -60,8 +62,8 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
 
     return {
       // We can't just use the sub as it isn't guaranteed to be unique for other providers too
-      id: `${OAuthProvider.Google}-${googleUser.sub}`,
-      oAuthProvider: OAuthProvider.Google,
+      id: `${this.oAuthProvider}-${googleUser.sub}`,
+      oAuthProvider: this.oAuthProvider,
       email: googleUser.email,
       name: googleUser.name,
       profilePictureUrl: googleUser.picture,

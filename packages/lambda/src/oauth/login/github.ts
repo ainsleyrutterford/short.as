@@ -32,11 +32,13 @@ interface GitHubUser {
 }
 
 export class GitHubLoginHandler extends OAuthLoginHandler {
+  oAuthProvider = OAuthProvider.GitHub;
+
   /** https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github */
   async fetchGitHubOAuthTokens(code: string): Promise<GitHubOAuthResponse> {
     const baseUrl = "https://github.com/login/oauth/access_token";
 
-    const { client_id, client_secret } = await fetchOAuthClientInformation(OAuthProvider.GitHub);
+    const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
 
     const params = new URLSearchParams({
       code,
@@ -81,8 +83,8 @@ export class GitHubLoginHandler extends OAuthLoginHandler {
     const githubUser = await this.fetchGitHubUserData(access_token);
 
     return {
-      id: `${OAuthProvider.GitHub}-${githubUser.id}`,
-      oAuthProvider: OAuthProvider.GitHub,
+      id: `${this.oAuthProvider}-${githubUser.id}`,
+      oAuthProvider: this.oAuthProvider,
       email: githubUser.email,
       name: githubUser.name,
       profilePictureUrl: githubUser.avatar_url,
