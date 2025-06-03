@@ -20,12 +20,14 @@ interface FacebookUser {
 }
 
 export class FacebookLoginHandler extends OAuthLoginHandler {
+  oAuthProvider = OAuthProvider.Facebook;
+
   facebookOAuthBaseUrl = "https://graph.facebook.com/v21.0";
 
   async fetchFacebookOAuthTokens(code: string): Promise<FacebookOAuthResponse> {
     const baseUrl = `${this.facebookOAuthBaseUrl}/oauth/access_token`;
 
-    const { client_id, client_secret } = await fetchOAuthClientInformation(OAuthProvider.Facebook);
+    const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
 
     const queryStrings = new URLSearchParams({
       code,
@@ -66,8 +68,8 @@ export class FacebookLoginHandler extends OAuthLoginHandler {
     const facebookUser = await this.fetchFacebookUser(access_token);
 
     return {
-      id: `${OAuthProvider.Facebook}-${facebookUser.id}`,
-      oAuthProvider: OAuthProvider.Facebook,
+      id: `${this.oAuthProvider}-${facebookUser.id}`,
+      oAuthProvider: this.oAuthProvider,
       email: facebookUser.email,
       name: facebookUser.name,
       profilePictureUrl: facebookUser.picture,

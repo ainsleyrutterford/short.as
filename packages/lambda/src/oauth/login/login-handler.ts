@@ -8,7 +8,7 @@ import { UserDdbInput } from "../types";
 import { createLoggedInCookies, TESTING_LOCALHOST } from "../cookies";
 
 export abstract class OAuthLoginHandler {
-  private oAuthProvider: OAuthProvider | undefined;
+  protected oAuthProvider: OAuthProvider | undefined;
 
   private loggedInRedirectUrl = `${
     TESTING_LOCALHOST
