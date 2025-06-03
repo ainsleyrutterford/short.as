@@ -1,8 +1,10 @@
+import { URLSearchParams } from "url";
 import { OAuthProvider } from "@short-as/types";
 
 import { fetchOAuthClientInformation } from "../utils";
 import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
+import { siteUrl } from "../../utils";
 
 interface GitHubOAuthResponse {
   access_token: string;
@@ -30,6 +32,7 @@ interface GitHubUser {
 }
 
 export class GitHubLoginHandler extends OAuthLoginHandler {
+  /** https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github */
   async fetchGitHubOAuthTokens(code: string): Promise<GitHubOAuthResponse> {
     const baseUrl = "https://github.com/login/oauth/access_token";
 
@@ -39,9 +42,10 @@ export class GitHubLoginHandler extends OAuthLoginHandler {
       code,
       client_id,
       client_secret,
+      redirect_uri: `${siteUrl}/api/oauth/github`,
     });
 
-    // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
+    // https://github.com/orgs/community/discussions/150317?utm_source=chatgpt.com#discussioncomment-12009551
     const response = await fetch(baseUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

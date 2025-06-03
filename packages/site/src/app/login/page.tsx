@@ -8,10 +8,10 @@ import { GoogleLogo } from "@/assets/google";
 import { PageContainer } from "@/components/page-container";
 import { useRouter } from "next/navigation";
 
+/** https://developers.google.com/identity/protocols/oauth2/web-server#creatingclient */
 const createGoogleOAuthUrl = () => {
   const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
-  // https://developers.google.com/identity/protocols/oauth2/web-server#creatingclient
   const queryStrings = new URLSearchParams({
     redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URL ?? "",
     client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "",
@@ -25,10 +25,14 @@ const createGoogleOAuthUrl = () => {
   return `${baseUrl}?${queryStrings.toString()}`;
 };
 
+/** https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity */
 const createGitHubOAuthUrl = () => {
   const baseUrl = "https://github.com/login/oauth/authorize";
 
-  const queryStrings = new URLSearchParams({ client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? "" });
+  const queryStrings = new URLSearchParams({
+    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? "",
+    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_OAUTH_REDIRECT_URL ?? "",
+  });
 
   return `${baseUrl}?${queryStrings.toString()}`;
 };
