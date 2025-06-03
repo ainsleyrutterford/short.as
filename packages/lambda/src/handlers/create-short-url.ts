@@ -15,7 +15,7 @@ import {
 } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 import { cloudWatchClient } from "../clients/cloudwatch";
-import { InternalServerError, ErrorWithCode, BadRequestError, ServiceUnavailableError } from "../errors";
+import { BadRequest, HttpError, InternalServerError, ServiceUnavailable } from "../errors";
 import { Url } from "@short-as/types";
 
 const COUNT_BUCKETS_TABLE_NAME = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
@@ -148,7 +148,7 @@ export const createShortUrl = async (longUrl: string, owningUserId?: string) => 
         }
         attempt += 1;
         if (attempt > MAX_ATTEMPTS) {
-          throw new ServiceUnavailableError();
+          throw new ServiceUnavailable();
         }
         // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html#standardvsadaptiveimplementation
         const delay = exponentialBackoffWithJitter(attempt);
@@ -172,15 +172,15 @@ export const handler = warmingWrapper(async (event, _context) => {
   try {
     const { longUrl } = parseBody(event) as Body;
     if (!longUrl) {
-      throw new BadRequestError("A longUrl must be provided in the request body");
+      throw new BadRequest("A longUrl must be provided in the request body");
     }
 
     const shortUrlId = await createShortUrl(longUrl);
     return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
   } catch (error) {
-    if (error instanceof ErrorWithCode) {
+    if (error instanceof HttpError) {
       console.error(error);
-      return response({ statusCode: error.code, body: JSON.stringify({ message: error.message }) });
+      return response({ statusCode: error.statusCode, body: JSON.stringify({ message: error.message }) });
     }
     console.error(error);
     return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });

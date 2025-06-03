@@ -1,4 +1,4 @@
-import { BadRequestError, ErrorWithCode } from "../../errors";
+import { BadRequest, HttpError } from "../../errors";
 import { parseBody } from "../../utils";
 import { createShortUrl } from "../create-short-url";
 import { UserApiCallback } from "./types";
@@ -13,15 +13,15 @@ export const createUrlForUser: UserApiCallback = async ({ event, userId, respons
   try {
     const { longUrl } = parseBody(event) as Body;
     if (!longUrl) {
-      throw new BadRequestError("A longUrl must be provided in the request body");
+      throw new BadRequest("A longUrl must be provided in the request body");
     }
 
     const shortUrlId = await createShortUrl(longUrl, userId);
     return responseWithCookies({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
   } catch (error) {
-    if (error instanceof ErrorWithCode) {
+    if (error instanceof HttpError) {
       console.error(error);
-      return responseWithCookies({ statusCode: error.code, body: JSON.stringify({ message: error.message }) });
+      return responseWithCookies({ statusCode: error.statusCode, body: JSON.stringify({ message: error.message }) });
     }
     console.error(error);
     return responseWithCookies({

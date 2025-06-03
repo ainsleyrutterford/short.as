@@ -14,7 +14,7 @@ export interface Middleware<E = any, R = any> {
   onError?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<undefined> | R | Promise<R>;
 }
 
-export type MiddyHandler<E = any, R = any> = (event: E, context: any) => Promise<R>;
+export type MiddyHandler<E = any, R = any> = (event: E, context: any) => Promise<R | undefined>;
 
 /**
  * A minimal implementation of a middy like middleware library. We've done this because middy
@@ -30,7 +30,7 @@ export function middy<E = any, R = any>() {
     },
 
     handler(baseHandler: MiddyHandler<E, R>): MiddyHandler<E, R> {
-      return async (event: E, context: any): Promise<R> => {
+      return async (event: E, context: any) => {
         const ctx: MiddlewareContext<E, R> = {
           event,
           context,
@@ -39,14 +39,14 @@ export function middy<E = any, R = any>() {
           error: undefined,
         };
 
-        for (const mw of middlewares) {
-          if (mw.before) {
-            const maybeResponse = await mw.before(ctx);
-            if (maybeResponse) return maybeResponse;
-          }
-        }
-
         try {
+          for (const mw of middlewares) {
+            if (mw.before) {
+              const maybeResponse = await mw.before(ctx);
+              if (maybeResponse) return maybeResponse;
+            }
+          }
+
           ctx.response = await baseHandler(ctx.event, ctx.context);
 
           for (const mw of middlewares) {
@@ -55,20 +55,23 @@ export function middy<E = any, R = any>() {
               if (maybeResponse) return maybeResponse;
             }
           }
-
-          return ctx.response;
         } catch (err) {
           ctx.error = err;
-
-          for (const mw of middlewares) {
-            if (mw.onError) {
-              const maybeResponse = await mw.onError(ctx);
-              if (maybeResponse) return maybeResponse;
+          try {
+            for (const mw of middlewares) {
+              if (mw.onError) {
+                const maybeResponse = await mw.onError(ctx);
+                if (maybeResponse) return maybeResponse;
+              }
             }
+          } catch (errWhenHandlingOriginalErr) {
+            (errWhenHandlingOriginalErr as any).originalErr = err;
+            throw errWhenHandlingOriginalErr;
           }
-
-          throw ctx.error;
+          if (!ctx.response) throw ctx.error;
         }
+
+        return ctx.response;
       };
     },
   };

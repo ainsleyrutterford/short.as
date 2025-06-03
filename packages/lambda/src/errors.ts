@@ -1,46 +1,43 @@
-import { CustomError } from "ts-custom-error";
-
 /**
  * Using this page as a guide: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
  */
 
-export class ErrorWithCode extends CustomError {
-  public code = 500;
+export class HttpError extends Error {
+  public expose = true;
+  constructor(
+    public statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "HttpError";
+  }
 }
 
-export class InternalServerError extends ErrorWithCode {
-  public code = 500;
-
+export class InternalServerError extends HttpError {
   constructor(message = "An internal server error occurred") {
-    super(message);
+    super(500, message);
     // Set name explicitly as minification can mangle class names
-    Object.defineProperty(this, "name", { value: "InternalServerError" });
+    this.name = "InternalServerError";
   }
 }
 
-export class ServiceUnavailableError extends ErrorWithCode {
-  public code = 503;
-
+export class ServiceUnavailable extends HttpError {
   constructor(message = "Service is currently unavailable") {
-    super(message);
-    Object.defineProperty(this, "name", { value: "ServiceUnavailableError" });
+    super(503, message);
+    this.name = "ServiceUnavailable";
   }
 }
 
-export class BadRequestError extends ErrorWithCode {
-  public code = 400;
-
+export class BadRequest extends HttpError {
   constructor(message = "Invalid request") {
-    super(message);
-    Object.defineProperty(this, "name", { value: "BadRequestError" });
+    super(400, message);
+    this.name = "BadRequest";
   }
 }
 
-export class NotFoundError extends ErrorWithCode {
-  public code = 404;
-
+export class NotFound extends HttpError {
   constructor(message = "Resource not found") {
-    super(message);
-    Object.defineProperty(this, "name", { value: "NotFoundError" });
+    super(404, message);
+    this.name = "NotFound";
   }
 }

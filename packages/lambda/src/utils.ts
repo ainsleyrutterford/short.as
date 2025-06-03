@@ -5,7 +5,7 @@ import {
   APIGatewayProxyResultV2,
   APIGatewayProxyStructuredResultV2,
 } from "aws-lambda";
-import { ErrorWithCode } from "./errors";
+import { HttpError } from "./errors";
 
 export const getStringEnvironmentVariable = (name: string) => {
   // Only set to true when we are running unit tests
@@ -80,9 +80,9 @@ export const errorHandlingWrapper =
     try {
       return handler(event, context, callback) as APIGatewayProxyResultV2;
     } catch (error) {
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         console.error(error);
-        return response({ statusCode: error.code, body: JSON.stringify({ message: error.message }) });
+        return response({ statusCode: error.statusCode, body: JSON.stringify({ message: error.message }) });
       }
       console.error(error);
       return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });

@@ -8,7 +8,6 @@ import { APIGatewayProxyEventV2WithAuth, Route } from "./types";
 import { updateUrlDetails } from "./update-url";
 
 import { APIGatewayProxyResultV2 } from "aws-lambda";
-import httpError from "http-errors";
 import httpErrorHandler from "@middy/http-error-handler";
 
 // These RegExs are explained here: https://regex101.com/r/6ZmWMR/1
@@ -70,11 +69,9 @@ export const oldHandler = warmingWrapper(async (event) =>
 const testHandler = async (event: APIGatewayProxyEventV2WithAuth): Promise<APIGatewayProxyResultV2> => {
   console.log("Hello!");
 
-  console.log(event);
+  console.log(JSON.stringify(event));
 
   console.log(JSON.stringify(event.auth));
-
-  throw new httpError.BadRequest("Ainsley's bad request");
 
   return response({ statusCode: 200, body: JSON.stringify({ message: "Hello!" }) });
 };
@@ -82,6 +79,6 @@ const testHandler = async (event: APIGatewayProxyEventV2WithAuth): Promise<APIGa
 export const handler = middy<APIGatewayProxyEventV2WithAuth, APIGatewayProxyResultV2>()
   .use(warmup())
   .use(auth())
-  .use(logResponse())
   .use(httpErrorHandler())
+  .use(logResponse())
   .handler(testHandler);
