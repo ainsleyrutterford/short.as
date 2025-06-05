@@ -1,11 +1,5 @@
 import { randomInt } from "crypto";
-import {
-  APIGatewayProxyEventV2,
-  APIGatewayProxyHandlerV2,
-  APIGatewayProxyResultV2,
-  APIGatewayProxyStructuredResultV2,
-} from "aws-lambda";
-import { HttpError } from "./errors";
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 
 export const getStringEnvironmentVariable = (name: string) => {
   // Only set to true when we are running unit tests
@@ -23,29 +17,12 @@ export const isProd = process.env.IS_PROD === "true";
 
 export const siteUrl = isProd ? "https://short.as" : "https://dev.short.as";
 
-export const response = (value: APIGatewayProxyStructuredResultV2): APIGatewayProxyStructuredResultV2 => {
-  console.log(`Returning response: ${JSON.stringify(value)}`);
-  return value;
-};
+export const response = (value: APIGatewayProxyStructuredResultV2) => value;
 
 export const parseBody = (event: APIGatewayProxyEventV2) => {
   const bodyString = event.isBase64Encoded ? Buffer.from(event.body ?? "", "base64").toString() : event.body;
   return JSON.parse(bodyString ?? "{}");
 };
-
-interface WarmingEvent {
-  warming?: boolean;
-}
-
-/**
- * If a warming event is received then return early, otherwise call the wrapped handler
- */
-export const warmingWrapper =
-  (handler: APIGatewayProxyHandlerV2): APIGatewayProxyHandlerV2 =>
-  async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
-    if ((event as WarmingEvent).warming) return response({ body: "Warming event handled" });
-    return (await handler(event, context, callback)) as APIGatewayProxyResultV2;
-  };
 
 /**
  * Returns a random value x where 0 <= x < 1.
@@ -70,21 +47,3 @@ export const exponentialBackoffWithJitter = (attempt: number) =>
 
 // eslint-disable-next-line no-promise-executor-return
 export const wait = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
-
-export const errorHandlingWrapper =
-  (
-    handler: APIGatewayProxyHandlerV2,
-    response: (value: APIGatewayProxyStructuredResultV2) => APIGatewayProxyStructuredResultV2,
-  ): APIGatewayProxyHandlerV2 =>
-  async (event, context, callback): Promise<APIGatewayProxyResultV2> => {
-    try {
-      return handler(event, context, callback) as APIGatewayProxyResultV2;
-    } catch (error) {
-      if (error instanceof HttpError) {
-        console.error(error);
-        return response({ statusCode: error.statusCode, body: JSON.stringify({ message: error.message }) });
-      }
-      console.error(error);
-      return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
-    }
-  };

@@ -52,8 +52,7 @@ export const createLoggedInCookies = async ({
   return [
     cookie.serialize("accessToken", accessToken, secureCookieOptions),
     cookie.serialize("refreshToken", refreshToken, secureCookieOptions),
-    // This cookie can be used by the frontend to quickly check if it is logged in
-    // since it does not have `httpOnly` set
+    // This can be used by the frontend to check logged in state since it doesn't have `httpOnly` set
     cookie.serialize("loggedIn", "true", secureJavaScriptCookieOptions),
   ];
 };
@@ -61,7 +60,6 @@ export const createLoggedInCookies = async ({
 export const loggedOutCookies = [
   cookie.serialize("accessToken", "", secureCookieOptions),
   cookie.serialize("refreshToken", "", secureCookieOptions),
-  // This cookie can be used by the frontend to quickly check if it is logged in
-  // since it does not have `httpOnly` set
+  // This can be used by the frontend to check logged in state since it doesn't have `httpOnly` set
   cookie.serialize("loggedIn", "false", secureJavaScriptCookieOptions),
 ];

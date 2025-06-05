@@ -1,19 +1,21 @@
-import { APIGatewayProxyEventV2 } from "aws-lambda";
-
 import { getUser } from "./user";
-import { AuthenticatedCallback, authWrapper } from "./auth-wrapper";
+import { AuthenticatedHandler } from "./types";
+import { response } from "../utils";
+import { InternalServerError } from "../errors";
 
-const me: AuthenticatedCallback = async ({ user, userId, responseWithCookies }) => {
+export const handleMeRequest: AuthenticatedHandler = async (event) => {
   console.log("Handling me request...");
 
+  const user = event.auth?.user;
   if (user) {
     console.log("User already fetched.");
-    return responseWithCookies({ statusCode: 200, body: JSON.stringify(user) });
+    return response({ statusCode: 200, body: JSON.stringify(user) });
   }
+
+  const userId = event.auth?.userId;
+  if (!userId) throw new InternalServerError();
 
   console.log("Fetching user...");
   const fetchedUser = await getUser(userId);
-  return responseWithCookies({ statusCode: 200, body: JSON.stringify(fetchedUser) });
+  return response({ statusCode: 200, body: JSON.stringify(fetchedUser) });
 };
-
-export const handleMeRequest = async (event: APIGatewayProxyEventV2) => authWrapper(event, me);

@@ -2,11 +2,11 @@ import { Middleware } from "./middy";
 
 import * as cookie from "cookie";
 import { decodeJwtPayload, isValidJwt } from "../oauth/jwt";
-import { AccessToken, RefreshToken } from "../oauth/types";
+import { AccessToken, APIGatewayProxyEventV2WithAuth, RefreshToken } from "../oauth/types";
 import { getUser } from "../oauth/user";
 import { createLoggedInCookies } from "../oauth/cookies";
 import { nowInSeconds } from "../oauth/utils";
-import { APIGatewayProxyEventV2WithAuth } from "../handlers/user-apis-proxy/types";
+import { response } from "../utils";
 
 export const auth = (): Middleware<APIGatewayProxyEventV2WithAuth> => ({
   before: async (request) => {
@@ -18,7 +18,7 @@ export const auth = (): Middleware<APIGatewayProxyEventV2WithAuth> => ({
     const refreshToken = cookies.find((c) => c.refreshToken)?.refreshToken;
 
     if (!accessToken || !refreshToken) {
-      return { statusCode: 403, body: "accessToken and refreshToken cookies required" };
+      return response({ statusCode: 403, body: "accessToken and refreshToken cookies required" });
     }
 
     if (await isValidJwt(accessToken)) {
@@ -29,7 +29,7 @@ export const auth = (): Middleware<APIGatewayProxyEventV2WithAuth> => ({
     }
 
     if (!(await isValidJwt(refreshToken))) {
-      return { statusCode: 403, body: "refreshToken is invalid" };
+      return response({ statusCode: 403, body: "refreshToken is invalid" });
     }
 
     const refreshTokenContents = decodeJwtPayload<RefreshToken>(refreshToken);
@@ -37,7 +37,7 @@ export const auth = (): Middleware<APIGatewayProxyEventV2WithAuth> => ({
     const user = await getUser(refreshTokenContents.userId);
 
     if (refreshTokenContents.version !== user.refreshTokenVersion) {
-      return { statusCode: 403, body: "User has logged out of all devices" };
+      return response({ statusCode: 403, body: "User has logged out of all devices" });
     }
 
     event.auth = { userId: refreshTokenContents.userId, user };

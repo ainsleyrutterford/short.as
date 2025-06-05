@@ -1,22 +1,18 @@
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+import httpErrorHandler from "@middy/http-error-handler";
+import { Url } from "@short-as/types";
 
 import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
 import { encodeNumber } from "../encoding";
 import { publishCorruptBucketMetric } from "../metrics";
-import {
-  exponentialBackoffWithJitter,
-  getStringEnvironmentVariable,
-  parseBody,
-  response,
-  wait,
-  warmingWrapper,
-} from "../utils";
+import { exponentialBackoffWithJitter, getStringEnvironmentVariable, parseBody, response, wait } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 import { cloudWatchClient } from "../clients/cloudwatch";
-import { BadRequest, HttpError, InternalServerError, ServiceUnavailable } from "../errors";
-import { Url } from "@short-as/types";
+import { BadRequest, InternalServerError, ServiceUnavailable } from "../errors";
+import { logResponse, middy, warmup } from "../middlewares";
+import { Handler } from "../types";
 
 const COUNT_BUCKETS_TABLE_NAME = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
@@ -165,24 +161,15 @@ export const createShortUrl = async (longUrl: string, owningUserId?: string) => 
   throw new InternalServerError();
 };
 
-export const handler = warmingWrapper(async (event, _context) => {
+export const createShortUrlHandler: Handler = async (event) => {
   // Logging the entire event for now
   console.log(event);
 
-  try {
-    const { longUrl } = parseBody(event) as Body;
-    if (!longUrl) {
-      throw new BadRequest("A longUrl must be provided in the request body");
-    }
+  const { longUrl } = parseBody(event) as Body;
+  if (!longUrl) throw new BadRequest("A longUrl must be provided in the request body");
 
-    const shortUrlId = await createShortUrl(longUrl);
-    return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
-  } catch (error) {
-    if (error instanceof HttpError) {
-      console.error(error);
-      return response({ statusCode: error.statusCode, body: JSON.stringify({ message: error.message }) });
-    }
-    console.error(error);
-    return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
-  }
-});
+  const shortUrlId = await createShortUrl(longUrl);
+  return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
+};
+
+export const handler = middy().use(warmup()).use(httpErrorHandler()).use(logResponse()).handler(createShortUrlHandler);
