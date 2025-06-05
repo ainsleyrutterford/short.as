@@ -1,51 +1,48 @@
-import { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
-import { OAuthProvider } from "@short-as/types";
+import httpErrorHandler from "@middy/http-error-handler";
 
-import { response, warmingWrapper } from "../utils";
+import { middy, warmup, logResponse } from "../middlewares";
 import { handleMeRequest } from "../oauth/me";
 import { GoogleLoginHandler } from "../oauth/login/google";
 import { FacebookLoginHandler } from "../oauth/login/facebook";
 import { GitHubLoginHandler } from "../oauth/login/github";
 import { handleLogoutRequest } from "../oauth/logout";
 
+import httpRouterHandler, { Route } from "@middy/http-router";
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { auth } from "../middlewares/auth";
+
 export { TESTING_LOCALHOST } from "../oauth/cookies";
 
-export const handler = warmingWrapper(async (event, _context): Promise<APIGatewayProxyStructuredResultV2> => {
-  try {
-    // Logging the entire event for now
-    console.log(event);
+const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
+  {
+    method: "GET",
+    path: "/oauth/google",
+    handler: (event: APIGatewayProxyEventV2) => new GoogleLoginHandler().handleRequest(event),
+  },
+  {
+    method: "GET",
+    path: "/oauth/facebook",
+    handler: (event: APIGatewayProxyEventV2) => new FacebookLoginHandler().handleRequest(event),
+  },
+  {
+    method: "GET",
+    path: "/oauth/github",
+    handler: (event: APIGatewayProxyEventV2) => new GitHubLoginHandler().handleRequest(event),
+  },
+  {
+    method: "GET",
+    path: "/oauth/me",
+    handler: middy().use(auth()).handler(handleMeRequest),
+  },
+  {
+    method: "POST",
+    path: "/oauth/logout",
+    handler: handleLogoutRequest,
+  },
+];
 
-    const proxy = event.pathParameters?.proxy;
-
-    if (proxy === OAuthProvider.Google) {
-      return new GoogleLoginHandler().handleRequest(event);
-    }
-
-    if (proxy === OAuthProvider.Facebook) {
-      return new FacebookLoginHandler().handleRequest(event);
-    }
-
-    if (proxy === OAuthProvider.GitHub) {
-      return new GitHubLoginHandler().handleRequest(event);
-    }
-
-    if (proxy === "me") {
-      return handleMeRequest(event);
-    }
-
-    if (proxy === "logout" && event.requestContext.http.method === "POST") {
-      return handleLogoutRequest(event);
-    }
-
-    return response({
-      statusCode: 404,
-      body: JSON.stringify({ message: "Unknown OAuth endpoint" }),
-    });
-  } catch (error) {
-    console.error(error);
-    return response({
-      statusCode: 500,
-      body: JSON.stringify({ message: "An internal server error occurred while handling the OAuth request" }),
-    });
-  }
-});
+export const handler = middy()
+  .use(warmup())
+  .use(httpErrorHandler())
+  .use(logResponse())
+  .handler(httpRouterHandler(routes));

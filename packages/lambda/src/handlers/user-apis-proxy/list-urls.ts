@@ -1,14 +1,18 @@
 import { paginateQuery } from "@aws-sdk/lib-dynamodb";
 import { Url } from "@short-as/types";
 
-import { UserApiCallback } from "./types";
 import { dynamoClient } from "../../clients/dynamo";
-import { getStringEnvironmentVariable } from "../../utils";
+import { getStringEnvironmentVariable, response } from "../../utils";
+import { AuthenticatedHandler } from "../../oauth/types";
+import { InternalServerError } from "../../errors";
 
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
 const USER_ID_GSI_NAME = getStringEnvironmentVariable("USER_ID_GSI_NAME");
 
-export const listUrlsForUser: UserApiCallback = async ({ userId, responseWithCookies }) => {
+export const listUrlsForUser: AuthenticatedHandler = async (event) => {
+  const userId = event.auth?.userId;
+  if (!userId) throw new InternalServerError();
+
   console.log(`Getting URLs for user with ID: ${userId}`);
 
   const paginator = paginateQuery(
@@ -26,5 +30,5 @@ export const listUrlsForUser: UserApiCallback = async ({ userId, responseWithCoo
     urls.push(...((Items ?? []) as Url[]));
   }
 
-  return responseWithCookies({ statusCode: 200, body: JSON.stringify(urls) });
+  return response({ statusCode: 200, body: JSON.stringify(urls) });
 };

@@ -1,12 +1,12 @@
-import { APIGatewayProxyEventV2 } from "aws-lambda";
 import * as cookie from "cookie";
 
 import { loggedOutCookies } from "./cookies";
 import { response } from "../utils";
 import { decodeJwtPayload, isValidJwt } from "./jwt";
 import { AccessToken, RefreshToken } from "./types";
+import { Handler } from "../types";
 
-export const handleLogoutRequest = async (event: APIGatewayProxyEventV2) => {
+export const handleLogoutRequest: Handler = async (event) => {
   console.log("Logging out a user...");
 
   const cookies = event.cookies?.map((c) => cookie.parse(c));

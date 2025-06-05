@@ -1103,6 +1103,9 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
+            "COUNT_BUCKETS_TABLE_NAME": {
+              "Ref": "CountBucketsTable09F12BD0",
+            },
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },

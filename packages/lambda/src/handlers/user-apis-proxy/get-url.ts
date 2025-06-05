@@ -1,15 +1,15 @@
+import { BadRequest, InternalServerError } from "../../errors";
+import { AuthenticatedHandler } from "../../oauth/types";
 import { response } from "../../utils";
-import { UserApiCallback } from "./types";
 
-export const getUrlDetails: UserApiCallback = async ({ userId, shortUrlId, responseWithCookies }) => {
+export const getUrlDetails: AuthenticatedHandler = async (event) => {
+  const userId = event.auth?.userId;
+  if (!userId) throw new InternalServerError();
+
+  const shortUrlId = event.pathParameters?.shortUrlId;
+  if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
+
   console.log(`Getting details about URL ${shortUrlId} owned by ${userId}`);
 
-  if (!shortUrlId) {
-    return response({
-      statusCode: 400,
-      body: JSON.stringify({ message: "A shortUrlId must be provided in the request path parameters" }),
-    });
-  }
-
-  return responseWithCookies({ statusCode: 200, body: JSON.stringify(shortUrlId) });
+  return response({ statusCode: 200, body: JSON.stringify(shortUrlId) });
 };

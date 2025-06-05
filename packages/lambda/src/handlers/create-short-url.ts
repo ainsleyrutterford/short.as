@@ -1,20 +1,18 @@
 // Make sure to import commands from lib-dynamodb instead of client-dynamodb
 import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+import httpErrorHandler from "@middy/http-error-handler";
+import { Url } from "@short-as/types";
 
 import { BUCKET_SIZE, getRandomCountBucketId, MAX_COUNT } from "../buckets";
 import { encodeNumber } from "../encoding";
 import { publishCorruptBucketMetric } from "../metrics";
-import {
-  exponentialBackoffWithJitter,
-  getStringEnvironmentVariable,
-  parseBody,
-  response,
-  wait,
-  warmingWrapper,
-} from "../utils";
+import { exponentialBackoffWithJitter, getStringEnvironmentVariable, parseBody, response, wait } from "../utils";
 import { dynamoClient } from "../clients/dynamo";
 import { cloudWatchClient } from "../clients/cloudwatch";
+import { BadRequest, InternalServerError, ServiceUnavailable } from "../errors";
+import { logResponse, middy, warmup } from "../middlewares";
+import { Handler } from "../types";
 
 const COUNT_BUCKETS_TABLE_NAME = getStringEnvironmentVariable("COUNT_BUCKETS_TABLE_NAME");
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
@@ -25,7 +23,18 @@ interface Body {
 
 const MAX_ATTEMPTS = 3;
 
-const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string) => {
+const createUrlItem = (shortUrlId: string, longUrl: string, owningUserId?: string): Url => ({
+  shortUrlId,
+  longUrl,
+  owningUserId,
+  clicks: 0,
+  totalVisits: 0,
+  qrCodeScans: 0,
+  createdTimestamp: new Date().toISOString(),
+  updatedTimestamp: new Date().toISOString(),
+});
+
+const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string, owningUserId?: string) => {
   const { Item } = await dynamoClient.send(
     new GetCommand({ TableName: COUNT_BUCKETS_TABLE_NAME, Key: { id: countBucketId } }),
   );
@@ -77,7 +86,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
         {
           Put: {
             TableName: URLS_TABLE_NAME,
-            Item: { shortUrlId, longUrl, createdAt: new Date().toISOString() },
+            Item: createUrlItem(shortUrlId, longUrl, owningUserId),
             // Ensure this item hasn't been created in the mean time
             ConditionExpression: "attribute_not_exists(shortUrlId)",
           },
@@ -103,19 +112,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string)
 const foundCorruptBucket = (error: TransactionCanceledException) =>
   error.CancellationReasons?.[0]?.Code === "None" && error.CancellationReasons?.[1]?.Code !== "None";
 
-export const handler = warmingWrapper(async (event, _context) => {
-  // Logging the entire event for now
-  console.log(event);
-
-  const { longUrl } = parseBody(event) as Body;
-
-  if (!longUrl) {
-    return response({
-      statusCode: 400,
-      body: JSON.stringify({ message: "A longUrl must be provided in the request body" }),
-    });
-  }
-
+export const createShortUrl = async (longUrl: string, owningUserId?: string) => {
   console.log("Received long URL: ", longUrl);
 
   const countBucketId = getRandomCountBucketId();
@@ -129,11 +126,11 @@ export const handler = warmingWrapper(async (event, _context) => {
     try {
       console.log(`Starting attempt ${attempt} to update the DynamoDB tables...`);
 
-      shortUrlId = await updateDynamoDBTableValues(countBucketId, longUrl);
+      shortUrlId = await updateDynamoDBTableValues(countBucketId, longUrl, owningUserId);
 
       console.log("Successfully generated short URL ID: ", shortUrlId);
 
-      return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
+      return shortUrlId;
     } catch (error) {
       console.error("An error occurred while trying to update the DynamoDB tables: ", error);
 
@@ -143,23 +140,36 @@ export const handler = warmingWrapper(async (event, _context) => {
         if (foundCorruptBucket(error)) {
           await publishCorruptBucketMetric(cloudWatchClient, countBucketId);
           console.error(`Found a corrupt bucket whose count must be incremented manually: ${countBucketId}`);
-          return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
+          throw new InternalServerError();
         }
         attempt += 1;
         if (attempt > MAX_ATTEMPTS) {
-          return response({ statusCode: 503, body: JSON.stringify({ message: "Server is currently overloaded" }) });
+          throw new ServiceUnavailable();
         }
         // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html#standardvsadaptiveimplementation
         const delay = exponentialBackoffWithJitter(attempt);
         console.log(`Waiting ${(delay / 1000).toFixed(2)} seconds before next attempt...`);
         await wait(delay);
       } else {
-        // Otherwise, just return an error
-        return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
+        // Otherwise, just throw an error
+        throw new InternalServerError();
       }
     }
   }
 
-  // We shouldn't ever reach here so return an error incase
-  return response({ statusCode: 500, body: JSON.stringify({ message: "An internal server error occurred" }) });
-});
+  // We shouldn't ever reach here so throw an error incase
+  throw new InternalServerError();
+};
+
+export const createShortUrlHandler: Handler = async (event) => {
+  // Logging the entire event for now
+  console.log(event);
+
+  const { longUrl } = parseBody(event) as Body;
+  if (!longUrl) throw new BadRequest("A longUrl must be provided in the request body");
+
+  const shortUrlId = await createShortUrl(longUrl);
+  return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
+};
+
+export const handler = middy().use(warmup()).use(httpErrorHandler()).use(logResponse()).handler(createShortUrlHandler);
