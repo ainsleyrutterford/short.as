@@ -1,6 +1,6 @@
 # [short.as](https://short.as)
 
-A URL shortener built for fun. See the design [here](wiki-link).
+A URL shortener built for fun.
 
 ### Development
 
