@@ -16,6 +16,6 @@ export const createUrlForUser: AuthenticatedHandler = async (event) => {
   const { longUrl } = parseBody(event) as Body;
   if (!longUrl) throw new BadRequest("A longUrl must be provided in the request body");
 
-  const shortUrlId = await createShortUrl(longUrl, userId);
-  return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
+  const url = await createShortUrl(longUrl, userId);
+  return response({ statusCode: 200, body: JSON.stringify(url) });
 };

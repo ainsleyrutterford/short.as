@@ -49,6 +49,8 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string,
   const chosenUrlNumber = base + count;
   const shortUrlId = encodeNumber(chosenUrlNumber);
 
+  const urlItem = createUrlItem(shortUrlId, longUrl, owningUserId);
+
   // If there was already a count bucket, then update it, otherwise create one
   const countBucketTransactWriteItem = Item
     ? {
@@ -86,7 +88,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string,
         {
           Put: {
             TableName: URLS_TABLE_NAME,
-            Item: createUrlItem(shortUrlId, longUrl, owningUserId),
+            Item: urlItem,
             // Ensure this item hasn't been created in the mean time
             ConditionExpression: "attribute_not_exists(shortUrlId)",
           },
@@ -95,7 +97,7 @@ const updateDynamoDBTableValues = async (countBucketId: number, longUrl: string,
     }),
   );
 
-  return shortUrlId;
+  return urlItem;
 };
 
 /**
@@ -120,17 +122,16 @@ export const createShortUrl = async (longUrl: string, owningUserId?: string) => 
   console.log("Random count bucket ID chosen: ", countBucketId);
 
   let attempt = 1;
-  let shortUrlId: string;
 
   while (attempt <= MAX_ATTEMPTS) {
     try {
       console.log(`Starting attempt ${attempt} to update the DynamoDB tables...`);
 
-      shortUrlId = await updateDynamoDBTableValues(countBucketId, longUrl, owningUserId);
+      const url = await updateDynamoDBTableValues(countBucketId, longUrl, owningUserId);
 
-      console.log("Successfully generated short URL ID: ", shortUrlId);
+      console.log("Successfully generated short URL ID: ", url.shortUrlId);
 
-      return shortUrlId;
+      return url;
     } catch (error) {
       console.error("An error occurred while trying to update the DynamoDB tables: ", error);
 
@@ -168,8 +169,8 @@ export const createShortUrlHandler: Handler = async (event) => {
   const { longUrl } = parseBody(event) as Body;
   if (!longUrl) throw new BadRequest("A longUrl must be provided in the request body");
 
-  const shortUrlId = await createShortUrl(longUrl);
-  return response({ statusCode: 200, body: JSON.stringify({ shortUrlId }) });
+  const url = await createShortUrl(longUrl);
+  return response({ statusCode: 200, body: JSON.stringify(url) });
 };
 
 export const handler = middy().use(warmup()).use(httpErrorHandler()).use(logResponse()).handler(createShortUrlHandler);
