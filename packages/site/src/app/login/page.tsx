@@ -7,6 +7,8 @@ import { FacebookLogo } from "@/assets/facebook";
 import { GoogleLogo } from "@/assets/google";
 import { PageContainer } from "@/components/page-container";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { OAuthProvider } from "@short-as/types";
 
 /** https://developers.google.com/identity/protocols/oauth2/web-server#creatingclient */
 const createGoogleOAuthUrl = () => {
@@ -50,8 +52,20 @@ const createFacebookOAuthUrl = () => {
   return `${baseUrl}?${queryStrings.toString()}`;
 };
 
+const LastUsed = () => (
+  <div className="absolute -top-4 -right-20 text-[0.7rem]/3 bg-primary text-primary-foreground rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-[2px] px-1.5 py-[3px]">
+    Last used
+  </div>
+);
+
 const Login = () => {
   const router = useRouter();
+  const [lastUsedOAuthProvider, setLastUsedOAuthProvider] = useState("");
+
+  useEffect(() => {
+    setLastUsedOAuthProvider(window.localStorage.getItem("lastUsedOAuthProvider") ?? "");
+  }, []);
+
   return (
     <PageContainer>
       <form
@@ -67,17 +81,29 @@ const Login = () => {
           </p>
         </div>
         <div className="grid w-full items-center gap-y-2">
-          <Button className="w-full" variant="secondary" onClick={() => router.push(createGoogleOAuthUrl())}>
-            <GoogleLogo className="mr-2 h-4 w-4" />
-            Continue with Google
+          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createGoogleOAuthUrl())}>
+            <div className="relative flex items-center">
+              <GoogleLogo className="mr-2 h-4 w-4" />
+              <span>Continue with Google</span>
+
+              {lastUsedOAuthProvider === OAuthProvider.Google && <LastUsed />}
+            </div>
           </Button>
-          <Button className="w-full z-10" variant="secondary" onClick={() => router.push(createFacebookOAuthUrl())}>
-            <FacebookLogo className="mr-2 h-4 w-4" />
-            Continue with Facebook
+          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createFacebookOAuthUrl())}>
+            <div className="relative flex items-center">
+              <FacebookLogo className="mr-2 h-4 w-4" />
+              <span>Continue with Facebook</span>
+
+              {lastUsedOAuthProvider === OAuthProvider.Facebook && <LastUsed />}
+            </div>
           </Button>
-          <Button className="w-full z-10" variant="secondary" onClick={() => router.push(createGitHubOAuthUrl())}>
-            <MarkGithubIcon className="mr-2 h-4 w-4" />
-            Continue with GitHub
+          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createGitHubOAuthUrl())}>
+            <div className="relative flex items-center">
+              <MarkGithubIcon className="mr-2 h-4 w-4" />
+              <span>Continue with GitHub</span>
+
+              {lastUsedOAuthProvider === OAuthProvider.GitHub && <LastUsed />}
+            </div>
           </Button>
         </div>
         <div className="mt-8 flex w-full items-center justify-center flex-row">
