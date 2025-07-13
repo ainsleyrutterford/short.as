@@ -38,13 +38,13 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UrlsTable"),
     });
 
-    // const urlsTableOwningUserIdGsi = "GSI-owningUserId-createdTimestamp";
+    const urlsTableOwningUserIdGsi = "GSI-owningUserId-createdTimestamp";
 
-    // urlsTable.addGlobalSecondaryIndex({
-    //   indexName: urlsTableOwningUserIdGsi,
-    //   partitionKey: { name: "owningUserId", type: dynamodb.AttributeType.STRING },
-    //   sortKey: { name: "createdTimestamp", type: dynamodb.AttributeType.STRING },
-    // });
+    urlsTable.addGlobalSecondaryIndex({
+      indexName: urlsTableOwningUserIdGsi,
+      partitionKey: { name: "owningUserId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "createdTimestamp", type: dynamodb.AttributeType.STRING },
+    });
 
     const usersTable = new dynamodb.Table(this, "UsersTable", {
       partitionKey: {
@@ -162,7 +162,7 @@ export class BackendStack extends cdk.Stack {
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
           COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
-          // USER_ID_GSI_NAME: urlsTableOwningUserIdGsi,
+          USER_ID_GSI_NAME: urlsTableOwningUserIdGsi,
           USERS_TABLE_NAME: usersTable.tableName,
         },
       },
@@ -171,10 +171,10 @@ export class BackendStack extends cdk.Stack {
       warming: true,
       policyStatements: [
         new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [usersTable.tableArn] }),
-        // new PolicyStatement({
-        //   actions: ["dynamodb:Query"],
-        //   resources: [`${urlsTable.tableArn}/index/${urlsTableOwningUserIdGsi}`],
-        // }),
+        new PolicyStatement({
+          actions: ["dynamodb:Query"],
+          resources: [`${urlsTable.tableArn}/index/${urlsTableOwningUserIdGsi}`],
+        }),
         new PolicyStatement({
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
           resources: [countBucketsTable.tableArn, urlsTable.tableArn, usersTable.tableArn],
