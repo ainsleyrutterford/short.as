@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (loggedIn) {
         const user = await getUser();
         setUser(user);
+        window.localStorage.setItem("lastUsedOAuthProvider", user.oAuthProvider);
       } else {
         setUser(undefined);
       }
