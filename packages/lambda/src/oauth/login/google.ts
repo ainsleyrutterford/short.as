@@ -50,7 +50,11 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
 
     const response = await fetch(`${baseUrl}?${queryStrings.toString()}`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      // Content-Length wasn't needed initially, but after a few months we suddenly needed it to
+      // avoid a 411 error... https://stackoverflow.com/a/18352423
+      // We should probably start using the official Google APIs npm package once LLRT supports
+      // the necessary Node modules.
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "Content-Length": "0" },
     });
 
     return response.json();
