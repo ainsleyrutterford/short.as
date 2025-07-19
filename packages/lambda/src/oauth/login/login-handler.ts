@@ -6,6 +6,7 @@ import { response, siteUrl } from "../../utils";
 import { createOrUpdateUser } from "../user";
 import { UserDdbInput } from "../types";
 import { createLoggedInCookies, TESTING_LOCALHOST } from "../cookies";
+import { log } from "../../lesslog";
 
 export abstract class OAuthLoginHandler {
   protected oAuthProvider: OAuthProvider | undefined;
@@ -21,7 +22,7 @@ export abstract class OAuthLoginHandler {
   abstract fetchUserData(code: string): Promise<UserDdbInput>;
 
   async handleRequest(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> {
-    console.log(`Handling ${this.oAuthProvider} OAuth request...`);
+    log.info(`Handling ${this.oAuthProvider} OAuth request...`);
 
     const now = nowInSeconds();
 

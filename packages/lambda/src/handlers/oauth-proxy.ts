@@ -10,6 +10,7 @@ import { handleLogoutRequest } from "../oauth/logout";
 import httpRouterHandler, { Route } from "@middy/http-router";
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { auth } from "../middlewares/auth";
+import { lesslog } from "../middlewares/lesslog";
 
 export { TESTING_LOCALHOST } from "../oauth/cookies";
 
@@ -45,4 +46,5 @@ export const handler = middy()
   .use(warmup())
   .use(httpErrorHandler())
   .use(logResponse())
+  .use(lesslog())
   .handler(httpRouterHandler(routes));
