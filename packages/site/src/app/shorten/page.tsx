@@ -15,9 +15,10 @@ import { LoadingSpinner } from "@/components/ui/loading";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
 import { isProd } from "@/lib/utils";
-
-// Data fetching from the client in Next.js:
-// https://nextjs.org/docs/app/building-your-application/deploying/static-exports#client-components
+import { YourUrls } from "@/components/your-urls";
+// import useSWRMutation from "swr/mutation";
+// import { ANON_URLS_KEY, USER_URLS_KEY } from "@/lib/swr";
+// import { Url } from "@short-as/types";
 
 const LoginState = () => {
   const router = useRouter();
@@ -56,11 +57,24 @@ const LoginState = () => {
   return <></>;
 };
 
+// const fetcher = async (url: string) => {
+//   const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`, {
+//     method: "POST",
+//     // Necessary to send cookies
+//     credentials: "include",
+//   });
+//   return (await data.json()) as Url;
+// };
+
 const ShortenPage = () => {
   const router = useRouter();
-
   const { loggedIn } = useAuth();
   const { setShortUrlId, setLongUrl } = useIds();
+
+  // const { trigger, isMutating, error } = useSWRMutation(loggedIn ? USER_URLS_KEY : ANON_URLS_KEY, fetcher, {
+  //   populateCache: (newUrl, urls) => [newUrl, ...(urls as unknown as Url[])] as unknown as Url,
+  //   revalidate: false,
+  // });
 
   const [urlToShorten, setUrlToShorten] = useState("");
   const [isValidUrl, setIsValidUrl] = useState(true);
@@ -88,12 +102,15 @@ const ShortenPage = () => {
                 setLongUrl(validatedUrl);
                 setLoading(true);
 
-                const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/urls`, {
-                  method: "POST",
-                  // Necessary to send cookies
-                  credentials: "include",
-                  body: JSON.stringify({ longUrl: validatedUrl }),
-                });
+                const data = await window.fetch(
+                  `${process.env.NEXT_PUBLIC_API_BASE_URL}/${loggedIn ? "users/urls" : "urls"}`,
+                  {
+                    method: "POST",
+                    // Necessary to send cookies
+                    credentials: "include",
+                    body: JSON.stringify({ longUrl: validatedUrl }),
+                  },
+                );
                 if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
 
                 const json = await data.json();
@@ -138,7 +155,7 @@ const ShortenPage = () => {
                     />
                     <div className={`transition-[height] duration-300 ${isValidUrl ? "h-0" : "h-7"}`}>
                       <p
-                        className={`text-sm text-destructive pt-2 transition-[height] transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
+                        className={`text-sm text-destructive pt-2 transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
                       >
                         Please enter a valid URL
                       </p>
@@ -161,6 +178,7 @@ const ShortenPage = () => {
             </CardContent>
           </form>
         </Card>
+        {loggedIn && <YourUrls />}
         {/* For now, only show login for dev */}
         {!isProd && !loggedIn && <CreateAccountSuggestion />}
       </div>
