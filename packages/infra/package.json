@@ -10,11 +10,12 @@
     "cdk": "cdk"
   },
   "dependencies": {
+    "@aws-cdk/aws-glue-alpha": "^2.206.0-alpha.0",
+    "@short-as/lambda": "*",
+    "@short-as/site": "*",
     "aws-cdk-lib": "^2.191.0",
     "cdk-lambda-llrt": "^0.0.15",
     "constructs": "^10.0.0",
-    "@short-as/lambda": "*",
-    "@short-as/site": "*",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {

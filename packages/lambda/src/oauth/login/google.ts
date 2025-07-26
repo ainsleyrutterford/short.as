@@ -1,4 +1,3 @@
-import { URLSearchParams } from "url";
 import { OAuthProvider } from "@short-as/types";
 
 import { fetchOAuthClientInformation } from "../utils";
@@ -35,26 +34,23 @@ interface GoogleUser {
 export class GoogleLoginHandler extends OAuthLoginHandler {
   oAuthProvider = OAuthProvider.Google;
 
+  /**
+   * https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
+   */
   async fetchGoogleOAuthTokens(code: string): Promise<GoogleOAuthResponse> {
     const baseUrl = "https://oauth2.googleapis.com/token";
 
     const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
 
-    const queryStrings = new URLSearchParams({
-      code,
-      client_id,
-      client_secret,
-      redirect_uri: `${siteUrl}/api/oauth/google`,
-      grant_type: "authorization_code",
-    });
-
-    const response = await fetch(`${baseUrl}?${queryStrings.toString()}`, {
+    const response = await fetch(baseUrl, {
       method: "POST",
-      // Content-Length wasn't needed initially, but after a few months we suddenly needed it to
-      // avoid a 411 error... https://stackoverflow.com/a/18352423
-      // We should probably start using the official Google APIs npm package once LLRT supports
-      // the necessary Node modules.
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "Content-Length": "0" },
+      body: JSON.stringify({
+        code,
+        client_id,
+        client_secret,
+        redirect_uri: `${siteUrl}/api/oauth/google`,
+        grant_type: "authorization_code",
+      }),
     });
 
     return response.json();
