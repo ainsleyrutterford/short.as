@@ -25,7 +25,7 @@ export class UrlAnalyticsAggregator extends Construct {
     this.stackName = stackName;
 
     const destinationBucket = new s3.Bucket(this, "UrlAnalyticsBucket", {
-      bucketName: `${stackName.toLowerCase()}-url-analytics-${account}`,
+      bucketName: `url-analytics-${stackName.toLowerCase()}-${account}`,
     });
 
     // TODO: how do we want to aggregate? What do we want the keys to be?
@@ -52,11 +52,7 @@ export class UrlAnalyticsAggregator extends Construct {
       // If anything in packages/lambda/src/analytics.ts changes, you must change it here too!
       columns: [
         { name: "short_url_id", type: glue.Schema.STRING },
-        { name: "url_prefix_bucket", type: glue.Schema.STRING },
         { name: "timestamp", type: glue.Schema.TIMESTAMP },
-        { name: "year", type: glue.Schema.STRING },
-        { name: "month", type: glue.Schema.STRING },
-        { name: "day", type: glue.Schema.STRING },
 
         // Device / Browser information
         { name: "user_agent", type: glue.Schema.STRING },
@@ -98,12 +94,16 @@ export class UrlAnalyticsAggregator extends Construct {
       bucket: destinationBucket,
     });
 
-    const firehoseLogGroup = new logs.LogGroup(this, "UrlAnalyticsAggregatorFirehoseLogGroup", {
-      logGroupName: "/aws/kinesisfirehose/UrlAnalyticsAggregatorFirehose",
+    const firehoseLogGroup = new logs.LogGroup(this, "UrlAnalyticsFirehoseLogGroup", {
+      logGroupName: `/aws/kinesisfirehose/UrlAnalytics-${this.stackName}`,
       retention: logs.RetentionDays.TWO_MONTHS,
     });
 
-    const firehoseRole = new iam.Role(this, "UrlAnalyticsAggregatorFirehoseRole", {
+    const firehoseLogStream = new logs.LogStream(this, "UrlAnalyticsFirehoseLogStream", {
+      logGroup: firehoseLogGroup,
+    });
+
+    const firehoseRole = new iam.Role(this, "UrlAnalyticsFirehoseRole", {
       assumedBy: new iam.ServicePrincipal("firehose.amazonaws.com"),
       inlinePolicies: {
         FirehoseDeliveryPolicy: new iam.PolicyDocument({
@@ -133,8 +133,8 @@ export class UrlAnalyticsAggregator extends Construct {
       },
     });
 
-    this.deliveryStream = new firehose.CfnDeliveryStream(this, "UrlAnalyticsAggregatorFirehose", {
-      deliveryStreamName: this.createResourceName("UrlAnalyticsAggregatorFirehose"),
+    this.deliveryStream = new firehose.CfnDeliveryStream(this, "UrlAnalyticsFirehose", {
+      deliveryStreamName: this.createResourceName("UrlAnalyticsFirehose"),
       extendedS3DestinationConfiguration: {
         bucketArn: destinationBucket.bucketArn,
         roleArn: firehoseRole.roleArn,
@@ -149,6 +149,19 @@ export class UrlAnalyticsAggregator extends Construct {
               type: "Lambda",
               parameters: [{ parameterName: "LambdaArn", parameterValue: aggregatorLambda.functionArn }],
             },
+            {
+              type: "MetadataExtraction",
+              parameters: [
+                {
+                  parameterName: "MetadataExtractionQuery",
+                  parameterValue: "{year:.year,month:.month,day:.day,url_prefix_bucket:.url_prefix_bucket}",
+                },
+                {
+                  parameterName: "JsonParsingEngine",
+                  parameterValue: "JQ-1.6",
+                },
+              ],
+            },
           ],
         },
         dataFormatConversionConfiguration: {
@@ -162,7 +175,11 @@ export class UrlAnalyticsAggregator extends Construct {
             roleArn: firehoseRole.roleArn,
           },
         },
-        cloudWatchLoggingOptions: { enabled: true, logGroupName: firehoseLogGroup.logGroupName },
+        cloudWatchLoggingOptions: {
+          enabled: true,
+          logGroupName: firehoseLogGroup.logGroupName,
+          logStreamName: firehoseLogStream.logStreamName,
+        },
       },
     });
   }

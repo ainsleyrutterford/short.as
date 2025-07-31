@@ -27,6 +27,8 @@ export const getLongUrlHandler: Handler = async (event) => {
 
   const analytics = await extractAnalytics(new Date(), shortUrlId, event.headers);
 
+  console.log(analytics);
+
   // TODO: direct PUT the analytics object into Firehose
 
   console.log("Received short URL ID: ", shortUrlId);
