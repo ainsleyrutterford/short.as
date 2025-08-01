@@ -115,8 +115,12 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
         functionName: this.createResourceName("GetLongUrlLambda"),
+        // This handler uses the Firehose client so it needs the full SDK
+        llrtBinaryType: LlrtBinaryType.FULL_SDK,
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ANALYTICS_FIREHOSE_STREAM_NAME: analyticsAggregator.deliveryStream.deliveryStreamName!,
         },
       },
       path: "/urls/{proxy+}",
@@ -127,6 +131,10 @@ export class BackendStack extends cdk.Stack {
         new PolicyStatement({
           actions: ["firehose:PutRecord", "firehose:PutRecordBatch"],
           resources: [analyticsAggregator.deliveryStream.attrArn],
+        }),
+        new PolicyStatement({
+          actions: ["ssm:GetParameter"],
+          resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/salt`],
         }),
       ],
     });

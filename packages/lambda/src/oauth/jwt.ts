@@ -36,7 +36,7 @@ let cachedJwtSigningKey: string | undefined = undefined;
 export const fetchJwtSigningKey = async (): Promise<string> => {
   if (cachedJwtSigningKey) return cachedJwtSigningKey;
 
-  console.log("No cached JWT signing key found, fetching one instead...");
+  console.log("Fetching and caching JWT signing key...");
   const parameterName = `/${isProd ? "prod" : "dev"}/oauth/jwt-signing-key`;
   const response = await ssmClient.send(new GetParameterCommand({ Name: parameterName, WithDecryption: true }));
   if (!response.Parameter?.Value) {

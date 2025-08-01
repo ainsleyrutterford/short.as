@@ -38,6 +38,7 @@ export class UrlAnalyticsAggregator extends Construct {
       entry: "../lambda/src/handlers/analytics-aggregator.ts",
       functionName: this.createResourceName("UrlAnalyticsAggregatorLambda"),
       runtime: lambda.Runtime.NODEJS_LATEST,
+      environment: { URLS_TABLE_NAME: urlsTable.tableName },
       timeout: Duration.seconds(60),
     });
 

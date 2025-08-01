@@ -7,7 +7,7 @@ import { dynamoClient } from "../clients/dynamo";
 import { logResponse, middy, warmup } from "../middlewares";
 import { BadRequest, NotFound } from "../errors";
 import { Handler } from "../types";
-import { extractAnalytics } from "../analytics";
+import { extractAndPublishAnalytics } from "../analytics";
 
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
 
@@ -25,17 +25,15 @@ export const getLongUrlHandler: Handler = async (event) => {
   const shortUrlId = extractShortUrl(event.pathParameters?.proxy);
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
 
-  const analytics = await extractAnalytics(new Date(), shortUrlId, event.headers);
-
-  console.log(analytics);
-
-  // TODO: direct PUT the analytics object into Firehose
-
   console.log("Received short URL ID: ", shortUrlId);
 
-  const { Item } = await dynamoClient.send(new GetCommand({ TableName: URLS_TABLE_NAME, Key: { shortUrlId } }));
-  if (!Item) throw new NotFound(`Could not find a long URL from the shortUrlId: ${shortUrlId}`);
+  // Fetch the URL details from DynamoDB and publish the analytics to Firehose in parallel
+  const [{ Item }] = await Promise.all([
+    dynamoClient.send(new GetCommand({ TableName: URLS_TABLE_NAME, Key: { shortUrlId } })),
+    extractAndPublishAnalytics(shortUrlId, event.headers),
+  ]);
 
+  if (!Item) throw new NotFound(`Could not find a long URL from the shortUrlId: ${shortUrlId}`);
   const { longUrl } = Item;
 
   if (event.pathParameters?.proxy?.endsWith("/details")) {

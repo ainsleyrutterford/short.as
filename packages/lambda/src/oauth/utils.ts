@@ -29,7 +29,7 @@ export const fetchOAuthClientInformation = async (
     return cachedOAuthClientInformation[provider];
   }
 
-  console.log(`No cached OAuth client information found for ${provider}, fetching it instead...`);
+  console.log(`Fetching and caching OAuth client information for ${provider}...`);
   const parameterName = `/${isProd ? "prod" : "dev"}/oauth/${provider}`;
   const response = await ssmClient.send(new GetParameterCommand({ Name: parameterName, WithDecryption: true }));
   if (!response.Parameter?.Value) {

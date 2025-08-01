@@ -2,7 +2,11 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { createHash } from "crypto";
 import { ssmClient } from "./clients/ssm";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
-import { isProd } from "./utils";
+import { getStringEnvironmentVariable, isProd } from "./utils";
+import { firehoseClient } from "./clients/firehose";
+import { PutRecordCommand } from "@aws-sdk/client-firehose";
+
+const ANALYTICS_FIREHOSE_STREAM_NAME = getStringEnvironmentVariable("ANALYTICS_FIREHOSE_STREAM_NAME");
 
 export interface AnalyticsEvent {
   short_url_id: string;
@@ -49,7 +53,7 @@ let cachedSalt: string | undefined = undefined;
 export const fetchSalt = async (): Promise<string> => {
   if (cachedSalt) return cachedSalt;
 
-  console.log("No cached salt found, fetching one instead...");
+  console.log("Fetching and caching salt...");
   const parameterName = `/${isProd ? "prod" : "dev"}/salt`;
   const response = await ssmClient.send(new GetParameterCommand({ Name: parameterName, WithDecryption: true }));
   if (!response.Parameter?.Value) {
@@ -92,7 +96,7 @@ const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(
 
 // If you change anything here, you must change it in
 // packages/infra/lib/constructs/analytics-aggregator.ts too!
-export const extractAnalytics = async (
+const extractAnalytics = async (
   now: Date,
   shortUrlId: string,
   headers: APIGatewayProxyEventHeaders,
@@ -129,3 +133,25 @@ export const extractAnalytics = async (
   asn: headers["cloudfront-viewer-asn"],
   referer: headers["referer"],
 });
+
+const publishAnalytics = async (analytics: AnalyticsEvent) => {
+  try {
+    const response = await firehoseClient.send(
+      new PutRecordCommand({
+        DeliveryStreamName: ANALYTICS_FIREHOSE_STREAM_NAME,
+        Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") },
+      }),
+    );
+
+    if (response.RecordId) console.log(`Analytics event published successfully. RecordId: ${response.RecordId}`);
+  } catch (error) {
+    console.error(
+      `Failed to publish analytics event to Firehose. Analytics: ${JSON.stringify(analytics, null, 2)} ${error}`,
+    );
+  }
+};
+
+export const extractAndPublishAnalytics = async (shortUrlId: string, headers: APIGatewayProxyEventHeaders) => {
+  const analytics = await extractAnalytics(new Date(), shortUrlId, headers);
+  await publishAnalytics(analytics);
+};
