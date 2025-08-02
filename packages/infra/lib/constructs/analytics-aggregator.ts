@@ -37,7 +37,8 @@ export class UrlAnalyticsAggregator extends Construct {
     const aggregatorLambda = new nodeJsLambda.NodejsFunction(this, "UrlAnalyticsAggregatorLambda", {
       entry: "../lambda/src/handlers/analytics-aggregator.ts",
       functionName: this.createResourceName("UrlAnalyticsAggregatorLambda"),
-      runtime: lambda.Runtime.NODEJS_LATEST,
+      // Can't use latest as it's 18 atm: https://github.com/aws/aws-cdk/issues/28125
+      runtime: lambda.Runtime.NODEJS_22_X,
       environment: { URLS_TABLE_NAME: urlsTable.tableName },
       timeout: Duration.seconds(60),
     });
@@ -45,11 +46,15 @@ export class UrlAnalyticsAggregator extends Construct {
     // analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
     urlsTable.grantReadWriteData(aggregatorLambda);
 
-    const glueDatabase = new glue.Database(this, "UrlAnalyticsDatabase", {});
+    const glueDatabase = new glue.Database(this, "UrlAnalyticsDatabase", {
+      databaseName: `url-analytics-database-${stackName.toLowerCase()}`,
+    });
 
+    // To then query this in Athena, I needed to run:
+    // MSCK REPAIR TABLE `url-analytics-table-backend-dev`
     const glueTable = new glue.S3Table(this, "UrlAnalyticsTable", {
       database: glueDatabase,
-      tableName: "url_analytics_events",
+      tableName: `url-analytics-table-${stackName.toLowerCase()}`,
       // If anything in packages/lambda/src/analytics.ts changes, you must change it here too!
       columns: [
         { name: "short_url_id", type: glue.Schema.STRING },
@@ -88,10 +93,9 @@ export class UrlAnalyticsAggregator extends Construct {
         // "aa" to "ZZ" = 52^2 = 2,704 buckets
         { name: "url_prefix_bucket", type: glue.Schema.STRING },
       ],
-
-      // Looks like we need to set it as JSON rather than Parquet:
-      // https://medium.com/@prakashabhishant/kinesis-firehose-transformations-with-lambda-data-conversions-and-dynamic-partitioning-aefb189aa2ed
-      dataFormat: glue.DataFormat.JSON,
+      dataFormat: glue.DataFormat.PARQUET,
+      compressed: true,
+      storageParameters: [glue.StorageParameter.compressionType(glue.CompressionType.SNAPPY)],
       bucket: destinationBucket,
     });
 
@@ -167,9 +171,9 @@ export class UrlAnalyticsAggregator extends Construct {
         },
         dataFormatConversionConfiguration: {
           enabled: true,
+          inputFormatConfiguration: { deserializer: { openXJsonSerDe: {} } },
           // According to docs, we can switch to using GZIP if we want to prioritize compression ratio over speed
           outputFormatConfiguration: { serializer: { parquetSerDe: { compression: "SNAPPY" } } },
-          inputFormatConfiguration: { deserializer: { openXJsonSerDe: {} } },
           schemaConfiguration: {
             databaseName: glueDatabase.databaseName,
             tableName: glueTable.tableName,

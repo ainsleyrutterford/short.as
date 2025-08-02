@@ -52,7 +52,6 @@ const updateUrlCounts = async (shortUrlAnalytics: Map<string, AnalyticsEvent[]>)
   return { successes, errors };
 };
 
-// TODO: add overall error handling
 export const handler: FirehoseTransformationHandler = async (event) => {
   const shortUrlAnalytics = groupEventsByShortUrlId(event.records);
   console.log(`Received ${event.records.length} events for ${shortUrlAnalytics.size} short URLs`);
