@@ -38,12 +38,17 @@ export class ApiRouteLambda extends Construct {
       architecture: Architecture.ARM_64,
       logGroup,
       handler: "handler",
-      // TODO: remove this and use latest again once LLRT releases this fix: https://github.com/awslabs/llrt/pull/1056
-      llrtVersion: "v0.5.1-beta",
       ...lambdaProps,
     });
 
     policyStatements?.forEach((statement) => this.lambda.addToRolePolicy(statement));
+
+    this.lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["cloudwatch:PutMetricData"],
+        resources: ["*"],
+      }),
+    );
 
     httpApi.addRoutes({ path, methods, integration: new HttpLambdaIntegration("LambdaIntegration", this.lambda) });
 

@@ -7,6 +7,7 @@ import { LlrtBinaryType } from "cdk-lambda-llrt";
 import { PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { ApiRouteLambda } from "./constructs/api-route-lambda";
+import { UrlAnalyticsAggregator } from "./constructs/analytics-aggregator";
 
 interface BackendStackProps extends cdk.StackProps {
   isProd?: boolean;
@@ -55,6 +56,8 @@ export class BackendStack extends cdk.Stack {
       tableName: this.createResourceName("UsersTable"),
     });
 
+    const analyticsAggregator = new UrlAnalyticsAggregator(this, "UrlAnalyticsAggregator", { urlsTable });
+
     const allowOrigins = ["https://short.as", "https://www.short.as", "https://dev.short.as"];
 
     if (!props?.isProd) {
@@ -76,11 +79,6 @@ export class BackendStack extends cdk.Stack {
     if (!props?.isProd) {
       this.enableHttpApiLogging();
     }
-
-    const putMetricDataPolicyStatement = new PolicyStatement({
-      actions: ["cloudwatch:PutMetricData"],
-      resources: ["*"],
-    });
 
     const getOAuthSSMParameterStatement = new PolicyStatement({
       actions: ["ssm:GetParameter"],
@@ -109,7 +107,6 @@ export class BackendStack extends cdk.Stack {
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
           resources: [countBucketsTable.tableArn, urlsTable.tableArn],
         }),
-        putMetricDataPolicyStatement,
       ],
     });
 
@@ -118,14 +115,28 @@ export class BackendStack extends cdk.Stack {
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
         functionName: this.createResourceName("GetLongUrlLambda"),
+        // This handler uses the Firehose client so it needs the full SDK
+        llrtBinaryType: LlrtBinaryType.FULL_SDK,
         environment: {
           URLS_TABLE_NAME: urlsTable.tableName,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ANALYTICS_FIREHOSE_STREAM_NAME: analyticsAggregator.deliveryStream.deliveryStreamName!,
         },
       },
       path: "/urls/{proxy+}",
       methods: [apigateway.HttpMethod.GET],
       warming: true,
-      policyStatements: [new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [urlsTable.tableArn] })],
+      policyStatements: [
+        new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [urlsTable.tableArn] }),
+        new PolicyStatement({
+          actions: ["firehose:PutRecord", "firehose:PutRecordBatch"],
+          resources: [analyticsAggregator.deliveryStream.attrArn],
+        }),
+        new PolicyStatement({
+          actions: ["ssm:GetParameter"],
+          resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/salt`],
+        }),
+      ],
     });
 
     new ApiRouteLambda(this, "OAuthLambda", {
@@ -179,7 +190,6 @@ export class BackendStack extends cdk.Stack {
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
           resources: [countBucketsTable.tableArn, urlsTable.tableArn, usersTable.tableArn],
         }),
-        putMetricDataPolicyStatement,
         getOAuthSSMParameterStatement,
       ],
     });
