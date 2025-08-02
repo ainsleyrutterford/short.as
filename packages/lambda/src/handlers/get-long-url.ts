@@ -28,11 +28,19 @@ export const getLongUrlHandler: Handler = async (event) => {
   console.log("Received short URL ID: ", shortUrlId);
 
   // Fetch the URL details from DynamoDB and publish the analytics to Firehose in parallel
-  const [{ Item }] = await Promise.all([
+  const [dynamoResult, analyticsResult] = await Promise.allSettled([
     dynamoClient.send(new GetCommand({ TableName: URLS_TABLE_NAME, Key: { shortUrlId } })),
     extractAndPublishAnalytics(shortUrlId, event.headers),
   ]);
 
+  if (dynamoResult.status === "rejected") {
+    console.error(`DynamoDB query failed: ${dynamoResult.reason}`);
+    throw dynamoResult.reason;
+  }
+
+  if (analyticsResult.status === "rejected") console.error(`Analytics publishing failed: ${analyticsResult.reason}`);
+
+  const { Item } = dynamoResult.value;
   if (!Item) throw new NotFound(`Could not find a long URL from the shortUrlId: ${shortUrlId}`);
   const { longUrl } = Item;
 
