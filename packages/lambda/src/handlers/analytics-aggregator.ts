@@ -29,6 +29,8 @@ const updateUrlCount = async (shortUrlId: string, countIncrease: number): Promis
       new UpdateCommand({
         TableName: URLS_TABLE_NAME,
         Key: { shortUrlId },
+        // Ensures that we don't create a new item if it didn't already exist, we only update existing ones
+        ConditionExpression: "attribute_exists(shortUrlId)",
         UpdateExpression: "ADD totalVisits :increment",
         ExpressionAttributeValues: { ":increment": countIncrease },
       }),
