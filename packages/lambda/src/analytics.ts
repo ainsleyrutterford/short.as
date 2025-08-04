@@ -101,6 +101,7 @@ const extractAnalytics = async (
   shortUrlId: string,
   headers: APIGatewayProxyEventHeaders,
 ): Promise<AnalyticsEvent> => ({
+  // TODO: add Lambda request ID for tracking, and add is_qr_code to know if it was a QR code scan (look at query strings)
   short_url_id: shortUrlId,
   url_prefix_bucket: getUrlPrefixBucket(shortUrlId),
   timestamp: now.toISOString(),
@@ -135,23 +136,23 @@ const extractAnalytics = async (
 });
 
 const publishAnalytics = async (analytics: AnalyticsEvent) => {
-  try {
-    const response = await firehoseClient.send(
-      new PutRecordCommand({
-        DeliveryStreamName: ANALYTICS_FIREHOSE_STREAM_NAME,
-        Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") },
-      }),
-    );
+  const response = await firehoseClient.send(
+    new PutRecordCommand({
+      DeliveryStreamName: ANALYTICS_FIREHOSE_STREAM_NAME,
+      Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") },
+    }),
+  );
 
-    if (response.RecordId) console.log(`Analytics event published successfully. RecordId: ${response.RecordId}`);
-  } catch (error) {
-    console.error(
-      `Failed to publish analytics event to Firehose. Analytics: ${JSON.stringify(analytics, null, 2)} ${error}`,
-    );
-  }
+  if (response.RecordId) console.log(`Analytics event published successfully. RecordId: ${response.RecordId}`);
 };
 
 export const extractAndPublishAnalytics = async (shortUrlId: string, headers: APIGatewayProxyEventHeaders) => {
-  const analytics = await extractAnalytics(new Date(), shortUrlId, headers);
-  await publishAnalytics(analytics);
+  try {
+    const analytics = await extractAnalytics(new Date(), shortUrlId, headers);
+    await publishAnalytics(analytics);
+  } catch (error) {
+    console.error(
+      `Failed to publish analytics event to Firehose. shortUrlId: ${shortUrlId} headers: ${JSON.stringify(headers, null, 2)} ${error}`,
+    );
+  }
 };
