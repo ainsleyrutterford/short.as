@@ -29,3 +29,16 @@ export interface Url {
   metadata?: Record<string, unknown>;
   history?: Record<number, string>;
 }
+
+export type AggregationGranularity = "hour" | "day" | "week";
+
+export interface ViewAggregateItem {
+  pk: `${AggregationGranularity}_${string}`;
+  /** ISO timestamp */
+  sk: string;
+  /** Unix timestamp for DDB TTL */
+  ttl: number;
+  views: number;
+  /** e.g., { "us_ios": 45, "gb_android": 18 } */
+  combinations: Record<string, number>;
+}

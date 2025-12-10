@@ -28,22 +28,29 @@ export class UrlAnalyticsAggregator extends Construct {
       bucketName: `url-analytics-${stackName.toLowerCase()}-${account}`,
     });
 
-    // TODO: how do we want to aggregate? What do we want the keys to be?
-    // const analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
-    //   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    //   tableName: this.createResourceName("UrlAnalyticsAggregationTable"),
-    // });
+    const analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
+      tableName: this.createResourceName("UrlAnalyticsAggregationTable"),
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      // pk: "hour_<shortUrlId>" | "day_<shortUrlId>" | "week_<shortUrlId>"
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      // 30 days for hourly, 90 days for daily, 2 years for weekly
+      timeToLiveAttribute: "ttl",
+    });
 
     const aggregatorLambda = new nodeJsLambda.NodejsFunction(this, "UrlAnalyticsAggregatorLambda", {
       entry: "../lambda/src/handlers/analytics-aggregator.ts",
       functionName: this.createResourceName("UrlAnalyticsAggregatorLambda"),
       // Can't use latest as it's 18 atm: https://github.com/aws/aws-cdk/issues/28125
       runtime: lambda.Runtime.NODEJS_22_X,
-      environment: { URLS_TABLE_NAME: urlsTable.tableName },
-      timeout: Duration.seconds(60),
+      environment: {
+        URLS_TABLE_NAME: urlsTable.tableName,
+        AGGREGATION_TABLE_NAME: analyticsAggregationTable.tableName,
+      },
+      timeout: Duration.seconds(120),
     });
 
-    // analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
+    analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
     urlsTable.grantReadWriteData(aggregatorLambda);
 
     const glueDatabase = new glue.Database(this, "UrlAnalyticsDatabase", {
@@ -62,6 +69,7 @@ export class UrlAnalyticsAggregator extends Construct {
 
         // Device / Browser information
         { name: "user_agent", type: glue.Schema.STRING },
+        { name: "os", type: glue.Schema.STRING },
         { name: "is_mobile", type: glue.Schema.BOOLEAN },
         { name: "is_desktop", type: glue.Schema.BOOLEAN },
         { name: "is_tablet", type: glue.Schema.BOOLEAN },
@@ -84,6 +92,10 @@ export class UrlAnalyticsAggregator extends Construct {
         { name: "ip_address_hash", type: glue.Schema.STRING },
         { name: "asn", type: glue.Schema.STRING },
         { name: "referer", type: glue.Schema.STRING },
+
+        // Tracking
+        { name: "is_qr_code", type: glue.Schema.BOOLEAN },
+        { name: "request_id", type: glue.Schema.STRING },
       ],
 
       partitionKeys: [
@@ -143,6 +155,7 @@ export class UrlAnalyticsAggregator extends Construct {
       extendedS3DestinationConfiguration: {
         bucketArn: destinationBucket.bucketArn,
         roleArn: firehoseRole.roleArn,
+        bufferingHints: { intervalInSeconds: 300, sizeInMBs: 5 },
         errorOutputPrefix: "errors/",
         dynamicPartitioningConfiguration: { enabled: true },
         prefix:
