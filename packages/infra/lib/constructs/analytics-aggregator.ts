@@ -15,6 +15,7 @@ export interface UrlAnalyticsAggregatorProps {
 
 export class UrlAnalyticsAggregator extends Construct {
   public deliveryStream: firehose.CfnDeliveryStream;
+  public analyticsAggregationTable: dynamodb.Table;
   private stackName: string;
 
   constructor(scope: Construct, id: string, props: UrlAnalyticsAggregatorProps) {
@@ -28,7 +29,7 @@ export class UrlAnalyticsAggregator extends Construct {
       bucketName: `url-analytics-${stackName.toLowerCase()}-${account}`,
     });
 
-    const analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
+    this.analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
       tableName: this.createResourceName("UrlAnalyticsAggregationTable"),
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       // pk: "hour_<shortUrlId>" | "day_<shortUrlId>" | "week_<shortUrlId>"
@@ -45,12 +46,12 @@ export class UrlAnalyticsAggregator extends Construct {
       runtime: lambda.Runtime.NODEJS_22_X,
       environment: {
         URLS_TABLE_NAME: urlsTable.tableName,
-        AGGREGATION_TABLE_NAME: analyticsAggregationTable.tableName,
+        AGGREGATION_TABLE_NAME: this.analyticsAggregationTable.tableName,
       },
       timeout: Duration.seconds(120),
     });
 
-    analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
+    this.analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
     urlsTable.grantReadWriteData(aggregatorLambda);
 
     const glueDatabase = new glue.Database(this, "UrlAnalyticsDatabase", {
@@ -95,7 +96,8 @@ export class UrlAnalyticsAggregator extends Construct {
 
         // Tracking
         { name: "is_qr_code", type: glue.Schema.BOOLEAN },
-        { name: "request_id", type: glue.Schema.STRING },
+        { name: "api_request_id", type: glue.Schema.STRING },
+        { name: "lambda_request_id", type: glue.Schema.STRING },
       ],
 
       partitionKeys: [
@@ -155,7 +157,9 @@ export class UrlAnalyticsAggregator extends Construct {
       extendedS3DestinationConfiguration: {
         bucketArn: destinationBucket.bucketArn,
         roleArn: firehoseRole.roleArn,
-        bufferingHints: { intervalInSeconds: 300, sizeInMBs: 5 },
+        // These are the defaults when format conversion is enabled:
+        // https://docs.aws.amazon.com/firehose/latest/dev/enable-record-format-conversion.html
+        bufferingHints: { intervalInSeconds: 300, sizeInMBs: 128 },
         errorOutputPrefix: "errors/",
         dynamicPartitioningConfiguration: { enabled: true },
         prefix:

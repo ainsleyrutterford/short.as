@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import { APIGatewayProxyEventV2, Context } from "aws-lambda";
 import { createHash } from "crypto";
 import { UAParser } from "ua-parser-js";
 import { ssmClient } from "./clients/ssm";
@@ -37,7 +37,8 @@ export interface AnalyticsEvent {
   ip_address_hash?: string;
   asn?: string;
   referer?: string;
-  request_id?: string;
+  api_request_id?: string;
+  lambda_request_id?: string;
 }
 
 let cachedSalt: string | undefined = undefined;
@@ -117,9 +118,8 @@ const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(
 const extractAnalytics = async (
   now: Date,
   shortUrlId: string,
-  headers: APIGatewayProxyEventHeaders,
-  queryStringParameters?: Record<string, string | undefined> | null,
-  requestId?: string,
+  { headers, queryStringParameters, requestContext }: APIGatewayProxyEventV2,
+  { awsRequestId }: Context,
 ): Promise<AnalyticsEvent> => ({
   short_url_id: shortUrlId,
   url_prefix_bucket: getUrlPrefixBucket(shortUrlId),
@@ -156,7 +156,8 @@ const extractAnalytics = async (
 
   // Tracking
   is_qr_code: queryStringParameters?.src === "qr",
-  request_id: requestId,
+  api_request_id: requestContext?.requestId,
+  lambda_request_id: awsRequestId,
 });
 
 const publishAnalytics = async (analytics: AnalyticsEvent) => {
@@ -172,16 +173,15 @@ const publishAnalytics = async (analytics: AnalyticsEvent) => {
 
 export const extractAndPublishAnalytics = async (
   shortUrlId: string,
-  headers: APIGatewayProxyEventHeaders,
-  queryStringParameters?: Record<string, string | undefined> | null,
-  requestId?: string,
+  event: APIGatewayProxyEventV2,
+  context: Context,
 ) => {
   try {
-    const analytics = await extractAnalytics(new Date(), shortUrlId, headers, queryStringParameters, requestId);
+    const analytics = await extractAnalytics(new Date(), shortUrlId, event, context);
     await publishAnalytics(analytics);
   } catch (error) {
     console.error(
-      `Failed to publish analytics event to Firehose. shortUrlId: ${shortUrlId} headers: ${JSON.stringify(headers, null, 2)} ${error}`,
+      `Failed to publish analytics event to Firehose. shortUrlId: ${shortUrlId} headers: ${JSON.stringify(event.headers, null, 2)} ${error}`,
     );
   }
 };
