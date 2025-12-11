@@ -27,6 +27,8 @@ export class UrlAnalyticsAggregator extends Construct {
 
     const destinationBucket = new s3.Bucket(this, "UrlAnalyticsBucket", {
       bucketName: `url-analytics-${stackName.toLowerCase()}-${account}`,
+      // Auto-delete raw analytics after 2 years
+      lifecycleRules: [{ expiration: Duration.days(730) }],
     });
 
     this.analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
@@ -85,8 +87,6 @@ export class UrlAnalyticsAggregator extends Construct {
         { name: "region_name", type: glue.Schema.STRING },
         { name: "city", type: glue.Schema.STRING },
         { name: "postal_code", type: glue.Schema.STRING },
-        { name: "latitude", type: glue.Schema.DOUBLE },
-        { name: "longitude", type: glue.Schema.DOUBLE },
         { name: "time_zone", type: glue.Schema.STRING },
 
         // Network information
@@ -144,7 +144,9 @@ export class UrlAnalyticsAggregator extends Construct {
             }),
             new iam.PolicyStatement({
               actions: ["lambda:InvokeFunction", "lambda:GetFunctionConfiguration"],
-              resources: [aggregatorLambda.functionArn],
+              // Touching the Firehose in the AWS Console resulted in the invocation failing if
+              // the :* wasn't added to allow for invoking aliases
+              resources: [aggregatorLambda.functionArn, `${aggregatorLambda.functionArn}:*`],
             }),
             new iam.PolicyStatement({ actions: ["logs:PutLogEvents"], resources: [firehoseLogGroup.logGroupArn] }),
           ],

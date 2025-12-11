@@ -29,8 +29,6 @@ export interface AnalyticsEvent {
   region_name?: string;
   city?: string;
   postal_code?: string;
-  latitude?: number;
-  longitude?: number;
   time_zone?: string;
   user_agent?: string;
   os?: string;
@@ -92,12 +90,6 @@ const hashIp = async (rawIp: string | undefined): Promise<string | undefined> =>
 
 const parseBoolean = (value: string | undefined) => value === "true";
 
-const parseCoordinate = (coord: string | undefined): number | undefined => {
-  if (!coord) return undefined;
-  const parsed = parseFloat(coord);
-  return isNaN(parsed) ? undefined : parsed;
-};
-
 const normalizeOs = (userAgent: string | undefined): string => {
   const osName = new UAParser(userAgent).getOS()?.name?.toLowerCase();
   if (!osName) return "other";
@@ -145,8 +137,6 @@ const extractAnalytics = async (
   region_name: headers["cloudfront-viewer-country-region-name"],
   city: headers["cloudfront-viewer-city"],
   postal_code: headers["cloudfront-viewer-postal-code"],
-  latitude: parseCoordinate(headers["cloudfront-viewer-latitude"]),
-  longitude: parseCoordinate(headers["cloudfront-viewer-longitude"]),
   time_zone: headers["cloudfront-viewer-time-zone"],
 
   // Network information
