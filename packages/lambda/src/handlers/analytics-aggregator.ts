@@ -103,6 +103,7 @@ const buildComboExpressions = (increments: Map<string, number>) => {
 const upsertAggregation = async (
   granularity: AggregationGranularity,
   shortUrlId: string,
+  owningUserId: string,
   timeBucket: string,
   increments: Map<string, number>,
 ) => {
@@ -118,9 +119,14 @@ const upsertAggregation = async (
     new UpdateCommand({
       TableName: AGGREGATION_TABLE_NAME,
       Key: { pk: `${granularity}_${shortUrlId}`, sk: timeBucket },
-      UpdateExpression: `${addExpression} SET #ttl = if_not_exists(#ttl, :ttl)`,
-      ExpressionAttributeNames: { ...names, "#views": "views", "#ttl": "ttl" },
-      ExpressionAttributeValues: { ...values, ":total": total, ":ttl": nowInSeconds() + getTtlOffset(granularity) },
+      UpdateExpression: `${addExpression} SET #ttl = if_not_exists(#ttl, :ttl), #uid = if_not_exists(#uid, :uid)`,
+      ExpressionAttributeNames: { ...names, "#views": "views", "#ttl": "ttl", "#uid": "owningUserId" },
+      ExpressionAttributeValues: {
+        ...values,
+        ":total": total,
+        ":ttl": nowInSeconds() + getTtlOffset(granularity),
+        ":uid": owningUserId,
+      },
     }),
   );
 };
@@ -138,13 +144,14 @@ const groupByTimeBucket = (granularity: AggregationGranularity, events: Analytic
 
 const updateUrlViewAggregation = async (
   shortUrlId: string,
+  owningUserId: string,
   analyticsEvents: AnalyticsEvent[],
 ): Promise<"success" | Error> => {
   try {
     for (const granularity of ["hour", "day", "week"] as const) {
       for (const [timeBucket, events] of groupByTimeBucket(granularity, analyticsEvents)) {
         const increments = compileIncrements(events);
-        await upsertAggregation(granularity, shortUrlId, timeBucket, increments);
+        await upsertAggregation(granularity, shortUrlId, owningUserId, timeBucket, increments);
       }
     }
     return "success";
@@ -155,27 +162,35 @@ const updateUrlViewAggregation = async (
 
 const updateUrlViewAggregations = async (shortUrlAnalytics: Map<string, AnalyticsEvent[]>) => {
   const results = await Promise.all(
-    Array.from(shortUrlAnalytics.entries()).map(([shortUrlId, analyticsEvents]) =>
-      updateUrlViewAggregation(shortUrlId, analyticsEvents),
-    ),
+    Array.from(shortUrlAnalytics.entries()).map(([shortUrlId, analyticsEvents]) => {
+      const owningUserId = analyticsEvents[0]?.owning_user_id;
+      // Skip aggregating URL views for unowned URLs
+      if (!owningUserId) return "skip";
+      return updateUrlViewAggregation(shortUrlId, owningUserId, analyticsEvents);
+    }),
   );
 
   const successes = results.filter((result) => result === "success");
-  const errors = results.filter((result) => result !== "success");
+  const skips = results.filter((result) => result === "skip");
+  const errors = results.filter((result) => result !== "success" && result !== "skip");
 
-  return { successes, errors };
+  return { successes, skips, errors };
 };
 
 export const handler: FirehoseTransformationHandler = async (event) => {
   const shortUrlAnalytics = groupEventsByShortUrlId(event.records);
 
   const { successes, errors } = await updateUrlViewCounts(shortUrlAnalytics);
-  const { successes: aggSuccesses, errors: aggErrors } = await updateUrlViewAggregations(shortUrlAnalytics);
+  const {
+    successes: aggSuccesses,
+    skips: aggSkips,
+    errors: aggErrors,
+  } = await updateUrlViewAggregations(shortUrlAnalytics);
 
   console.log(
     `Processed ${event.records.length} events for ${shortUrlAnalytics.size} URLs. ` +
       `Counts: ${successes.length} succeeded, ${errors.length} failed. ` +
-      `Aggregations: ${aggSuccesses.length} succeeded, ${aggErrors.length} failed.`,
+      `Aggregations: ${aggSuccesses.length} succeeded, ${aggSkips.length} skipped, ${aggErrors.length} failed.`,
   );
 
   if (errors.length > 0) console.error(`Count errors: ${JSON.stringify(errors, null, 2)}`);

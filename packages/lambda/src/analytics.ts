@@ -11,6 +11,7 @@ const ANALYTICS_FIREHOSE_STREAM_NAME = getStringEnvironmentVariable("ANALYTICS_F
 
 export interface AnalyticsEvent {
   short_url_id: string;
+  owning_user_id: string | undefined;
   url_prefix_bucket: string;
   timestamp: string;
   year: string;
@@ -110,10 +111,12 @@ const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(
 const extractAnalytics = async (
   now: Date,
   shortUrlId: string,
+  owningUserId: string | undefined,
   { headers, queryStringParameters, requestContext }: APIGatewayProxyEventV2,
   { awsRequestId }: Context,
 ): Promise<AnalyticsEvent> => ({
   short_url_id: shortUrlId,
+  owning_user_id: owningUserId,
   url_prefix_bucket: getUrlPrefixBucket(shortUrlId),
   timestamp: now.toISOString(),
   year: now.getUTCFullYear().toString(),
@@ -163,11 +166,12 @@ const publishAnalytics = async (analytics: AnalyticsEvent) => {
 
 export const extractAndPublishAnalytics = async (
   shortUrlId: string,
+  owningUserId: string | undefined,
   event: APIGatewayProxyEventV2,
   context: Context,
 ) => {
   try {
-    const analytics = await extractAnalytics(new Date(), shortUrlId, event, context);
+    const analytics = await extractAnalytics(new Date(), shortUrlId, owningUserId, event, context);
     await publishAnalytics(analytics);
   } catch (error) {
     console.error(

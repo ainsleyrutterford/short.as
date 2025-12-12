@@ -68,6 +68,7 @@ export class UrlAnalyticsAggregator extends Construct {
       // If anything in packages/lambda/src/analytics.ts changes, you must change it here too!
       columns: [
         { name: "short_url_id", type: glue.Schema.STRING },
+        { name: "owning_user_id", type: glue.Schema.STRING },
         { name: "timestamp", type: glue.Schema.TIMESTAMP },
 
         // Device / Browser information
