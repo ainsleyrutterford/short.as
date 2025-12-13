@@ -175,6 +175,7 @@ export class BackendStack extends cdk.Stack {
           COUNT_BUCKETS_TABLE_NAME: countBucketsTable.tableName,
           USER_ID_GSI_NAME: urlsTableOwningUserIdGsi,
           USERS_TABLE_NAME: usersTable.tableName,
+          AGGREGATION_TABLE_NAME: analyticsAggregator.analyticsAggregationTable.tableName,
         },
       },
       path: "/users/{proxy+}",
@@ -185,6 +186,10 @@ export class BackendStack extends cdk.Stack {
         new PolicyStatement({
           actions: ["dynamodb:Query"],
           resources: [`${urlsTable.tableArn}/index/${urlsTableOwningUserIdGsi}`],
+        }),
+        new PolicyStatement({
+          actions: ["dynamodb:Query"],
+          resources: [analyticsAggregator.analyticsAggregationTable.tableArn],
         }),
         new PolicyStatement({
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],

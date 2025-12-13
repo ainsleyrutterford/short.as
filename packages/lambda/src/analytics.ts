@@ -1,5 +1,6 @@
-import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import { APIGatewayProxyEventV2, Context } from "aws-lambda";
 import { createHash } from "crypto";
+import { UAParser } from "ua-parser-js";
 import { ssmClient } from "./clients/ssm";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { getStringEnvironmentVariable, isProd } from "./utils";
@@ -10,6 +11,7 @@ const ANALYTICS_FIREHOSE_STREAM_NAME = getStringEnvironmentVariable("ANALYTICS_F
 
 export interface AnalyticsEvent {
   short_url_id: string;
+  owning_user_id: string | undefined;
   url_prefix_bucket: string;
   timestamp: string;
   year: string;
@@ -21,19 +23,21 @@ export interface AnalyticsEvent {
   is_smart_tv: boolean;
   is_android: boolean;
   is_ios: boolean;
+  is_qr_code?: boolean;
   country_code?: string;
   country_name?: string;
   region_code?: string;
   region_name?: string;
   city?: string;
   postal_code?: string;
-  latitude?: number;
-  longitude?: number;
   time_zone?: string;
   user_agent?: string;
+  os?: string;
   ip_address_hash?: string;
   asn?: string;
   referer?: string;
+  api_request_id?: string;
+  lambda_request_id?: string;
 }
 
 let cachedSalt: string | undefined = undefined;
@@ -70,8 +74,10 @@ const hashIp = async (rawIp: string | undefined): Promise<string | undefined> =>
   try {
     // Handle both IPv4 and IPv6 by removing the port (last segment after final :)
     const clientIp = rawIp.includes(":")
-      ? rawIp.split(":").slice(0, -1).join(":") // IPv6: remove last segment
-      : rawIp.split(":")[0]; // IPv4: take first part
+      ? // IPv6: remove last segment
+        rawIp.split(":").slice(0, -1).join(":")
+      : // IPv4: take first part
+        rawIp.split(":")[0];
 
     const salt = await fetchSalt();
     return createHash("sha256")
@@ -85,10 +91,16 @@ const hashIp = async (rawIp: string | undefined): Promise<string | undefined> =>
 
 const parseBoolean = (value: string | undefined) => value === "true";
 
-const parseCoordinate = (coord: string | undefined): number | undefined => {
-  if (!coord) return undefined;
-  const parsed = parseFloat(coord);
-  return isNaN(parsed) ? undefined : parsed;
+const normalizeOs = (userAgent: string | undefined): string => {
+  const osName = new UAParser(userAgent).getOS()?.name?.toLowerCase();
+  if (!osName) return "other";
+  if (osName === "ios") return "ios";
+  if (osName === "android") return "android";
+  if (osName === "windows") return "windows";
+  if (osName === "macos") return "macos";
+  if (osName === "chrome os") return "chromeos";
+  if (osName.includes("linux") || osName === "ubuntu" || osName === "debian" || osName === "fedora") return "linux";
+  return "other";
 };
 
 // "jgbYXpO" -> "jg"
@@ -99,10 +111,12 @@ const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(
 const extractAnalytics = async (
   now: Date,
   shortUrlId: string,
-  headers: APIGatewayProxyEventHeaders,
+  owningUserId: string | undefined,
+  { headers, queryStringParameters, requestContext }: APIGatewayProxyEventV2,
+  { awsRequestId }: Context,
 ): Promise<AnalyticsEvent> => ({
-  // TODO: add Lambda request ID for tracking, and add is_qr_code to know if it was a QR code scan (look at query strings)
   short_url_id: shortUrlId,
+  owning_user_id: owningUserId,
   url_prefix_bucket: getUrlPrefixBucket(shortUrlId),
   timestamp: now.toISOString(),
   year: now.getUTCFullYear().toString(),
@@ -111,6 +125,7 @@ const extractAnalytics = async (
 
   // Device / Browser information
   user_agent: headers["user-agent"],
+  os: normalizeOs(headers["user-agent"]),
   is_mobile: parseBoolean(headers["cloudfront-is-mobile-viewer"]),
   is_desktop: parseBoolean(headers["cloudfront-is-desktop-viewer"]),
   is_tablet: parseBoolean(headers["cloudfront-is-tablet-viewer"]),
@@ -125,34 +140,42 @@ const extractAnalytics = async (
   region_name: headers["cloudfront-viewer-country-region-name"],
   city: headers["cloudfront-viewer-city"],
   postal_code: headers["cloudfront-viewer-postal-code"],
-  latitude: parseCoordinate(headers["cloudfront-viewer-latitude"]),
-  longitude: parseCoordinate(headers["cloudfront-viewer-longitude"]),
   time_zone: headers["cloudfront-viewer-time-zone"],
 
   // Network information
   ip_address_hash: await hashIp(headers["cloudfront-viewer-address"]),
   asn: headers["cloudfront-viewer-asn"],
   referer: headers["referer"],
+
+  // Tracking
+  is_qr_code: queryStringParameters?.src === "qr",
+  api_request_id: requestContext?.requestId,
+  lambda_request_id: awsRequestId,
 });
 
 const publishAnalytics = async (analytics: AnalyticsEvent) => {
   const response = await firehoseClient.send(
     new PutRecordCommand({
       DeliveryStreamName: ANALYTICS_FIREHOSE_STREAM_NAME,
-      Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") },
+      Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") as Uint8Array },
     }),
   );
 
   if (response.RecordId) console.log(`Analytics event published successfully. RecordId: ${response.RecordId}`);
 };
 
-export const extractAndPublishAnalytics = async (shortUrlId: string, headers: APIGatewayProxyEventHeaders) => {
+export const extractAndPublishAnalytics = async (
+  shortUrlId: string,
+  owningUserId: string | undefined,
+  event: APIGatewayProxyEventV2,
+  context: Context,
+) => {
   try {
-    const analytics = await extractAnalytics(new Date(), shortUrlId, headers);
+    const analytics = await extractAnalytics(new Date(), shortUrlId, owningUserId, event, context);
     await publishAnalytics(analytics);
   } catch (error) {
     console.error(
-      `Failed to publish analytics event to Firehose. shortUrlId: ${shortUrlId} headers: ${JSON.stringify(headers, null, 2)} ${error}`,
+      `Failed to publish analytics event to Firehose. shortUrlId: ${shortUrlId} headers: ${JSON.stringify(event.headers, null, 2)} ${error}`,
     );
   }
 };

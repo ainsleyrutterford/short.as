@@ -88,12 +88,15 @@ const ShortenPage = () => {
                 setLongUrl(validatedUrl);
                 setLoading(true);
 
-                const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/urls`, {
-                  method: "POST",
-                  // Necessary to send cookies
-                  credentials: "include",
-                  body: JSON.stringify({ longUrl: validatedUrl }),
-                });
+                const data = await window.fetch(
+                  `${process.env.NEXT_PUBLIC_API_BASE_URL}${loggedIn ? "/users/urls" : "/urls"}`,
+                  {
+                    method: "POST",
+                    // Necessary to send cookies
+                    credentials: "include",
+                    body: JSON.stringify({ longUrl: validatedUrl }),
+                  },
+                );
                 if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
 
                 const json = await data.json();

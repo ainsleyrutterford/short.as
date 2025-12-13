@@ -18,17 +18,17 @@ const extractShortUrl = (proxy?: string): string | undefined => proxy?.replace("
  * - `/urls/{shortUrlId}`
  * - `/urls/{shortUrlId}/details`
  */
-export const getLongUrlHandler: Handler = async (event) => {
+export const getLongUrlHandler: Handler = async (event, context) => {
   const shortUrlId = extractShortUrl(event.pathParameters?.proxy);
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
 
   console.log("Received short URL ID: ", shortUrlId);
 
   const { Item } = await dynamoClient.send(new GetCommand({ TableName: URLS_TABLE_NAME, Key: { shortUrlId } }));
-  const { longUrl } = Item ?? {};
+  const { longUrl, owningUserId } = Item ?? {};
   if (!longUrl) throw new NotFound(`Could not find a long URL from the shortUrlId: ${shortUrlId}`);
 
-  await extractAndPublishAnalytics(shortUrlId, event.headers);
+  await extractAndPublishAnalytics(shortUrlId, owningUserId, event, context);
 
   if (event.pathParameters?.proxy?.endsWith("/details")) {
     return response({ statusCode: 200, body: JSON.stringify({ longUrl }) });

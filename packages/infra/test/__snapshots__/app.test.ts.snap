@@ -1083,6 +1083,39 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Events::Rule",
     },
+    "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE",
+          },
+        ],
+        "TableName": "TestBackendStack-UrlAnalyticsAggregationTable",
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
     "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A": {
       "DependsOn": [
         "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambdaServiceRoleDefaultPolicyFC439BD3",
@@ -1097,6 +1130,9 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
+            "AGGREGATION_TABLE_NAME": {
+              "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+            },
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },
@@ -1111,7 +1147,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
           ],
         },
         "Runtime": "nodejs22.x",
-        "Timeout": 60,
+        "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -1150,6 +1186,34 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
             {
               "Action": [
                 "dynamodb:BatchGetItem",
@@ -1215,6 +1279,14 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             ],
           ],
         },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 730,
+              "Status": "Enabled",
+            },
+          ],
+        },
       },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
@@ -1239,6 +1311,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
               "UrlAnalyticsAggregatorUrlAnalyticsBucketE552D9B4",
               "Arn",
             ],
+          },
+          "BufferingHints": {
+            "IntervalInSeconds": 300,
+            "SizeInMBs": 128,
           },
           "CloudWatchLoggingOptions": {
             "Enabled": true,
@@ -1481,12 +1557,28 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                     "lambda:GetFunctionConfiguration",
                   ],
                   "Effect": "Allow",
-                  "Resource": {
-                    "Fn::GetAtt": [
-                      "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
-                      "Arn",
-                    ],
-                  },
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+                        "Arn",
+                      ],
+                    },
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+                              "Arn",
+                            ],
+                          },
+                          ":*",
+                        ],
+                      ],
+                    },
+                  ],
                 },
                 {
                   "Action": "logs:PutLogEvents",
@@ -1547,11 +1639,19 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                 "Type": "string",
               },
               {
+                "Name": "owning_user_id",
+                "Type": "string",
+              },
+              {
                 "Name": "timestamp",
                 "Type": "timestamp",
               },
               {
                 "Name": "user_agent",
+                "Type": "string",
+              },
+              {
+                "Name": "os",
                 "Type": "string",
               },
               {
@@ -1603,14 +1703,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                 "Type": "string",
               },
               {
-                "Name": "latitude",
-                "Type": "double",
-              },
-              {
-                "Name": "longitude",
-                "Type": "double",
-              },
-              {
                 "Name": "time_zone",
                 "Type": "string",
               },
@@ -1624,6 +1716,18 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
               },
               {
                 "Name": "referer",
+                "Type": "string",
+              },
+              {
+                "Name": "is_qr_code",
+                "Type": "boolean",
+              },
+              {
+                "Name": "api_request_id",
+                "Type": "string",
+              },
+              {
+                "Name": "lambda_request_id",
                 "Type": "string",
               },
             ],
@@ -1719,6 +1823,9 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         },
         "Environment": {
           "Variables": {
+            "AGGREGATION_TABLE_NAME": {
+              "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+            },
             "COUNT_BUCKETS_TABLE_NAME": {
               "Ref": "CountBucketsTable09F12BD0",
             },
@@ -1817,6 +1924,16 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                     },
                     "/index/GSI-owningUserId-createdTimestamp",
                   ],
+                ],
+              },
+            },
+            {
+              "Action": "dynamodb:Query",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+                  "Arn",
                 ],
               },
             },

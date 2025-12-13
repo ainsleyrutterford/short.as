@@ -15,6 +15,7 @@ export interface UrlAnalyticsAggregatorProps {
 
 export class UrlAnalyticsAggregator extends Construct {
   public deliveryStream: firehose.CfnDeliveryStream;
+  public analyticsAggregationTable: dynamodb.Table;
   private stackName: string;
 
   constructor(scope: Construct, id: string, props: UrlAnalyticsAggregatorProps) {
@@ -26,24 +27,33 @@ export class UrlAnalyticsAggregator extends Construct {
 
     const destinationBucket = new s3.Bucket(this, "UrlAnalyticsBucket", {
       bucketName: `url-analytics-${stackName.toLowerCase()}-${account}`,
+      // Auto-delete raw analytics after 2 years
+      lifecycleRules: [{ expiration: Duration.days(730) }],
     });
 
-    // TODO: how do we want to aggregate? What do we want the keys to be?
-    // const analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
-    //   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    //   tableName: this.createResourceName("UrlAnalyticsAggregationTable"),
-    // });
+    this.analyticsAggregationTable = new dynamodb.Table(this, "UrlAnalyticsAggregationTable", {
+      tableName: this.createResourceName("UrlAnalyticsAggregationTable"),
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      // pk: "hour_<shortUrlId>" | "day_<shortUrlId>" | "week_<shortUrlId>"
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      // 30 days for hourly, 90 days for daily, 2 years for weekly
+      timeToLiveAttribute: "ttl",
+    });
 
     const aggregatorLambda = new nodeJsLambda.NodejsFunction(this, "UrlAnalyticsAggregatorLambda", {
       entry: "../lambda/src/handlers/analytics-aggregator.ts",
       functionName: this.createResourceName("UrlAnalyticsAggregatorLambda"),
       // Can't use latest as it's 18 atm: https://github.com/aws/aws-cdk/issues/28125
       runtime: lambda.Runtime.NODEJS_22_X,
-      environment: { URLS_TABLE_NAME: urlsTable.tableName },
-      timeout: Duration.seconds(60),
+      environment: {
+        URLS_TABLE_NAME: urlsTable.tableName,
+        AGGREGATION_TABLE_NAME: this.analyticsAggregationTable.tableName,
+      },
+      timeout: Duration.seconds(120),
     });
 
-    // analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
+    this.analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
     urlsTable.grantReadWriteData(aggregatorLambda);
 
     const glueDatabase = new glue.Database(this, "UrlAnalyticsDatabase", {
@@ -58,10 +68,12 @@ export class UrlAnalyticsAggregator extends Construct {
       // If anything in packages/lambda/src/analytics.ts changes, you must change it here too!
       columns: [
         { name: "short_url_id", type: glue.Schema.STRING },
+        { name: "owning_user_id", type: glue.Schema.STRING },
         { name: "timestamp", type: glue.Schema.TIMESTAMP },
 
         // Device / Browser information
         { name: "user_agent", type: glue.Schema.STRING },
+        { name: "os", type: glue.Schema.STRING },
         { name: "is_mobile", type: glue.Schema.BOOLEAN },
         { name: "is_desktop", type: glue.Schema.BOOLEAN },
         { name: "is_tablet", type: glue.Schema.BOOLEAN },
@@ -76,14 +88,17 @@ export class UrlAnalyticsAggregator extends Construct {
         { name: "region_name", type: glue.Schema.STRING },
         { name: "city", type: glue.Schema.STRING },
         { name: "postal_code", type: glue.Schema.STRING },
-        { name: "latitude", type: glue.Schema.DOUBLE },
-        { name: "longitude", type: glue.Schema.DOUBLE },
         { name: "time_zone", type: glue.Schema.STRING },
 
         // Network information
         { name: "ip_address_hash", type: glue.Schema.STRING },
         { name: "asn", type: glue.Schema.STRING },
         { name: "referer", type: glue.Schema.STRING },
+
+        // Tracking
+        { name: "is_qr_code", type: glue.Schema.BOOLEAN },
+        { name: "api_request_id", type: glue.Schema.STRING },
+        { name: "lambda_request_id", type: glue.Schema.STRING },
       ],
 
       partitionKeys: [
@@ -130,7 +145,9 @@ export class UrlAnalyticsAggregator extends Construct {
             }),
             new iam.PolicyStatement({
               actions: ["lambda:InvokeFunction", "lambda:GetFunctionConfiguration"],
-              resources: [aggregatorLambda.functionArn],
+              // Touching the Firehose in the AWS Console resulted in the invocation failing if
+              // the :* wasn't added to allow for invoking aliases
+              resources: [aggregatorLambda.functionArn, `${aggregatorLambda.functionArn}:*`],
             }),
             new iam.PolicyStatement({ actions: ["logs:PutLogEvents"], resources: [firehoseLogGroup.logGroupArn] }),
           ],
@@ -143,6 +160,9 @@ export class UrlAnalyticsAggregator extends Construct {
       extendedS3DestinationConfiguration: {
         bucketArn: destinationBucket.bucketArn,
         roleArn: firehoseRole.roleArn,
+        // These are the defaults when format conversion is enabled:
+        // https://docs.aws.amazon.com/firehose/latest/dev/enable-record-format-conversion.html
+        bufferingHints: { intervalInSeconds: 300, sizeInMBs: 128 },
         errorOutputPrefix: "errors/",
         dynamicPartitioningConfiguration: { enabled: true },
         prefix:

@@ -41,3 +41,10 @@ export class NotFound extends HttpError {
     this.name = "NotFound";
   }
 }
+
+export class Forbidden extends HttpError {
+  constructor(message = "Forbidden") {
+    super(403, message);
+    this.name = "Forbidden";
+  }
+}

@@ -8,12 +8,18 @@ import { updateUrlDetails } from "./update-url";
 import httpRouterHandler, { Route } from "@middy/http-router";
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { auth } from "../../middlewares/auth";
+import { getUrlViews } from "./get-url-views";
 
 const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
   {
     method: "GET",
     path: "/users/urls/{shortUrlId}",
     handler: getUrlDetails,
+  },
+  {
+    method: "GET",
+    path: "/users/urls/{shortUrlId}/views",
+    handler: getUrlViews,
   },
   {
     method: "PATCH",
