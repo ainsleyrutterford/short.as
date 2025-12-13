@@ -39,6 +39,7 @@ export interface ViewAggregateItem {
   /** Unix timestamp for DDB TTL */
   ttl: number;
   views: number;
-  /** e.g., { "us_ios": 45, "gb_android": 18 } */
-  combinations: Record<string, number>;
+  owningUserId: string;
+  /** Combo counts like "us_ios": 45, "gb_android": 18 */
+  [combo: string]: string | number;
 }
