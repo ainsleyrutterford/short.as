@@ -103,6 +103,16 @@ const UrlCard = ({ url }: UrlCardProps) => {
   );
 };
 
+const NoUrls = () => (
+  <Card>
+    <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
+      <p className="text-xs text-muted-foreground text-center">
+        You don't have any URLs yet, shorten one and you'll see it here!
+      </p>
+    </CardContent>
+  </Card>
+);
+
 const ITEMS_PER_PAGE = 8;
 
 export const YourUrls = () => {
@@ -131,8 +141,7 @@ export const YourUrls = () => {
             <UrlCard />
           </>
         )}
-        {/* TODO */}
-        {!urlsLoading && urls?.length === 0 && <div>No URLs yet!</div>}
+        {!urlsLoading && urls?.length === 0 && <NoUrls />}
       </div>
       {!urlsLoading && totalPages > 1 && (
         <UrlPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
