@@ -51,6 +51,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "COUNT_BUCKETS_TABLE_NAME": {
               "Ref": "CountBucketsTable09F12BD0",
             },
+            "IS_PROD": "true",
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },
@@ -224,6 +225,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
         "Environment": {
           "Variables": {
             "ANALYTICS_FIREHOSE_STREAM_NAME": "TestBackendStack-UrlAnalyticsFirehose",
+            "IS_PROD": "true",
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },
@@ -1889,6 +1891,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "COUNT_BUCKETS_TABLE_NAME": {
               "Ref": "CountBucketsTable09F12BD0",
             },
+            "IS_PROD": "true",
             "URLS_TABLE_NAME": {
               "Ref": "UrlsTable60368425",
             },

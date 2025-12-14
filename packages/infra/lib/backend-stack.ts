@@ -10,14 +10,16 @@ import { ApiRouteLambda } from "./constructs/api-route-lambda";
 import { UrlAnalyticsAggregator } from "./constructs/analytics-aggregator";
 
 interface BackendStackProps extends cdk.StackProps {
-  isProd?: boolean;
+  isProd: boolean;
 }
 
 export class BackendStack extends cdk.Stack {
   public httpApi: apigateway.HttpApi;
 
-  constructor(scope: Construct, id: string, props?: BackendStackProps) {
+  constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
+
+    const { isProd } = props;
 
     const { region, account } = cdk.Stack.of(this);
 
@@ -60,7 +62,7 @@ export class BackendStack extends cdk.Stack {
 
     const allowOrigins = ["https://short.as", "https://www.short.as", "https://dev.short.as"];
 
-    if (!props?.isProd) {
+    if (!isProd) {
       allowOrigins.push(
         ...["http://localhost", "http://localhost:3000", "https://localhost", "https://localhost:3000"],
       );
@@ -81,13 +83,13 @@ export class BackendStack extends cdk.Stack {
       },
     });
 
-    if (!props?.isProd) {
+    if (!isProd) {
       this.enableHttpApiLogging();
     }
 
     const getOAuthSSMParameterStatement = new PolicyStatement({
       actions: ["ssm:GetParameter"],
-      resources: [`arn:aws:ssm:${region}:${account}:parameter/${props?.isProd ? "prod" : "dev"}/oauth/*`],
+      resources: [`arn:aws:ssm:${region}:${account}:parameter/${isProd ? "prod" : "dev"}/oauth/*`],
     });
 
     new ApiRouteLambda(this, "CreateShortUrlLambda", {
@@ -106,6 +108,7 @@ export class BackendStack extends cdk.Stack {
       },
       path: "/urls",
       methods: [apigateway.HttpMethod.POST],
+      isProd,
       warming: true,
       policyStatements: [
         new PolicyStatement({
@@ -131,6 +134,7 @@ export class BackendStack extends cdk.Stack {
       path: "/urls/{proxy+}",
       methods: [apigateway.HttpMethod.GET],
       warming: true,
+      isProd,
       policyStatements: [
         new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [urlsTable.tableArn] }),
         new PolicyStatement({
@@ -151,14 +155,12 @@ export class BackendStack extends cdk.Stack {
         functionName: this.createResourceName("OAuthLambda"),
         // This handler uses the SSM client so it needs the full SDK
         llrtBinaryType: LlrtBinaryType.FULL_SDK,
-        environment: {
-          USERS_TABLE_NAME: usersTable.tableName,
-          IS_PROD: props?.isProd ? "true" : "false",
-        },
+        environment: { USERS_TABLE_NAME: usersTable.tableName },
       },
       path: "/oauth/{proxy+}",
       methods: [apigateway.HttpMethod.GET, apigateway.HttpMethod.POST],
       warming: true,
+      isProd,
       policyStatements: [
         new PolicyStatement({
           actions: ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:ConditionCheckItem"],
@@ -191,6 +193,7 @@ export class BackendStack extends cdk.Stack {
         apigateway.HttpMethod.DELETE,
       ],
       warming: true,
+      isProd,
       policyStatements: [
         new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [usersTable.tableArn] }),
         new PolicyStatement({

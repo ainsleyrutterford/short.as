@@ -141,6 +141,7 @@ export const YourUrls = () => {
             <UrlCard />
           </>
         )}
+        {/* TODO: handle error state and add a toast maybe and then show no urls? */}
         {!urlsLoading && urls?.length === 0 && <NoUrls />}
       </div>
       {!urlsLoading && totalPages > 1 && (
