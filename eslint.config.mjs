@@ -35,10 +35,10 @@ export default tseslint.config(
   {
     files: ["**/*.test.ts", "**/*.test.js"],
     ...jest.configs["flat/recommended"],
-    ...pluginQuery.configs["flat/recommended"],
     rules: {
       ...jest.configs["flat/recommended"].rules,
       "jest/prefer-expect-assertions": "off",
     },
   },
+  ...pluginQuery.configs["flat/recommended"],
 );

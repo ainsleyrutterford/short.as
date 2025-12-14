@@ -3,8 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface DomainStackProps extends cdk.StackProps {}
+type DomainStackProps = cdk.StackProps;
 
 /**
  * This stack creates:
