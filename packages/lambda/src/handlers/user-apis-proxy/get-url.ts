@@ -1,6 +1,7 @@
-import { BadRequest, InternalServerError } from "../../errors";
+import { BadRequest, Forbidden, InternalServerError } from "../../errors";
 import { AuthenticatedHandler } from "../../oauth/types";
 import { response } from "../../utils";
+import { checkUserOwnsUrl } from "./get-url-views";
 
 export const getUrlDetails: AuthenticatedHandler = async (event) => {
   const userId = event.auth?.userId;
@@ -8,6 +9,9 @@ export const getUrlDetails: AuthenticatedHandler = async (event) => {
 
   const shortUrlId = event.pathParameters?.shortUrlId;
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
+
+  const userOwnsUrl = await checkUserOwnsUrl(userId, shortUrlId);
+  if (!userOwnsUrl) throw new Forbidden("You do not own this URL");
 
   console.log(`Getting details about URL ${shortUrlId} owned by ${userId}`);
 

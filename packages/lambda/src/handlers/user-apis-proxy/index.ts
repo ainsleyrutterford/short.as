@@ -9,6 +9,7 @@ import httpRouterHandler, { Route } from "@middy/http-router";
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { auth } from "../../middlewares/auth";
 import { getUrlViews } from "./get-url-views";
+import { deleteUrl } from "./delete-url";
 
 const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
   {
@@ -35,6 +36,11 @@ const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
     method: "POST",
     path: "/users/urls",
     handler: createUrlForUser,
+  },
+  {
+    method: "DELETE",
+    path: "/users/urls/{shortUrlId}",
+    handler: deleteUrl,
   },
 ];
 

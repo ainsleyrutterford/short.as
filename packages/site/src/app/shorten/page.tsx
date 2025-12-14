@@ -15,9 +15,8 @@ import { LoadingSpinner } from "@/components/ui/loading";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
 import { isProd } from "@/lib/utils";
-
-// Data fetching from the client in Next.js:
-// https://nextjs.org/docs/app/building-your-application/deploying/static-exports#client-components
+import { YourUrls } from "@/components/your-urls";
+import { useAddUrl } from "@/queries/urls";
 
 const LoginState = () => {
   const router = useRouter();
@@ -58,13 +57,12 @@ const LoginState = () => {
 
 const ShortenPage = () => {
   const router = useRouter();
-
-  const { loggedIn } = useAuth();
+  const { loggedIn, isLoggedInLoaded } = useAuth();
+  const addUrlMutation = useAddUrl();
   const { setShortUrlId, setLongUrl } = useIds();
 
   const [urlToShorten, setUrlToShorten] = useState("");
   const [isValidUrl, setIsValidUrl] = useState(true);
-  const [loading, setLoading] = useState(false);
 
   return (
     <PageContainer>
@@ -84,33 +82,25 @@ const ShortenPage = () => {
                 return;
               }
 
-              try {
-                setLongUrl(validatedUrl);
-                setLoading(true);
+              setLongUrl(validatedUrl);
 
-                const data = await window.fetch(
-                  `${process.env.NEXT_PUBLIC_API_BASE_URL}${loggedIn ? "/users/urls" : "/urls"}`,
-                  {
-                    method: "POST",
-                    // Necessary to send cookies
-                    credentials: "include",
-                    body: JSON.stringify({ longUrl: validatedUrl }),
+              addUrlMutation.mutate(
+                { longUrl: validatedUrl, loggedIn },
+                {
+                  onSuccess: (data) => {
+                    setShortUrlId(data.shortUrlId);
+                    setUrlToShorten("");
+                    if (!loggedIn) router.push(`/u?i=${data.shortUrlId}`);
                   },
-                );
-                if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
-
-                const json = await data.json();
-                setShortUrlId(json.shortUrlId);
-
-                router.push(`/u?i=${json.shortUrlId}`);
-              } catch (error) {
-                toast.error("Server Error", {
-                  description: "Please try again later",
-                  duration: 5000,
-                });
-                console.error(error);
-                setLoading(false);
-              }
+                  onError: (error) => {
+                    toast.error("Server Error", {
+                      description: "Please try again later",
+                      duration: 5000,
+                    });
+                    console.error(error);
+                  },
+                },
+              );
             }}
           >
             <CardContent className="p-4 sm:p-5">
@@ -141,7 +131,7 @@ const ShortenPage = () => {
                     />
                     <div className={`transition-[height] duration-300 ${isValidUrl ? "h-0" : "h-7"}`}>
                       <p
-                        className={`text-sm text-destructive pt-2 transition-[height] transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
+                        className={`text-sm text-destructive pt-2 transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
                       >
                         Please enter a valid URL
                       </p>
@@ -150,9 +140,9 @@ const ShortenPage = () => {
                   <Button
                     type="submit"
                     className="z-10 w-full sm:w-auto"
-                    disabled={loading || !isValidUrl || urlToShorten.length === 0}
+                    disabled={addUrlMutation.isPending || !isValidUrl || urlToShorten.length === 0}
                   >
-                    {loading ? (
+                    {addUrlMutation.isPending ? (
                       <LoadingSpinner className="mr-2" size="xs" color="inverse" />
                     ) : (
                       <Minimize2 className="mr-2 h-4 w-4" />
@@ -164,8 +154,9 @@ const ShortenPage = () => {
             </CardContent>
           </form>
         </Card>
+        {isLoggedInLoaded && loggedIn && <YourUrls />}
         {/* For now, only show login for dev */}
-        {!isProd && !loggedIn && <CreateAccountSuggestion />}
+        {isLoggedInLoaded && !isProd && !loggedIn && <CreateAccountSuggestion />}
       </div>
     </PageContainer>
   );

@@ -3,10 +3,14 @@
 import React, { useContext } from "react";
 
 import type { User } from "@short-as/types";
+import { shortAsClient } from "@/lib/client";
 
 interface AuthContextInterface {
-  loggedIn: boolean;
-  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+  /** Whether or not the user is logged in */
+  loggedIn: boolean | undefined;
+  setLoggedIn: React.Dispatch<React.SetStateAction<boolean | undefined>>;
+  /** Whether or not `loggedIn` is loaded */
+  isLoggedInLoaded: boolean;
   user: User | undefined;
 }
 
@@ -19,11 +23,7 @@ export const useAuth = () => {
 };
 
 const getUser = async (): Promise<User> => {
-  const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth/me`, {
-    method: "GET",
-    // Necessary to send cookies
-    credentials: "include",
-  });
+  const data = await shortAsClient.fetch("/oauth/me");
 
   // TODO: if 403, redirect to login screen?
   // TODO: if not 200 or 403, show nice error toast
@@ -33,7 +33,8 @@ const getUser = async (): Promise<User> => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [loggedIn, setLoggedIn] = React.useState<boolean | undefined>(undefined);
+  const [isLoggedInLoaded, setIsLoggedInLoaded] = React.useState(false);
   const [user, setUser] = React.useState<User | undefined>(undefined);
 
   React.useEffect(() => {
@@ -41,6 +42,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   React.useEffect(() => {
+    if (loggedIn !== undefined) setIsLoggedInLoaded(true);
+
     const updateUser = async () => {
       if (loggedIn) {
         const user = await getUser();
@@ -54,7 +57,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     updateUser();
   }, [loggedIn]);
 
-  const value = React.useMemo(() => ({ setLoggedIn, loggedIn, user }), [loggedIn, setLoggedIn, user]);
+  const value = React.useMemo(
+    () => ({ setLoggedIn, loggedIn, isLoggedInLoaded, user }),
+    [setLoggedIn, loggedIn, isLoggedInLoaded, user],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

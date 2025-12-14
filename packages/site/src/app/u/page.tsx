@@ -15,11 +15,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { TextGradient } from "@/components/text-gradient";
 import { useAuth } from "@/contexts/auth";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
 import { isProd } from "@/lib/utils";
+import { shortAsClient } from "@/lib/client";
 
 const ShortUrlDetailsPage = () => {
   const router = useRouter();
@@ -50,9 +52,7 @@ const ShortUrlDetailsPage = () => {
         // then we can just show it straight away
         setFadeIn(false);
       } else {
-        const data = await window.fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/urls/${searchParamShortUrlId}/details`,
-        );
+        const data = await shortAsClient.fetch(`/urls/${searchParamShortUrlId}/details`);
         if (data.status / 100 === 5) {
           toast.error("Server Error", {
             description: "Please try again later",
@@ -106,12 +106,8 @@ const ShortUrlDetailsPage = () => {
                   <Button
                     className="w-full z-10"
                     onClick={async () => {
-                      await navigator.clipboard.writeText(shortUrl);
+                      await copyToClipboard(shortUrl);
                       setIsCopied(true);
-                      toast("Copied to clipboard!", {
-                        description: shortUrl,
-                        duration: 3000,
-                      });
                     }}
                   >
                     <span className="flex items-center">

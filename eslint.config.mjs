@@ -5,6 +5,7 @@ import tseslint from "typescript-eslint";
 
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import jest from "eslint-plugin-jest";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -39,4 +40,5 @@ export default tseslint.config(
       "jest/prefer-expect-assertions": "off",
     },
   },
+  ...pluginQuery.configs["flat/recommended"],
 );

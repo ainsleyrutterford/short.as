@@ -8,19 +8,19 @@ import { GetCommand, paginateQuery } from "@aws-sdk/lib-dynamodb";
 const AGGREGATION_TABLE_NAME = getStringEnvironmentVariable("AGGREGATION_TABLE_NAME");
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
 
-const checkUserOwnsUrl = async (userId: string, shortUrlId: string) => {
+export const checkUserOwnsUrl = async (userId: string, shortUrlId: string) => {
   const urlItem = await dynamoClient.send(
     new GetCommand({
       TableName: URLS_TABLE_NAME,
       Key: { shortUrlId },
-      ProjectionExpression: "owningUserId",
+      ProjectionExpression: "owningUserId, isDeleted",
     }),
   );
 
-  return urlItem?.Item?.owningUserId === userId;
+  return urlItem?.Item?.owningUserId === userId && urlItem?.Item?.isDeleted !== true;
 };
 
-export const getViewAggregates = async (
+const getViewAggregates = async (
   shortUrlId: string,
   startDate: string,
   endDate: string,

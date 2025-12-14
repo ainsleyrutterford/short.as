@@ -69,7 +69,12 @@ export class BackendStack extends cdk.Stack {
     this.httpApi = new apigateway.HttpApi(this, "HttpAPI", {
       apiName: this.createResourceName("HttpAPI"),
       corsPreflight: {
-        allowMethods: [apigateway.CorsHttpMethod.GET, apigateway.CorsHttpMethod.POST],
+        allowMethods: [
+          apigateway.CorsHttpMethod.GET,
+          apigateway.CorsHttpMethod.POST,
+          apigateway.CorsHttpMethod.PATCH,
+          apigateway.CorsHttpMethod.DELETE,
+        ],
         allowOrigins,
         // Needed for cookies
         allowCredentials: true,
@@ -179,7 +184,12 @@ export class BackendStack extends cdk.Stack {
         },
       },
       path: "/users/{proxy+}",
-      methods: [apigateway.HttpMethod.GET, apigateway.HttpMethod.POST, apigateway.HttpMethod.PATCH],
+      methods: [
+        apigateway.HttpMethod.GET,
+        apigateway.HttpMethod.POST,
+        apigateway.HttpMethod.PATCH,
+        apigateway.HttpMethod.DELETE,
+      ],
       warming: true,
       policyStatements: [
         new PolicyStatement({ actions: ["dynamodb:GetItem"], resources: [usersTable.tableArn] }),
