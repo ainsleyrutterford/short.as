@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth";
+import { shortAsClient } from "@/lib/client";
 import { MarkGithubIcon } from "@primer/octicons-react";
 import { OAuthProvider } from "@short-as/types";
 import { useRouter } from "next/navigation";
@@ -41,7 +42,7 @@ export default function Profile() {
     <PageContainer>
       <div className="flex flex-col">
         <Card>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex gap-3">
               <div className="relative">
                 <div className="flex justify-center items-center h-8 w-8 absolute -top-1 -right-1 border bg-card shadow rounded-full">
@@ -55,16 +56,12 @@ export default function Profile() {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="p-5 pt-0">
+          <CardFooter className="p-4 sm:p-5 pt-0">
             <div className="grid w-full items-center gap-y-6">
               <Separator />
               <Button
                 onClick={async () => {
-                  const data = await window.fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth/logout`, {
-                    method: "POST",
-                    // Necessary to send cookies
-                    credentials: "include",
-                  });
+                  const data = await shortAsClient.fetch("/oauth/logout", { method: "POST" });
                   if (data.status !== 200) throw new Error(`Received status code: ${data.status}`);
 
                   window.localStorage.setItem("loggedIn", "false");

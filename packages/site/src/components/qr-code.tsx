@@ -1,15 +1,8 @@
 import * as React from "react";
 
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -17,7 +10,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Download, QrCode } from "lucide-react";
 import ReactQRCode from "react-qr-code";
@@ -26,6 +18,9 @@ import { useTheme } from "next-themes";
 
 const QR_CODE_ID = "QRCode";
 const FILENAME = "Short.as QRCode";
+
+const TITLE = "QR Code";
+const DESCRIPTION = "Here's a QR Code that will navigate people to your short link when scanned";
 
 interface QRCodeProps {
   shortUrl: string;
@@ -97,42 +92,20 @@ const StyledQRCode = ({ shortUrl }: QRCodeProps) => {
   );
 };
 
-export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
-  const [open, setOpen] = React.useState(false);
-  // Uses state to prevent the modal closing from making the QR code tooltip reappear
-  // https://github.com/radix-ui/primitives/issues/617#issuecomment-2067420500
-  const [isTooltipAllowed, setIsTooltipAllowed] = React.useState(true);
+interface QRCodeContentProps extends QRCodeProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+export const QRCodeContent = ({ shortUrl, open, onOpenChange }: QRCodeContentProps) => {
+  const isDesktop = useIsDesktop();
 
   return isDesktop ? (
-    <Dialog
-      open={open}
-      onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        setIsTooltipAllowed(false);
-      }}
-    >
-      <Tooltip delayDuration={250}>
-        <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
-          <DialogTrigger asChild>
-            <Button className="z-10" variant="outline" size="icon">
-              <QrCode className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        {isTooltipAllowed && (
-          <TooltipContent>
-            <p>Generate QR code</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
-      <DialogContent className="sm:max-w-[340px] p-5">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[340px]">
         <DialogHeader>
-          <DialogTitle>QR Code</DialogTitle>
-          <DialogDescription>
-            Here&apos;s a QR Code that will navigate people to your short link when scanned
-          </DialogDescription>
+          <DialogTitle>{TITLE}</DialogTitle>
+          <DialogDescription>{DESCRIPTION}</DialogDescription>
         </DialogHeader>
         <div className="grid items-start gap-4">
           <StyledQRCode shortUrl={shortUrl} />
@@ -148,34 +121,12 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
       </DialogContent>
     </Dialog>
   ) : (
-    <Drawer
-      open={open}
-      onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        setIsTooltipAllowed(false);
-      }}
-    >
-      <Tooltip delayDuration={250}>
-        <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
-          <DrawerTrigger asChild>
-            <Button className="z-10" variant="outline" size="icon">
-              <QrCode className="h-4 w-4" />
-            </Button>
-          </DrawerTrigger>
-        </TooltipTrigger>
-        {isTooltipAllowed && (
-          <TooltipContent>
-            <p>Generate QR code</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
+    <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
         <div style={{ maxHeight: "90vh", overflowY: "auto" }}>
           <DrawerHeader className="text-left">
-            <DrawerTitle>QR Code</DrawerTitle>
-            <DrawerDescription>
-              Here&apos;s a QR Code that will navigate people to your short link when scanned
-            </DrawerDescription>
+            <DrawerTitle>{TITLE}</DrawerTitle>
+            <DrawerDescription>{DESCRIPTION}</DrawerDescription>
           </DrawerHeader>
           <div className="grid items-start gap-4 px-4">
             <StyledQRCode shortUrl={shortUrl} />
@@ -192,5 +143,45 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
         </div>
       </DrawerContent>
     </Drawer>
+  );
+};
+
+export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
+  const [open, setOpen] = React.useState(false);
+  // Uses state to prevent the modal closing from making the QR code tooltip reappear
+  // https://github.com/radix-ui/primitives/issues/617#issuecomment-2067420500
+  const [isTooltipAllowed, setIsTooltipAllowed] = React.useState(true);
+
+  return (
+    <>
+      <Tooltip delayDuration={250}>
+        <TooltipTrigger asChild onMouseEnter={() => setIsTooltipAllowed(true)}>
+          <Button
+            className="z-10"
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              setOpen(true);
+              setIsTooltipAllowed(false);
+            }}
+          >
+            <QrCode className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        {isTooltipAllowed && (
+          <TooltipContent>
+            <p>Generate QR code</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+      <QRCodeContent
+        shortUrl={shortUrl}
+        open={open}
+        onOpenChange={(newOpen) => {
+          setOpen(newOpen);
+          setIsTooltipAllowed(false);
+        }}
+      />
+    </>
   );
 };

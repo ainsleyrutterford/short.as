@@ -32,6 +32,7 @@ const updateUrlViewCount = async (shortUrlId: string, countIncrease: number): Pr
         Key: { shortUrlId },
         // Ensures that we don't create a new item if it didn't already exist, we only update existing ones
         ConditionExpression: "attribute_exists(shortUrlId)",
+        // TODO: update clicks and qrCodeScans attributes here too
         UpdateExpression: "ADD totalVisits :increment",
         ExpressionAttributeValues: { ":increment": countIncrease },
       }),

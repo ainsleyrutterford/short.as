@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import SiteHeader from "@/components/site-header";
 import { IdsProvider } from "@/contexts/ids";
 import { AuthProvider } from "@/contexts/auth";
+import ReactQueryProvider from "@/contexts/react-query";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,13 +56,15 @@ export default function RootLayout({
           }}
         /> */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <TooltipProvider>
-              <SiteHeader />
-              <IdsProvider>{children}</IdsProvider>
-              <Toaster />
-            </TooltipProvider>
-          </AuthProvider>
+          <ReactQueryProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <SiteHeader />
+                <IdsProvider>{children}</IdsProvider>
+                <Toaster />
+              </TooltipProvider>
+            </AuthProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -21,7 +21,11 @@ export const listUrlsForUser: AuthenticatedHandler = async (event) => {
       TableName: URLS_TABLE_NAME,
       IndexName: USER_ID_GSI_NAME,
       KeyConditionExpression: "owningUserId = :owningUserId",
-      ExpressionAttributeValues: { ":owningUserId": userId },
+      FilterExpression: "isDeleted <> :isDeleted",
+      ExpressionAttributeValues: {
+        ":owningUserId": userId,
+        ":isDeleted": true,
+      },
     },
   );
 
