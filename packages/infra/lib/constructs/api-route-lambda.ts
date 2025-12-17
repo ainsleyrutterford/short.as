@@ -14,6 +14,7 @@ export interface ApiRouteLambdaProps {
   lambdaProps: LlrtFunctionProps;
   path: string;
   methods: HttpMethod[];
+  isProd: boolean;
   warming?: boolean;
   policyStatements?: PolicyStatement[];
 }
@@ -24,7 +25,7 @@ export class ApiRouteLambda extends Construct {
   constructor(scope: Construct, id: string, props: ApiRouteLambdaProps) {
     super(scope, id);
 
-    const { httpApi, lambdaProps, path, methods, warming, policyStatements } = props;
+    const { httpApi, lambdaProps, path, methods, warming, policyStatements, isProd } = props;
 
     // Creating a custom log group so we can change retention, etc. if necessary
     const logGroup =
@@ -39,6 +40,10 @@ export class ApiRouteLambda extends Construct {
       logGroup,
       handler: "handler",
       ...lambdaProps,
+      environment: {
+        IS_PROD: isProd ? "true" : "false",
+        ...(lambdaProps.environment ?? {}),
+      },
     });
 
     policyStatements?.forEach((statement) => this.lambda.addToRolePolicy(statement));
