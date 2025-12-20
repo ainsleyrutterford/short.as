@@ -18,7 +18,10 @@ const devAndProdDomain = new DomainStack(app, "Domain-prod", {
 });
 
 // Stacks used for development and testing. These are deployed manually
-const devBackend = new BackendStack(app, "Backend-dev", { env: { account: ACCOUNT_ID, region: REGION } });
+const devBackend = new BackendStack(app, "Backend-dev", {
+  env: { account: ACCOUNT_ID, region: REGION },
+  isProd: false,
+});
 const devWebsite = new WebsiteStack(app, "Website-dev", {
   isProd: false,
   hostedZone: devAndProdDomain.hostedZone,
