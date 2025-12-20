@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import { Check, CopyIcon, MousePointerClickIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
@@ -116,7 +117,7 @@ const NoUrls = () => (
 const ITEMS_PER_PAGE = 8;
 
 export const YourUrls = () => {
-  const { data: urls, isLoading: urlsLoading } = useGetUrls();
+  const { data: urls, isLoading: urlsLoading, isError } = useGetUrls();
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const totalPages = Math.ceil((urls?.length || 0) / ITEMS_PER_PAGE);
@@ -127,6 +128,10 @@ export const YourUrls = () => {
   React.useEffect(() => {
     if (currentPage < 1 || (currentPage > totalPages && totalPages > 0)) setCurrentPage(1);
   }, [currentPage, totalPages]);
+
+  React.useEffect(() => {
+    if (isError) toast.error("Failed to load your URLs");
+  }, [isError]);
 
   return (
     <>
@@ -141,8 +146,7 @@ export const YourUrls = () => {
             <UrlCard />
           </>
         )}
-        {/* TODO: handle error state and add a toast maybe and then show no urls? */}
-        {!urlsLoading && urls?.length === 0 && <NoUrls />}
+        {!urlsLoading && (urls?.length === 0 || isError) && <NoUrls />}
       </div>
       {!urlsLoading && totalPages > 1 && (
         <UrlPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
