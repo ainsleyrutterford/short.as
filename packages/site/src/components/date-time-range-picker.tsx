@@ -226,8 +226,13 @@ export const DateTimeRangePicker = ({
     setEndTime("23:59");
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) resetToValue();
+    setOpen(isOpen);
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="w-56 px-3 justify-between">
           {range?.from && range?.to
