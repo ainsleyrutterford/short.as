@@ -17,6 +17,32 @@ export interface DateTimeRange {
   to?: Date;
 }
 
+const ActionButtons = ({
+  onClear,
+  onCancel,
+  onApply,
+  applyDisabled,
+}: {
+  onClear: () => void;
+  onCancel: () => void;
+  onApply: () => void;
+  applyDisabled: boolean;
+}) => (
+  <div className="flex justify-between gap-2">
+    <Button variant="ghost" size="sm" onClick={onClear}>
+      Clear
+    </Button>
+    <div className="flex gap-2">
+      <Button variant="ghost" size="sm" onClick={onCancel}>
+        Cancel
+      </Button>
+      <Button size="sm" onClick={onApply} disabled={applyDisabled}>
+        Apply
+      </Button>
+    </div>
+  </div>
+);
+
 const DateTimeRow = ({
   dateId,
   dateLabel,
@@ -46,7 +72,7 @@ const DateTimeRow = ({
       <Input
         type="text"
         id={dateId}
-        placeholder="YYYY/MM/DD"
+        placeholder="DD/MM/YYYY"
         value={dateValue}
         onChange={(e) => onDateChange(e.target.value)}
         className={`w-32 ${dateError ? "border-destructive" : ""}`}
@@ -68,13 +94,21 @@ const DateTimeRow = ({
         id={timeId}
         value={timeValue}
         onChange={(e) => onTimeChange(e.target.value)}
-        className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+        className={timeInputClassName}
       />
     </div>
   </div>
 );
 
-const Presets = ({ today, onSelect }: { today: Date; onSelect: (range: DateRange) => void }) => {
+const Presets = ({
+  today,
+  range,
+  onSelect,
+}: {
+  today: Date;
+  range?: DateRange;
+  onSelect: (range: DateRange) => void;
+}) => {
   const presets = [
     { label: "Today", from: today, to: today },
     { label: "Last 7 days", from: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6), to: today },
@@ -85,32 +119,60 @@ const Presets = ({ today, onSelect }: { today: Date; onSelect: (range: DateRange
     { label: "Year to date", from: new Date(today.getFullYear(), 0, 1), to: today },
   ];
 
+  const isMatch = (preset: { from: Date; to: Date }) =>
+    range?.from &&
+    range?.to &&
+    toDateOnly(range.from).getTime() === toDateOnly(preset.from).getTime() &&
+    toDateOnly(range.to).getTime() === toDateOnly(preset.to).getTime();
+
   return (
-    <div className="flex flex-col gap-1 p-2">
-      {presets.map((preset) => (
-        <Button
-          key={preset.label}
-          variant="ghost"
-          size="sm"
-          className="justify-start"
-          onClick={() => onSelect({ from: preset.from, to: preset.to })}
-        >
-          {preset.label}
-        </Button>
-      ))}
-    </div>
+    <>
+      {/* Desktop: vertical list on left */}
+      <div className="hidden sm:flex flex-col gap-1 p-2">
+        {presets.map((preset) => (
+          <Button
+            key={preset.label}
+            variant="ghost"
+            size="sm"
+            className={`justify-start ${isMatch(preset) ? "bg-accent/80" : ""}`}
+            onClick={() => onSelect({ from: preset.from, to: preset.to })}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </div>
+      {/* Mobile: horizontal scrollable row - w-0 min-w-full prevents affecting parent width */}
+      <div className="sm:hidden w-0 min-w-full">
+        <div className="flex gap-2 p-2 overflow-x-auto">
+          {presets.map((preset) => (
+            <Button
+              key={preset.label}
+              variant="outline"
+              size="sm"
+              className={`whitespace-nowrap ${isMatch(preset) ? "!bg-accent" : ""}`}
+              onClick={() => onSelect({ from: preset.from, to: preset.to })}
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </>
   );
 };
 
+const timeInputClassName =
+  "appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none";
+
 const toDateOnly = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-const formatDate = (date: Date) => `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+const formatDate = (date: Date) => `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
 const parseDate = (value: string) => {
   const parts = value.split(/[-/]/);
   if (parts.length === 3) {
-    const [year, month, day] = parts.map(Number);
-    if (year && month && day) {
+    const [day, month, year] = parts.map(Number);
+    if (day && month && year) {
       return new Date(year, month - 1, day);
     }
   }
@@ -200,12 +262,14 @@ export const DateTimeRangePicker = ({
 
   const handleCalendarSelect = (newRange: DateRange | undefined) => {
     setRange(newRange);
-    if (newRange?.from) {
-      setStartDateInput(formatDate(newRange.from));
-      setMonth(newRange.from);
-    }
+    if (newRange?.from) setStartDateInput(formatDate(newRange.from));
     if (newRange?.to) setEndDateInput(formatDate(newRange.to));
     validateDates(newRange?.from, newRange?.to);
+  };
+
+  const handlePresetSelect = (newRange: DateRange) => {
+    handleCalendarSelect(newRange);
+    if (newRange.from) setMonth(newRange.from);
   };
 
   const handleApply = () => {
@@ -228,6 +292,7 @@ export const DateTimeRangePicker = ({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) resetToValue();
+    if (isOpen) setMonth(value?.from ?? today);
     setOpen(isOpen);
   };
 
@@ -242,8 +307,9 @@ export const DateTimeRangePicker = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden p-0">
-        <div className="flex">
-          <Presets today={today} onSelect={handleCalendarSelect} />
+        <div className="hidden sm:flex">
+          {/* Desktop presets on left */}
+          <Presets today={today} range={range} onSelect={handlePresetSelect} />
           <Separator orientation="vertical" className="h-auto" />
           <div>
             <Calendar
@@ -258,7 +324,7 @@ export const DateTimeRangePicker = ({
             />
             <Separator />
             <div className="flex flex-col gap-3 p-3">
-              <div className={`flex ${isDesktop ? "flex-row" : "flex-col"} gap-3`}>
+              <div className="flex flex-row gap-3">
                 <DateTimeRow
                   dateId="start-date"
                   dateLabel="Start date"
@@ -282,24 +348,63 @@ export const DateTimeRangePicker = ({
                   onTimeChange={setEndTime}
                 />
               </div>
-              <div className="flex justify-between gap-2">
-                <Button variant="ghost" size="sm" onClick={handleClear}>
-                  Clear
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleApply}
-                    disabled={!range?.from || !range?.to || !!startDateError || !!endDateError}
-                  >
-                    Apply
-                  </Button>
-                </div>
+              <ActionButtons
+                onClear={handleClear}
+                onCancel={handleCancel}
+                onApply={handleApply}
+                applyDisabled={!range?.from || !range?.to || !!startDateError || !!endDateError}
+              />
+            </div>
+          </div>
+        </div>
+        {/* Mobile layout */}
+        <div className="sm:hidden">
+          <Calendar
+            mode="range"
+            month={month}
+            onMonthChange={setMonth}
+            selected={range}
+            captionLayout="dropdown"
+            numberOfMonths={1}
+            onSelect={handleCalendarSelect}
+            disabled={{ after: today }}
+          />
+          <Separator />
+          <Presets today={today} range={range} onSelect={handlePresetSelect} />
+          <Separator />
+          <div className="flex flex-col gap-3 p-3">
+            <div className="flex flex-row gap-3">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor="start-time-mobile" className="text-xs">
+                  Start time
+                </Label>
+                <Input
+                  type="time"
+                  id="start-time-mobile"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className={timeInputClassName}
+                />
+              </div>
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor="end-time-mobile" className="text-xs">
+                  End time
+                </Label>
+                <Input
+                  type="time"
+                  id="end-time-mobile"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className={timeInputClassName}
+                />
               </div>
             </div>
+            <ActionButtons
+              onClear={handleClear}
+              onCancel={handleCancel}
+              onApply={handleApply}
+              applyDisabled={!range?.from || !range?.to || !!startDateError || !!endDateError}
+            />
           </div>
         </div>
       </PopoverContent>
