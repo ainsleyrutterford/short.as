@@ -306,7 +306,7 @@ export const DateTimeRangePicker = ({
           <ChevronDownIcon className="w-4 h-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto overflow-hidden p-0">
+      <PopoverContent className="w-auto overflow-hidden p-0 mx-2">
         <div className="hidden sm:flex">
           {/* Desktop presets on left */}
           <Presets today={today} range={range} onSelect={handlePresetSelect} />
