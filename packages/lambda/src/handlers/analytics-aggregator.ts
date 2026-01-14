@@ -58,8 +58,8 @@ const updateUrlViewCounts = async (shortUrlAnalytics: Map<string, AnalyticsEvent
 
 const compileIncrements = (analyticsEvents: AnalyticsEvent[]): Map<string, number> => {
   const increments = new Map<string, number>();
-  for (const { country_code, os } of analyticsEvents) {
-    const combination = `${(country_code || "unknown").toLowerCase()}_${os || "unknown"}`;
+  for (const { location, device, simplified_referer } of analyticsEvents) {
+    const combination = `${(location || "other").toLowerCase()}_${device || "other"}_${simplified_referer || "other"}`;
     increments.set(combination, (increments.get(combination) ?? 0) + 1);
   }
   return increments;

@@ -1717,6 +1717,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                 "Type": "string",
               },
               {
+                "Name": "device",
+                "Type": "string",
+              },
+              {
                 "Name": "is_mobile",
                 "Type": "boolean",
               },
@@ -1739,6 +1743,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
               {
                 "Name": "is_ios",
                 "Type": "boolean",
+              },
+              {
+                "Name": "location",
+                "Type": "string",
               },
               {
                 "Name": "country_code",
@@ -1778,6 +1786,10 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
               },
               {
                 "Name": "referer",
+                "Type": "string",
+              },
+              {
+                "Name": "simplified_referer",
                 "Type": "string",
               },
               {
@@ -2584,6 +2596,7 @@ async function handler(event) {
                 },
               },
             ],
+            "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
             "TargetOriginId": "TestWebsiteStackDistributionOrigin1F299B5C8",
             "ViewerProtocolPolicy": "redirect-to-https",
           },

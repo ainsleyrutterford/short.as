@@ -1,6 +1,7 @@
 import { APIGatewayProxyEventV2, Context } from "aws-lambda";
 import { createHash } from "crypto";
 import { UAParser } from "ua-parser-js";
+import { countries, top50Codes } from "@short-as/shared";
 import { ssmClient } from "./clients/ssm";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { getStringEnvironmentVariable, isProd } from "./utils";
@@ -36,6 +37,9 @@ export interface AnalyticsEvent {
   ip_address_hash?: string;
   asn?: string;
   referer?: string;
+  device?: string;
+  location?: string;
+  simplified_referer?: string;
   api_request_id?: string;
   lambda_request_id?: string;
 }
@@ -103,6 +107,38 @@ const normalizeOs = (userAgent: string | undefined): string => {
   return "other";
 };
 
+const parseReferer = (referer: string | undefined) => {
+  if (!referer) return "direct";
+
+  const hostname = new URL(referer).hostname.toLowerCase();
+
+  if (hostname.includes("google.")) return "google";
+  if (hostname.includes("bing.")) return "bing";
+  if (hostname.includes("facebook.")) return "facebook";
+  if (hostname.includes("twitter.") || hostname === "t.co" || hostname.includes("x.com")) return "twitter";
+  if (hostname.includes("linkedin.") || hostname === "lnkd.in") return "linkedin";
+  if (hostname.includes("youtube.")) return "youtube";
+  if (hostname.includes("instagram.")) return "instagram";
+  if (hostname.includes("tiktok.")) return "tiktok";
+  if (hostname.includes("reddit.")) return "reddit";
+
+  return "other";
+};
+
+const parseLocation = (countryCode: string | undefined): string => {
+  if (!countryCode) return "other";
+  if (top50Codes.has(countryCode)) return countryCode.toLowerCase();
+  return countries[countryCode as keyof typeof countries]?.region?.toLowerCase() ?? "other";
+};
+
+const parseDevice = (headers: Record<string, string | undefined>): string => {
+  if (headers["cloudfront-is-ios-viewer"] === "true") return "ios";
+  if (headers["cloudfront-is-android-viewer"] === "true") return "android";
+  if (headers["cloudfront-is-tablet-viewer"] === "true") return "tablet";
+  if (headers["cloudfront-is-desktop-viewer"] === "true") return "desktop";
+  return "other";
+};
+
 // "jgbYXpO" -> "jg"
 const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(0, 2);
 
@@ -126,6 +162,7 @@ const extractAnalytics = async (
   // Device / Browser information
   user_agent: headers["user-agent"],
   os: normalizeOs(headers["user-agent"]),
+  device: parseDevice(headers),
   is_mobile: parseBoolean(headers["cloudfront-is-mobile-viewer"]),
   is_desktop: parseBoolean(headers["cloudfront-is-desktop-viewer"]),
   is_tablet: parseBoolean(headers["cloudfront-is-tablet-viewer"]),
@@ -134,6 +171,7 @@ const extractAnalytics = async (
   is_ios: parseBoolean(headers["cloudfront-is-ios-viewer"]),
 
   // Geographic data
+  location: parseLocation(headers["cloudfront-viewer-country"]),
   country_code: headers["cloudfront-viewer-country"],
   country_name: headers["cloudfront-viewer-country-name"],
   region_code: headers["cloudfront-viewer-country-region"],
@@ -146,6 +184,7 @@ const extractAnalytics = async (
   ip_address_hash: await hashIp(headers["cloudfront-viewer-address"]),
   asn: headers["cloudfront-viewer-asn"],
   referer: headers["referer"],
+  simplified_referer: parseReferer(headers["referer"]),
 
   // Tracking
   is_qr_code: queryStringParameters?.src === "qr",

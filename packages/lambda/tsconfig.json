@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "@short-as/types": ["../types/src/index.ts"]
+      "@short-as/types": ["../types/src/index.ts"],
+      "@short-as/shared": ["../shared/src/index.ts"]
     },
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
