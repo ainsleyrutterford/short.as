@@ -74,6 +74,7 @@ export class UrlAnalyticsAggregator extends Construct {
         // Device / Browser information
         { name: "user_agent", type: glue.Schema.STRING },
         { name: "os", type: glue.Schema.STRING },
+        { name: "device", type: glue.Schema.STRING },
         { name: "is_mobile", type: glue.Schema.BOOLEAN },
         { name: "is_desktop", type: glue.Schema.BOOLEAN },
         { name: "is_tablet", type: glue.Schema.BOOLEAN },
@@ -82,6 +83,7 @@ export class UrlAnalyticsAggregator extends Construct {
         { name: "is_ios", type: glue.Schema.BOOLEAN },
 
         // Geographic data
+        { name: "location", type: glue.Schema.STRING },
         { name: "country_code", type: glue.Schema.STRING },
         { name: "country_name", type: glue.Schema.STRING },
         { name: "region_code", type: glue.Schema.STRING },
@@ -94,6 +96,7 @@ export class UrlAnalyticsAggregator extends Construct {
         { name: "ip_address_hash", type: glue.Schema.STRING },
         { name: "asn", type: glue.Schema.STRING },
         { name: "referer", type: glue.Schema.STRING },
+        { name: "simplified_referer", type: glue.Schema.STRING },
 
         // Tracking
         { name: "is_qr_code", type: glue.Schema.BOOLEAN },
