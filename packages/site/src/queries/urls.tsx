@@ -1,5 +1,5 @@
 import { shortAsClient } from "@/lib/client";
-import { Url } from "@short-as/types";
+import { Url, ViewAggregateItem } from "@short-as/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const URL_KEY = "URL";
@@ -12,6 +12,18 @@ export const useGetUrls = () =>
       if (!data.ok) throw new Error("Failed to fetch URLs");
       const urls = (await data.json()) as Url[];
       return urls.sort((a, b) => (a.createdTimestamp < b.createdTimestamp ? 1 : -1));
+    },
+  });
+
+export const useGetUrlViews = (shortUrlId: string, from?: string, to?: string, period?: string) =>
+  useQuery({
+    queryKey: [URL_KEY, shortUrlId, from, to, period],
+    queryFn: async () => {
+      const queryStrings = `?startDate=${from}&endDate=${to}&interval=${period}`;
+      const data = await shortAsClient.fetch(`/users/urls/${shortUrlId}/views${queryStrings}`);
+      if (!data.ok) throw new Error("Failed to fetch URL views");
+      const views = (await data.json()) as ViewAggregateItem[];
+      return views.sort((a, b) => (a.sk < b.sk ? 1 : -1));
     },
   });
 
