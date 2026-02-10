@@ -23,7 +23,7 @@ export const useGetUrlViews = (shortUrlId: string, from?: string, to?: string, p
       const data = await shortAsClient.fetch(`/users/urls/${shortUrlId}/views${queryStrings}`);
       if (!data.ok) throw new Error("Failed to fetch URL views");
       const views = (await data.json()) as ViewAggregateItem[];
-      return views.sort((a, b) => (a.sk < b.sk ? 1 : -1));
+      return views.sort((a, b) => (a.sk > b.sk ? 1 : -1));
     },
   });
 

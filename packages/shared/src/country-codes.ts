@@ -1749,7 +1749,7 @@ export const countries = {
     name: "Taiwan, Province of China",
     alpha: "TW",
     code: "158",
-    region: null,
+    region: "Asia",
     subRegion: null,
     intermediateRegion: null,
   },
@@ -2070,4 +2070,4 @@ export const top50Codes = new Set(Array.from(top50).map((c) => c.alpha));
 /**
  * Human readable region names from UN M49 standard.
  */
-export const regions = ["Africa", "Americas", "Asia", "Europe", "Oceania"] as const;
+export const regions = ["Africa", "Americas", "Asia", "Europe", "Oceania"];
