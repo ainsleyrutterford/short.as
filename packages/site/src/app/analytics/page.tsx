@@ -48,6 +48,32 @@ import {
 import { DateTimeRange, DateTimeRangePicker } from "@/components/date-time-range-picker";
 import { top50, regions, countries } from "@short-as/shared";
 import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+
+const AnalyticsBreadcrumbs = ({ shortUrlId }: { shortUrlId?: string }) => (
+  <Breadcrumb className="mb-4">
+    <BreadcrumbList>
+      <BreadcrumbItem>
+        <BreadcrumbLink href="/create/shorten">URLs</BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbLink href={`/create/edit?i=${shortUrlId}`}>{shortUrlId}</BreadcrumbLink>
+      </BreadcrumbItem>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbPage>Analytics</BreadcrumbPage>
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  </Breadcrumb>
+);
 import { useGetUrlViews } from "@/queries/urls";
 import { ChartLine } from "@/components/line-chart";
 import { ChartConfig } from "@/components/ui/chart";
@@ -383,9 +409,8 @@ const BreakdownCard = ({
   );
 };
 
-const TimeseriesPage = () => {
+const AnalyticsPage = () => {
   const searchParams = useSearchParams();
-  // `i` is the short URL ID passed as a query param (e.g., ?i=abcdefg)
   const shortUrlId = searchParams.get("i");
 
   const today = new Date();
@@ -435,6 +460,7 @@ const TimeseriesPage = () => {
   return (
     <PageContainer>
       <div className="flex flex-col">
+        <AnalyticsBreadcrumbs shortUrlId={shortUrlId ?? undefined} />
         <div className="flex flex-row justify-between gap-2">
           <FilterDropdown filters={filters} setFilters={setFilters} />
           <div className="flex flex-row gap-2">
@@ -513,10 +539,10 @@ const TimeseriesPage = () => {
   );
 };
 
-export default function Timeseries() {
+export default function Analytics() {
   return (
     <Suspense>
-      <TimeseriesPage />
+      <AnalyticsPage />
     </Suspense>
   );
 }

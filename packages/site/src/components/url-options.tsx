@@ -1,4 +1,4 @@
-import { EllipsisVertical, UserRoundPen, QrCode, Copy, Trash2 } from "lucide-react";
+import { EllipsisVertical, PencilRuler, QrCode, Copy, Trash2, MousePointerClick } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
@@ -17,6 +17,7 @@ import { QRCodeContent } from "./qr-code";
 import { DeleteConfirmation } from "./delete-confirmation";
 import { useDeleteUrl } from "@/queries/urls";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface UrlOption {
@@ -174,6 +175,7 @@ export const UrlOptions = ({ shortUrlId }: { shortUrlId: string }) => {
   const [qrOpen, setQrOpen] = React.useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const isDesktop = useIsDesktop();
+  const router = useRouter();
 
   // Uses state to prevent the modal closing from making the QR code tooltip reappear
   // https://github.com/radix-ui/primitives/issues/617#issuecomment-2067420500
@@ -219,12 +221,26 @@ export const UrlOptions = ({ shortUrlId }: { shortUrlId: string }) => {
     );
   };
 
+  const handleEdit = () => {
+    setOpen(false);
+    router.push(`/edit?i=${shortUrlId}`);
+  };
+
+  const handleAnalytics = () => {
+    setOpen(false);
+    router.push(`/analytics?i=${shortUrlId}`);
+  };
+
   const urlOptions: UrlOption[] = [
     {
-      icon: UserRoundPen,
+      icon: PencilRuler,
       label: "Edit",
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onClick: () => {},
+      onClick: handleEdit,
+    },
+    {
+      icon: MousePointerClick,
+      label: "Analytics",
+      onClick: handleAnalytics,
     },
     {
       icon: QrCode,

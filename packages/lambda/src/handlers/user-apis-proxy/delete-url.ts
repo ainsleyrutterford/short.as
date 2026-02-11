@@ -28,7 +28,7 @@ export const deleteUrl: AuthenticatedHandler = async (event) => {
   const shortUrlId = event.pathParameters?.shortUrlId;
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
 
-  const userOwnsUrl = await checkUserOwnsUrl(userId, shortUrlId);
+  const { userOwnsUrl } = await checkUserOwnsUrl(userId, shortUrlId);
   if (!userOwnsUrl) throw new Forbidden("You do not own this URL");
 
   console.log(`Deleting URL ${shortUrlId} owned by ${userId}`);

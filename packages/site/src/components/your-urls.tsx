@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Check, CopyIcon, MousePointerClickIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,10 +87,13 @@ const UrlCard = ({ url }: UrlCardProps) => {
             {loading ? (
               <Skeleton className="h-3 w-[60px]" />
             ) : (
-              <div className="flex flex-row space-x-1 font-semibold">
+              <Link
+                href={`/analytics?i=${shortUrlId}`}
+                className="flex flex-row space-x-1 font-semibold hover:underline"
+              >
                 <MousePointerClickIcon className="h-4 w-4" />
                 <div>{totalVisits} views</div>
-              </div>
+              </Link>
             )}
           </div>
 
