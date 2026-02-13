@@ -1749,7 +1749,7 @@ export const countries = {
     name: "Taiwan, Province of China",
     alpha: "TW",
     code: "158",
-    region: null,
+    region: "Asia",
     subRegion: null,
     intermediateRegion: null,
   },
@@ -1882,7 +1882,7 @@ export const countries = {
     intermediateRegion: "",
   },
   GB: {
-    name: "United Kingdom of Great Britain and Northern Ireland",
+    name: "United Kingdom",
     alpha: "GB",
     code: "826",
     region: "Europe",
@@ -1890,7 +1890,7 @@ export const countries = {
     intermediateRegion: "",
   },
   US: {
-    name: "United States of America",
+    name: "United States",
     alpha: "US",
     code: "840",
     region: "Americas",
@@ -2065,4 +2065,9 @@ export const top50 = new Set([
 /**
  * A set containing the country codes for the 50 countries with the most internet users.
  */
-export const top50Codes = new Set([...top50].map((c) => c.alpha));
+export const top50Codes = new Set(Array.from(top50).map((c) => c.alpha));
+
+/**
+ * Human readable region names from UN M49 standard.
+ */
+export const regions = ["Africa", "Americas", "Asia", "Europe", "Oceania"];

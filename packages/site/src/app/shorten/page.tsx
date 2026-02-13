@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Minimize2 } from "lucide-react";
-import React, { Suspense, useState } from "react";
+import React, { Suspense } from "react";
 import { getValidUrl } from "@/lib/url";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useIds } from "@/contexts/ids";
@@ -17,6 +17,7 @@ import { PageContainer } from "@/components/page-container";
 import { isProd } from "@/lib/utils";
 import { YourUrls } from "@/components/your-urls";
 import { useAddUrl } from "@/queries/urls";
+import { useUrlInput } from "@/hooks/use-url-input";
 
 const LoginState = () => {
   const router = useRouter();
@@ -61,8 +62,7 @@ const ShortenPage = () => {
   const addUrlMutation = useAddUrl();
   const { setShortUrlId, setLongUrl } = useIds();
 
-  const [urlToShorten, setUrlToShorten] = useState("");
-  const [isValidUrl, setIsValidUrl] = useState(true);
+  const { value: urlToShorten, setValue: setUrlToShorten, onChange, isValid } = useUrlInput();
 
   return (
     <PageContainer>
@@ -117,21 +117,11 @@ const ShortenPage = () => {
                       placeholder="Enter the URL to shorten"
                       className="w-full"
                       value={urlToShorten}
-                      onChange={(event) => {
-                        const validatedUrl = getValidUrl(event.target.value);
-
-                        if (validatedUrl || event.target.value === "") {
-                          setIsValidUrl(true);
-                        } else {
-                          setIsValidUrl(false);
-                        }
-
-                        setUrlToShorten(event.target.value);
-                      }}
+                      onChange={(e) => onChange(e.target.value)}
                     />
-                    <div className={`transition-[height] duration-300 ${isValidUrl ? "h-0" : "h-7"}`}>
+                    <div className={`transition-[height] duration-300 ${isValid ? "h-0" : "h-7"}`}>
                       <p
-                        className={`text-sm text-destructive pt-2 transition-all duration-200 ${isValidUrl ? "opacity-0" : "opacity-100"}`}
+                        className={`text-sm text-destructive pt-2 transition-all duration-200 ${isValid ? "opacity-0" : "opacity-100"}`}
                       >
                         Please enter a valid URL
                       </p>
@@ -140,7 +130,7 @@ const ShortenPage = () => {
                   <Button
                     type="submit"
                     className="z-10 w-full sm:w-auto"
-                    disabled={addUrlMutation.isPending || !isValidUrl || urlToShorten.length === 0}
+                    disabled={addUrlMutation.isPending || !isValid || urlToShorten.length === 0}
                   >
                     {addUrlMutation.isPending ? (
                       <LoadingSpinner className="mr-2" size="xs" color="inverse" />

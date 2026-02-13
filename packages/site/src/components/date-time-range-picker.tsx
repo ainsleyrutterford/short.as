@@ -230,14 +230,19 @@ export const DateTimeRangePicker = ({
 
   const filterDateInput = (val: string) => val.replace(/[^0-9/-]/g, "");
 
-  const validateDates = (start?: Date, end?: Date) => {
+  const validateDates = (start?: Date, end?: Date, sTime?: string, eTime?: string) => {
     const todayOnly = toDateOnly(today);
     const startOnly = start ? toDateOnly(start) : undefined;
     const endOnly = end ? toDateOnly(end) : undefined;
-    setStartDateError(startOnly && startOnly > todayOnly ? futureText : "");
-    setEndDateError(
-      endOnly && endOnly > todayOnly ? futureText : endOnly && startOnly && endOnly < startOnly ? beforeStartText : "",
-    );
+
+    const startInFuture = startOnly && startOnly > todayOnly;
+    const endInFuture = endOnly && endOnly > todayOnly;
+    const endBeforeStart = endOnly && startOnly && endOnly < startOnly;
+    const sameDay = startOnly && endOnly && startOnly.getTime() === endOnly.getTime();
+    const endTimeBeforeStartTime = sameDay && (eTime ?? endTime) < (sTime ?? startTime);
+
+    setStartDateError(startInFuture ? futureText : "");
+    setEndDateError(endInFuture ? futureText : endBeforeStart || endTimeBeforeStartTime ? beforeStartText : "");
   };
 
   const handleStartDateChange = (val: string) => {
@@ -299,10 +304,8 @@ export const DateTimeRangePicker = ({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="w-56 px-3 justify-between">
-          {range?.from && range?.to
-            ? `${range.from.toLocaleDateString()} - ${range.to.toLocaleDateString()}`
-            : "Select date"}
+        <Button variant="outline" size="sm" className="w-48 px-3 justify-between">
+          {range?.from && range?.to ? `${formatDate(range.from)} - ${formatDate(range.to)}` : "Select date range"}
           <ChevronDownIcon className="w-4 h-4" />
         </Button>
       </PopoverTrigger>
@@ -334,7 +337,10 @@ export const DateTimeRangePicker = ({
                   timeId="start-time"
                   timeLabel="Start time"
                   timeValue={startTime}
-                  onTimeChange={setStartTime}
+                  onTimeChange={(t) => {
+                    setStartTime(t);
+                    validateDates(range?.from, range?.to, t, endTime);
+                  }}
                 />
                 <DateTimeRow
                   dateId="end-date"
@@ -345,7 +351,10 @@ export const DateTimeRangePicker = ({
                   timeId="end-time"
                   timeLabel="End time"
                   timeValue={endTime}
-                  onTimeChange={setEndTime}
+                  onTimeChange={(t) => {
+                    setEndTime(t);
+                    validateDates(range?.from, range?.to, startTime, t);
+                  }}
                 />
               </div>
               <ActionButtons

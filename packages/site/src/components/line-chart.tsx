@@ -1,66 +1,49 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { format } from "date-fns";
 
-export const description = "A line chart";
+export const ChartLine = ({
+  chartData,
+  chartConfig,
+  period = "day",
+}: {
+  chartData: { x: string; y: number }[];
+  chartConfig: ChartConfig;
+  period?: "hour" | "day" | "week";
+}) => {
+  const tickFormat = period === "hour" ? "HH:mm, MMM d" : "MMM d, yyyy";
+  const labelFormat = period === "hour" ? "HH:mm, EEE MMM d, yyyy" : "EEE MMM d, yyyy";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
-
-export function ChartLineDefault() {
   return (
     <Card>
-      <CardHeader className="p-4 sm:p-5 pb-0 sm:pb-0">
-        <CardTitle>Line Chart</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader>
       <CardContent className="p-4 sm:p-5">
         <ChartContainer config={chartConfig}>
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
+          <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
             <CartesianGrid vertical={false} syncWithTicks />
             <YAxis tickCount={5} interval={0} hide />
             <XAxis
-              dataKey="month"
-              tickLine={false}
+              dataKey="x"
+              // tickLine={false}
               axisLine={false}
+              minTickGap={60}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value: string) => format(value, tickFormat)}
             />
-            <ChartTooltip cursor={true} content={<ChartTooltipContent hideLabel />} isAnimationActive={false} />
-            <Line dataKey="desktop" type="natural" stroke="var(--color-desktop)" strokeWidth={2} dot={false} />
+            <ChartTooltip
+              cursor={true}
+              content={
+                <ChartTooltipContent labelFormatter={(value) => (value ? format(value.toString(), labelFormat) : "")} />
+              }
+              isAnimationActive={false}
+            />
+            <Line dataKey="y" stroke="var(--color-y)" strokeWidth={2} dot={false} />
           </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm p-4 sm:p-5 pt-0 sm:pt-0">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">Showing total visitors for the last 6 months</div>
-      </CardFooter>
     </Card>
   );
-}
+};

@@ -1,4 +1,4 @@
-import { ViewAggregateItem } from "@short-as/types";
+import { Url, ViewAggregateItem } from "@short-as/types";
 import { BadRequest, Forbidden, InternalServerError } from "../../errors";
 import { AuthenticatedHandler } from "../../oauth/types";
 import { getStringEnvironmentVariable, response } from "../../utils";
@@ -13,11 +13,13 @@ export const checkUserOwnsUrl = async (userId: string, shortUrlId: string) => {
     new GetCommand({
       TableName: URLS_TABLE_NAME,
       Key: { shortUrlId },
-      ProjectionExpression: "owningUserId, isDeleted",
     }),
   );
 
-  return urlItem?.Item?.owningUserId === userId && urlItem?.Item?.isDeleted !== true;
+  return {
+    userOwnsUrl: urlItem?.Item?.owningUserId === userId && urlItem?.Item?.isDeleted !== true,
+    urlItem: urlItem.Item as unknown as Url,
+  };
 };
 
 const getViewAggregates = async (
@@ -54,7 +56,7 @@ export const getUrlViews: AuthenticatedHandler = async (event) => {
   const shortUrlId = event.pathParameters?.shortUrlId;
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
 
-  const userOwnsUrl = await checkUserOwnsUrl(userId, shortUrlId);
+  const { userOwnsUrl } = await checkUserOwnsUrl(userId, shortUrlId);
   if (!userOwnsUrl) throw new Forbidden("You do not own this URL");
 
   const now = new Date();
