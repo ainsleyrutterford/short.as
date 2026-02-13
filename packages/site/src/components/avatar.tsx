@@ -3,8 +3,8 @@ export const Avatar = ({ size = "32px", imageUrl }: { size?: string; imageUrl?: 
 
   return (
     <div
-      className={"rounded-full bg-gray-300 bg-cover bg-center"}
-      style={{ width: size, height: size, ...backgroundImageStyle }}
+      className="rounded-full bg-gray-300 bg-cover bg-center"
+      style={{ width: size, height: size, minWidth: size, ...backgroundImageStyle }}
     />
   );
 };

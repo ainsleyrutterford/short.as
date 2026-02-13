@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "@/components/ui/select";
@@ -46,6 +47,7 @@ import {
   SiYoutube,
 } from "@icons-pack/react-simple-icons";
 import { DateTimeRange, DateTimeRangePicker } from "@/components/date-time-range-picker";
+import { cn, scrollbarStyles } from "@/lib/utils";
 import { top50, regions, countries } from "@short-as/shared";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -61,11 +63,15 @@ const AnalyticsBreadcrumbs = ({ shortUrlId }: { shortUrlId?: string }) => (
   <Breadcrumb className="mb-4">
     <BreadcrumbList>
       <BreadcrumbItem>
-        <BreadcrumbLink href="/create/shorten">URLs</BreadcrumbLink>
+        <BreadcrumbLink asChild>
+          <Link href="/shorten">URLs</Link>
+        </BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
-        <BreadcrumbLink href={`/create/edit?i=${shortUrlId}`}>{shortUrlId}</BreadcrumbLink>
+        <BreadcrumbLink asChild>
+          <Link href={`/edit?i=${shortUrlId}`}>{shortUrlId}</Link>
+        </BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
@@ -162,7 +168,7 @@ const CountrySubMenu = ({ addFilter }: { addFilter: (value: string) => void }) =
 
   return (
     <FilterSubMenu icon={<Flag className="h-4 w-4 mr-2" />} label="Country" className="p-0">
-      <div className="max-h-64 pl-1 py-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+      <div className={cn("max-h-64 pl-1 py-1 overflow-y-auto", scrollbarStyles)}>
         {countryList.map((country) => (
           <DropdownMenuItem key={country.alpha} onSelect={() => addFilter(country.alpha)}>
             <FilterIcon type="Country" value={country.alpha} />

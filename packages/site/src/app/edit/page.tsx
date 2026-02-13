@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PageContainer } from "@/components/page-container";
 import { Avatar } from "@/components/avatar";
@@ -11,8 +12,9 @@ import { Input, ReadOnlyInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { ArrowUpToLine } from "lucide-react";
+import { ArrowUpToLine, History } from "lucide-react";
 import { useUrlInput } from "@/hooks/use-url-input";
 import { getValidUrl } from "@/lib/url";
 import { smartDateString } from "@/lib/format-date";
@@ -26,12 +28,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { UrlHistory } from "@/components/url-history";
+import { Url, User } from "@short-as/types";
 
 const EditBreadcrumbs = ({ shortUrlId }: { shortUrlId?: string }) => (
   <Breadcrumb className="mb-4">
     <BreadcrumbList>
       <BreadcrumbItem>
-        <BreadcrumbLink href="/create/shorten">URLs</BreadcrumbLink>
+        <BreadcrumbLink asChild>
+          <Link href="/shorten">URLs</Link>
+        </BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>
@@ -41,6 +47,21 @@ const EditBreadcrumbs = ({ shortUrlId }: { shortUrlId?: string }) => (
   </Breadcrumb>
 );
 
+const CreatedAndUpdatedInformation = ({ url, user }: { url: Url | undefined; user: User | undefined }) => {
+  const hasBeenEdited = url?.updatedTimestamp && url?.updatedTimestamp !== url?.createdTimestamp;
+  const timestamp = hasBeenEdited ? url?.updatedTimestamp : url?.createdTimestamp;
+  return (
+    <span className="flex items-center gap-1.5 min-w-0">
+      <span className="truncate" title={format(timestamp ?? "", "PPpp")}>
+        <span className="text-muted-foreground">
+          {hasBeenEdited ? "Updated" : "Created"} {smartDateString(timestamp, true)} by
+        </span>{" "}
+        {user?.name}
+      </span>
+    </span>
+  );
+};
+
 const EditPage = () => {
   const searchParams = useSearchParams();
   const shortUrlId = searchParams.get("i");
@@ -48,6 +69,7 @@ const EditPage = () => {
   const { data: url, isLoading } = useGetUrl(shortUrlId ?? "");
   const updateUrl = useUpdateUrl();
   const { value: longUrl, setValue: setLongUrl, onChange, isValid } = useUrlInput();
+  const [historyOpen, setHistoryOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (url?.longUrl) setLongUrl(url.longUrl);
@@ -127,12 +149,25 @@ const EditPage = () => {
         {isLoading ? (
           <Skeleton className="inline-block h-4 w-48" />
         ) : (
-          <span className="flex items-center gap-1.5">
-            <span className="text-muted-foreground" title={format(url?.createdTimestamp ?? "", "PPpp")}>
-              Created {smartDateString(url?.createdTimestamp, true)} by
-            </span>
-            {user?.name}
-          </span>
+          <CreatedAndUpdatedInformation url={url} user={user} />
+        )}
+        {url && (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="smallIcon"
+                  className="ml-auto text-muted-foreground shrink-0"
+                  onClick={() => setHistoryOpen(true)}
+                >
+                  <History className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>URL history</TooltipContent>
+            </Tooltip>
+            <UrlHistory open={historyOpen} onOpenChange={setHistoryOpen} url={url} />
+          </>
         )}
       </div>
     </PageContainer>
