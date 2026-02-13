@@ -14,15 +14,19 @@ interface Body {
   longUrl?: string;
 }
 
-const updateUrlItem = async (shortUrlId: string, longUrl: string) => {
+const updateUrlItem = async (shortUrlId: string, longUrl: string, urlItem: Url) => {
+  const now = new Date().toISOString();
+  const history = { [now]: longUrl, ...urlItem.history };
+
   const response = await dynamoClient.send(
     new UpdateCommand({
       TableName: URLS_TABLE_NAME,
       Key: { shortUrlId },
-      UpdateExpression: "SET longUrl = :longUrl, updatedTimestamp = :now",
+      UpdateExpression: "SET longUrl = :longUrl, history = :history, updatedTimestamp = :now",
       ExpressionAttributeValues: {
         ":longUrl": longUrl,
-        ":now": new Date().toISOString(),
+        ":history": history,
+        ":now": now,
       },
       ReturnValues: ReturnValue.ALL_NEW,
     }),
@@ -42,7 +46,7 @@ export const updateUrlDetails: AuthenticatedHandler = async (event) => {
   const shortUrlId = event.pathParameters?.shortUrlId;
   if (!shortUrlId) throw new BadRequest("A shortUrlId must be provided in the request path parameters");
 
-  const { userOwnsUrl } = await checkUserOwnsUrl(userId, shortUrlId);
+  const { userOwnsUrl, urlItem } = await checkUserOwnsUrl(userId, shortUrlId);
   if (!userOwnsUrl) throw new Forbidden("You do not own this URL");
 
   console.log(`Updating details about URL ${shortUrlId} owned by ${userId}`);
@@ -50,7 +54,7 @@ export const updateUrlDetails: AuthenticatedHandler = async (event) => {
   const { longUrl } = parseBody(event) as Body;
   if (!longUrl) throw new BadRequest("A longUrl must be provided in the request body");
 
-  const urlItem = await updateUrlItem(shortUrlId, longUrl);
+  const newUrlItem = await updateUrlItem(shortUrlId, longUrl, urlItem);
 
-  return response({ statusCode: 200, body: JSON.stringify(urlItem) });
+  return response({ statusCode: 200, body: JSON.stringify(newUrlItem) });
 };

@@ -27,7 +27,7 @@ export interface Url {
   updatedTimestamp: string;
   owningUserId?: string;
   metadata?: Record<string, unknown>;
-  history?: Record<number, string>;
+  history?: Record<string, string>;
 }
 
 export type AggregationGranularity = "hour" | "day" | "week";

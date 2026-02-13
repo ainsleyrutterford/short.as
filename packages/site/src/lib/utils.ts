@@ -6,3 +6,5 @@ export const isProd = process.env.NEXT_PUBLIC_STAGE === "prod";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export const scrollbarStyles = "scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent";
