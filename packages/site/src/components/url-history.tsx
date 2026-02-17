@@ -4,7 +4,6 @@ import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { smartDateString } from "@/lib/format-date";
 import { cn, scrollbarStyles } from "@/lib/utils";
 import { useUpdateUrl } from "@/queries/urls";
 import { toast } from "sonner";
@@ -24,9 +23,7 @@ const HistoryList = ({ history, onRevert }: { history: HistoryEntry[]; onRevert:
         className="flex items-start justify-between gap-4 py-3 border-b last:border-b-0 last:pb-5 px-4 sm:px-6"
       >
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground" title={format(entry.timestamp, "PPpp")}>
-            {smartDateString(entry.timestamp)}
-          </p>
+          <p className="text-xs text-muted-foreground">{format(entry.timestamp, "PPp")}</p>
           <p className="text-sm truncate mt-0.5">{entry.longUrl}</p>
         </div>
         {index > 0 && (
@@ -39,12 +36,14 @@ const HistoryList = ({ history, onRevert }: { history: HistoryEntry[]; onRevert:
   </div>
 );
 
-const extractHistory = (url: Url): HistoryEntry[] =>
-  url.history
+const extractHistory = (url: Url): HistoryEntry[] => [
+  ...(url.history
     ? Object.entries(url.history)
         .map(([timestamp, longUrl]) => ({ timestamp, longUrl }))
         .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-    : [{ timestamp: url.createdTimestamp, longUrl: url.longUrl }];
+    : []),
+  { timestamp: url.createdTimestamp, longUrl: url.longUrl },
+];
 
 export const UrlHistory = ({
   open,
