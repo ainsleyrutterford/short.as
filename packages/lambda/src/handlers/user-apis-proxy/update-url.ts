@@ -15,8 +15,7 @@ interface Body {
 }
 
 const updateUrlItem = async (shortUrlId: string, longUrl: string, urlItem: Url) => {
-  const now = new Date().toISOString();
-  const history = { [now]: longUrl, ...urlItem.history };
+  const history = { [urlItem.updatedTimestamp]: urlItem.longUrl, ...urlItem.history };
 
   const response = await dynamoClient.send(
     new UpdateCommand({
@@ -26,7 +25,7 @@ const updateUrlItem = async (shortUrlId: string, longUrl: string, urlItem: Url) 
       ExpressionAttributeValues: {
         ":longUrl": longUrl,
         ":history": history,
-        ":now": now,
+        ":now": new Date().toISOString(),
       },
       ReturnValues: ReturnValue.ALL_NEW,
     }),

@@ -37,12 +37,12 @@ const HistoryList = ({ history, onRevert }: { history: HistoryEntry[]; onRevert:
 );
 
 const extractHistory = (url: Url): HistoryEntry[] => [
+  { timestamp: url.updatedTimestamp, longUrl: url.longUrl },
   ...(url.history
     ? Object.entries(url.history)
         .map(([timestamp, longUrl]) => ({ timestamp, longUrl }))
         .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     : []),
-  { timestamp: url.createdTimestamp, longUrl: url.longUrl },
 ];
 
 export const UrlHistory = ({
