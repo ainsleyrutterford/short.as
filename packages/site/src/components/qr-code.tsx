@@ -14,7 +14,16 @@ import {
 import { Check, CodeXml, Image as ImageIcon, Pipette, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import Colorful from "@uiw/react-color-colorful";
-import { hsvaToHexa } from "@uiw/color-convert";
+import {
+  normalizeHex,
+  hexToHsva,
+  hsvaToHexa,
+  alphaToPercentage,
+  percentageToAlpha,
+  isDark,
+  HSVA,
+} from "@/lib/color-utils";
+import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -25,13 +34,6 @@ const QR_CODE_ID = "QRCode";
 
 const TITLE = "QR Code";
 const DESCRIPTION = "Here's a QR Code that will navigate people to your short link when scanned";
-
-interface HSVA {
-  h: number;
-  s: number;
-  v: number;
-  a: number;
-}
 
 interface QRCodeProps {
   shortUrl: string;
@@ -108,15 +110,74 @@ const PRESET_COLORS: HSVA[] = [
   { h: 0, s: 0, v: 0, a: 1 }, // Black
 ];
 
-// Low brightness (v < 50) is dark, but saturated colors (s > 50) appear dark even at moderate brightness
-const isDark = (hsva: HSVA) => hsva.v < 50 || (hsva.s > 50 && hsva.v < 70);
+const HexInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<React.SetStateAction<HSVA>> }) => {
+  const id = React.useId();
+  // Show only 6-char hex (no alpha), so we slice to 7 chars to include the #
+  const hexFromHsva = hsvaToHexa(hsva).slice(0, 7);
+  const [localValue, setLocalValue] = React.useState(hexFromHsva);
 
-const ColorPicker = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<React.SetStateAction<HSVA>> }) => {
+  React.useEffect(() => {
+    setLocalValue(hexFromHsva);
+  }, [hexFromHsva]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setLocalValue(input);
+
+    const normalized = normalizeHex(input);
+    if (!normalized) return;
+
+    const newHsva = hexToHsva(normalized);
+    // Normalized hex is 7 chars (#rrggbb) or 9 chars (#rrggbbaa)
+    const hasAlpha = normalized.length === 9;
+    setHsva(hasAlpha ? newHsva : { ...newHsva, a: hsva.a });
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Label htmlFor={id} className="text-xs">
+        Hex
+      </Label>
+      <Input id={id} value={localValue} onChange={handleChange} className="h-8 text-sm w-24" />
+    </div>
+  );
+};
+
+const AlphaInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<React.SetStateAction<HSVA>> }) => {
+  const id = React.useId();
+  const alphaFromHsva = alphaToPercentage(hsva.a);
+  const [localValue, setLocalValue] = React.useState(alphaFromHsva);
+
+  React.useEffect(() => {
+    setLocalValue(alphaFromHsva);
+  }, [alphaFromHsva]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setLocalValue(input);
+
+    const alpha = percentageToAlpha(input);
+    if (alpha === undefined) return;
+
+    setHsva({ ...hsva, a: alpha });
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Label htmlFor={id} className="text-xs">
+        Alpha
+      </Label>
+      <Input id={id} value={localValue} onChange={handleChange} className="h-8 text-sm w-16" />
+    </div>
+  );
+};
+
+const ColorInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<React.SetStateAction<HSVA>> }) => {
   const [open, setOpen] = React.useState(false);
+
   return (
     <div className="flex gap-1">
-      {/* We need modal so that the Popover works with a Drawer: https://github.com/shadcn-ui/ui/issues/3516#issuecomment-2312148856 */}
-      <Popover open={open} onOpenChange={setOpen} modal>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -127,8 +188,28 @@ const ColorPicker = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<Re
             <Pipette className="h-4 w-4" style={{ color: isDark(hsva) ? "white" : "black" }} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-fit" align="start">
-          <Colorful color={hsva} onChange={(color) => setHsva(color.hsva)} />
+        {/* 
+          usePortal={false} is needed for Popovers inside Dialog/Drawer to work properly.
+          See: https://stackoverflow.com/questions/79425374
+          
+          forceMount + display:none keeps Colorful mounted so its event handlers are registered
+          before the first interaction. Without this, the first click closes the Popover because
+          Colorful's handlers aren't set up yet and Radix treats it as an outside click.
+        */}
+        <PopoverContent
+          className="w-fit"
+          align="start"
+          usePortal={false}
+          forceMount
+          style={{ display: open ? undefined : "none" }}
+        >
+          <div className="flex flex-col gap-3">
+            <Colorful color={hsva} onChange={(color) => setHsva(color.hsva)} />
+            <div className="flex flex-row gap-3">
+              <HexInput hsva={hsva} setHsva={setHsva} />
+              <AlphaInput hsva={hsva} setHsva={setHsva} />
+            </div>
+          </div>
         </PopoverContent>
       </Popover>
       {PRESET_COLORS.map((color, i) => {
@@ -198,10 +279,10 @@ const QRCodeForm = ({ shortUrl }: QRCodeProps) => {
         <Input type="file" accept="image/*" onChange={handleFileChange} />
       </FormField>
       <FormField label="Foreground color">
-        <ColorPicker hsva={fgColor} setHsva={setFgColor} />
+        <ColorInput hsva={fgColor} setHsva={setFgColor} />
       </FormField>
       <FormField label="Background color">
-        <ColorPicker hsva={bgColor} setHsva={setBgColor} />
+        <ColorInput hsva={bgColor} setHsva={setBgColor} />
       </FormField>
       <DownloadButtons shortUrl={shortUrl} />
     </div>
