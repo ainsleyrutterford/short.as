@@ -198,7 +198,9 @@ const ColorInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<Rea
         */}
         <PopoverContent
           className="w-fit"
+          side="top"
           align="start"
+          avoidCollisions={false}
           usePortal={false}
           forceMount
           style={{ display: open ? undefined : "none" }}
