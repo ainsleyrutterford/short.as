@@ -355,7 +355,7 @@ export const QRCodeDrawerDialog = ({ shortUrl }: QRCodeProps) => {
         )}
       </Tooltip>
       <QRCodeContent
-        shortUrl={shortUrl}
+        shortUrl={`${shortUrl}?src=qr`}
         open={open}
         onOpenChange={(newOpen) => {
           setOpen(newOpen);
