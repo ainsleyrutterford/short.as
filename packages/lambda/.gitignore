@@ -1,3 +1,2 @@
-llrt-darwin-*.zip
-llrt-linux-*.zip
-llrt
+.llrt
+test/llrt/dist

@@ -1,6 +1,4 @@
-// Note that the JavaScript has to be generated already, and then we import
-// from there rather than importing from the TypeScript code.
-import { encodeNumber } from "../dist/index.js";
+import { encodeNumber } from "../../src/encoding";
 
 describe("Number encoder tests", () => {
   it("Should encode various numbers correctly", () => {

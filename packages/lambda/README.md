@@ -1,18 +1,48 @@
 # `lambda`
 
-This package contains both the Lambda source code. This Lambda makes use of the [LLRT runtime](https://github.com/awslabs/llrt).
+This package contains the Lambda source code. Some Lambdas use the [LLRT runtime](https://github.com/awslabs/llrt) for fast cold starts, while others use Node.js.
 
 ## Testing
 
-Download the LLRT binary for your system from the [LLRT releases](https://github.com/awslabs/llrt/releases):
+This package has two test runners:
 
-```text
-npm run install-llrt-test-runner-mac --scope=@short-as/lambda
+- **LLRT tests** (`test/llrt/*.test.ts`) - Tests code that runs on LLRT using LLRT's built-in test runner
+- **Node tests** (`test/node/*.test.ts`) - Tests code that runs on Node.js using Jest
+
+### Running tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run only LLRT tests
+npm run test:llrt
+
+# Run only Node tests
+npm run test:node
 ```
 
-There is `install-llrt-test-runner-mac` for x86 macOS systems, and `install-llrt-test-runner-linux` for x86 Linux systems. You can replace the link in `package.json` with more recent versions and with the correct architecture for your machine (e.g. `arm64` rather than `x86`). You must then build to generate the JS code and you can then run the tests:
+### LLRT test setup
 
-```text
-npm run build
-npm run test
+Download the LLRT binary for your system from the [LLRT releases](https://github.com/awslabs/llrt/releases):
+
+```bash
+# macOS x64 (Intel)
+npm run install-llrt-test-runner-mac
+
+# macOS arm64 (Apple Silicon)
+npm run install-llrt-test-runner-mac-arm
+
+# Linux x64
+npm run install-llrt-test-runner-linux
+```
+
+LLRT tests are written in TypeScript and compiled to JavaScript before running.
+
+### Node test setup
+
+Node tests use Jest with ts-jest and can import TypeScript directly:
+
+```bash
+npm run test:node
 ```
