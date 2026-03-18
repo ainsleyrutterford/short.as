@@ -2,10 +2,13 @@
   "name": "@short-as/lambda",
   "version": "0.0.1",
   "scripts": {
-    "build": "esbuild src/index.ts --platform=node --target=es2020 --outdir=dist --format=esm --bundle --minify --external:@aws-sdk --external:uuid",
-    "test": "IS_LOCAL=true ./llrt test",
-    "install-llrt-test-runner-mac": "curl -LO https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-x64-full-sdk.zip && unzip -o llrt-darwin-x64-full-sdk.zip",
-    "install-llrt-test-runner-linux": "curl -LO https://github.com/awslabs/llrt/releases/latest/download/llrt-linux-x64-full-sdk.zip && unzip -o llrt-linux-x64-full-sdk.zip"
+    "build:llrt-tests": "esbuild test/llrt/*.test.ts --outdir=test/llrt/dist --platform=node --target=es2020 --format=esm --bundle --external:@aws-sdk --external:uuid",
+    "test": "npm run test:llrt && npm run test:node",
+    "test:llrt": "npm run build:llrt-tests && IS_LOCAL=true .llrt/llrt test -d test/llrt/dist",
+    "test:node": "IS_LOCAL=true jest",
+    "install-llrt-test-runner-mac": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-x64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt",
+    "install-llrt-test-runner-mac-arm": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-arm64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt",
+    "install-llrt-test-runner-linux": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-linux-x64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.651.1",
@@ -23,7 +26,10 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",
+    "@types/jest": "^30.0.0",
     "@types/jsrsasign": "^10.5.15",
-    "esbuild": "^0.27.1"
+    "esbuild": "^0.27.1",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6"
   }
 }
