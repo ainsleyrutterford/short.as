@@ -9,9 +9,9 @@ export interface MiddlewareContext<E = any, R = any> {
 }
 
 export interface Middleware<E = any, R = any> {
-  before?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<undefined> | R | Promise<R>;
-  after?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<undefined> | R | Promise<R>;
-  onError?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<undefined> | R | Promise<R>;
+  before?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<void> | R | Promise<R>;
+  after?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<void> | R | Promise<R>;
+  onError?: (ctx: MiddlewareContext<E, R>) => undefined | Promise<void> | R | Promise<R>;
 }
 
 export type MiddyHandler<E = any, R = any> = (event: E, context: any) => Promise<R | undefined>;

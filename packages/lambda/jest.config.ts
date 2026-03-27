@@ -8,7 +8,7 @@ const config: Config = {
   // https://jestjs.io/docs/configuration#testenvironment-string
   testEnvironment: "node",
   // https://jestjs.io/docs/configuration#testmatch-arraystring
-  testMatch: ["**/test/node/**/*.test.ts"],
+  testMatch: ["**/test/node/**/*.test.ts", "**/test/shared/**/*.test.ts"],
   // https://kulshekhar.github.io/ts-jest/docs/getting-started/paths-mapping
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/" }),
 };

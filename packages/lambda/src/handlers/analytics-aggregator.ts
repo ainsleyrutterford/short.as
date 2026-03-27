@@ -4,7 +4,7 @@ import { dynamoClient } from "../clients/dynamo";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { getStringEnvironmentVariable } from "../utils";
 import { AggregationGranularity } from "@short-as/types";
-import { nowInSeconds } from "../oauth/utils";
+import { nowInSeconds } from "../utils";
 
 const URLS_TABLE_NAME = getStringEnvironmentVariable("URLS_TABLE_NAME");
 const AGGREGATION_TABLE_NAME = getStringEnvironmentVariable("AGGREGATION_TABLE_NAME");
@@ -56,7 +56,7 @@ const updateUrlViewCounts = async (shortUrlAnalytics: Map<string, AnalyticsEvent
   return { successes, errors };
 };
 
-const compileIncrements = (analyticsEvents: AnalyticsEvent[]): Map<string, number> => {
+export const compileIncrements = (analyticsEvents: AnalyticsEvent[]): Map<string, number> => {
   const increments = new Map<string, number>();
   for (const { location, device, simplified_referer } of analyticsEvents) {
     const combination = `${(location || "other").toLowerCase()}_${device || "other"}_${simplified_referer || "other"}`;

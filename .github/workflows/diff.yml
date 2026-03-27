@@ -27,12 +27,8 @@ jobs:
         run: npx lerna run test
 
       - name: cdk diff
-        uses: youyo/aws-cdk-github-actions@v2
-        with:
-          cdk_subcommand: 'diff'
-          cdk_stack: '@(Domain-prod|Backend-prod|Website-prod)'
-          working_dir: './packages/infra/'
-          actions_comment: false
+        working-directory: ./packages/infra/
+        run: npx cdk diff '@(Domain-prod|Backend-prod|Website-prod)'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

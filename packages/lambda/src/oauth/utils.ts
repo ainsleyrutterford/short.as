@@ -4,11 +4,6 @@ import { OAuthProvider } from "@short-as/types";
 import { isProd } from "../utils";
 import { ssmClient } from "../clients/ssm";
 
-// TODO: LLRT doesn't support URL safe encoding until this is released: https://github.com/awslabs/llrt/pull/777
-export const replaceUrlSafeEncoding = (s: string) => s.replace(/_/g, "/").replace(/-/g, "+");
-
-export const nowInSeconds = () => Math.floor(Date.now() / 1000);
-
 const cachedOAuthClientInformation: Partial<Record<OAuthProvider, { client_id: string; client_secret: string }>> = {};
 
 /**
