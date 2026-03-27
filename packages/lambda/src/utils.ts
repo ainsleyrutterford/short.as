@@ -1,6 +1,11 @@
 import { randomInt } from "crypto";
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 
+export const nowInSeconds = () => Math.floor(Date.now() / 1000);
+
+// TODO: LLRT doesn't support URL safe encoding until this is released: https://github.com/awslabs/llrt/pull/777
+export const replaceUrlSafeEncoding = (s: string) => s.replace(/_/g, "/").replace(/-/g, "+");
+
 export const getStringEnvironmentVariable = (name: string) => {
   // Only set to true when we are running unit tests
   if (process.env.IS_LOCAL) return "fake-variable";

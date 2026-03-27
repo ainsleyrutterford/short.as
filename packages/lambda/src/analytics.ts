@@ -95,7 +95,7 @@ const hashIp = async (rawIp: string | undefined): Promise<string | undefined> =>
 
 const parseBoolean = (value: string | undefined) => value === "true";
 
-const normalizeOs = (userAgent: string | undefined): string => {
+export const normalizeOs = (userAgent: string | undefined): string => {
   const osName = new UAParser(userAgent).getOS()?.name?.toLowerCase();
   if (!osName) return "other";
   if (osName === "ios") return "ios";
@@ -107,7 +107,7 @@ const normalizeOs = (userAgent: string | undefined): string => {
   return "other";
 };
 
-const parseReferer = (referer: string | undefined) => {
+export const parseReferer = (referer: string | undefined) => {
   if (!referer) return "direct";
 
   const hostname = new URL(referer).hostname.toLowerCase();
@@ -125,13 +125,13 @@ const parseReferer = (referer: string | undefined) => {
   return "other";
 };
 
-const parseLocation = (countryCode: string | undefined): string => {
+export const parseLocation = (countryCode: string | undefined): string => {
   if (!countryCode) return "other";
   if (top50Codes.has(countryCode)) return countryCode.toLowerCase();
   return countries[countryCode as keyof typeof countries]?.region?.toLowerCase() ?? "other";
 };
 
-const parseDevice = (headers: Record<string, string | undefined>): string => {
+export const parseDevice = (headers: Record<string, string | undefined>): string => {
   if (headers["cloudfront-is-ios-viewer"] === "true") return "ios";
   if (headers["cloudfront-is-android-viewer"] === "true") return "android";
   if (headers["cloudfront-is-tablet-viewer"] === "true") return "tablet";
@@ -140,7 +140,7 @@ const parseDevice = (headers: Record<string, string | undefined>): string => {
 };
 
 // "jgbYXpO" -> "jg"
-const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(0, 2);
+export const getUrlPrefixBucket = (shortUrlId: string): string => shortUrlId.substring(0, 2);
 
 // If you change anything here, you must change it in
 // packages/infra/lib/constructs/analytics-aggregator.ts too!
@@ -196,7 +196,7 @@ const publishAnalytics = async (analytics: AnalyticsEvent) => {
   const response = await firehoseClient.send(
     new PutRecordCommand({
       DeliveryStreamName: ANALYTICS_FIREHOSE_STREAM_NAME,
-      Record: { Data: Buffer.from(JSON.stringify(analytics) + "\n") as Uint8Array },
+      Record: { Data: new Uint8Array(Buffer.from(JSON.stringify(analytics) + "\n")) },
     }),
   );
 

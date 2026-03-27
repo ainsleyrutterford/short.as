@@ -1,7 +1,7 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { OAuthProvider } from "@short-as/types";
 
-import { nowInSeconds } from "../utils";
+import { nowInSeconds } from "../../utils";
 import { response, siteUrl } from "../../utils";
 import { createOrUpdateUser } from "../user";
 import { UserDdbInput } from "../types";

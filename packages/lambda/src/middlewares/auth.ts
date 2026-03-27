@@ -5,7 +5,7 @@ import { decodeJwtPayload, isValidJwt } from "../oauth/jwt";
 import { AccessToken, APIGatewayProxyEventV2WithAuth, RefreshToken } from "../oauth/types";
 import { getUser } from "../oauth/user";
 import { createLoggedInCookies } from "../oauth/cookies";
-import { nowInSeconds } from "../oauth/utils";
+import { nowInSeconds } from "../utils";
 import { response } from "../utils";
 
 export const auth = (): Middleware<APIGatewayProxyEventV2WithAuth> => ({

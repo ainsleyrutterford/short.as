@@ -1,7 +1,7 @@
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { KJUR } from "jsrsasign";
 
-import { nowInSeconds, replaceUrlSafeEncoding } from "./utils";
+import { nowInSeconds, replaceUrlSafeEncoding } from "../utils";
 import { ssmClient } from "../clients/ssm";
 import { isProd } from "../utils";
 

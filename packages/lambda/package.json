@@ -2,7 +2,7 @@
   "name": "@short-as/lambda",
   "version": "0.0.1",
   "scripts": {
-    "build:llrt-tests": "esbuild test/llrt/*.test.ts --outdir=test/llrt/dist --platform=node --target=es2020 --format=esm --bundle --external:@aws-sdk --external:uuid",
+    "build:llrt-tests": "esbuild test/llrt/*.test.ts test/shared/*.test.ts --outdir=test/llrt/dist --platform=node --target=es2020 --format=esm --bundle --external:@aws-sdk --external:uuid",
     "test": "npm run test:llrt && npm run test:node",
     "test:llrt": "npm run build:llrt-tests && IS_LOCAL=true .llrt/llrt test -d test/llrt/dist",
     "test:node": "IS_LOCAL=true jest",

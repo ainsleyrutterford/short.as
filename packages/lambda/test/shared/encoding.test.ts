@@ -1,4 +1,5 @@
 import { encodeNumber } from "../../src/encoding";
+import { captureConsole } from "./test-utils";
 
 describe("Number encoder tests", () => {
   it("Should encode various numbers correctly", () => {
@@ -13,5 +14,12 @@ describe("Number encoder tests", () => {
     expect(encodeNumber(78367293458)).toEqual("dYgjVlM");
     expect(encodeNumber(1028071702526)).toEqual("ZZZZZZY");
     expect(encodeNumber(1028071702527)).toEqual("ZZZZZZZ");
+  });
+
+  it("Should warn for numbers exceeding max representable value", async () => {
+    const warnings = await captureConsole("warn", () => {
+      encodeNumber(1028071702528);
+    });
+    expect(warnings.length).toBe(1);
   });
 });
