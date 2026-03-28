@@ -14,11 +14,12 @@ This package has two test runners:
 - `test/shared/` — pure functions that are run in both LLRT and Node
 - `test/llrt/` — LLRT specific tests
 - `test/node/` — Node specific tests
+- `test/integration/` — integration tests that run handlers against [moto](https://github.com/getmoto/moto) (a local AWS emulator)
 
 ### Running tests
 
 ```bash
-# Run all tests (LLRT + Node)
+# Run all unit tests (LLRT + Node)
 npm test
 
 # Run only LLRT tests
@@ -26,6 +27,9 @@ npm run test:llrt
 
 # Run only Node tests
 npm run test:node
+
+# Run integration tests (requires moto, see below)
+npm run test:integration
 ```
 
 ### LLRT test setup
@@ -52,3 +56,23 @@ Node tests use Jest with `ts-jest` and can import TypeScript directly:
 ```bash
 npm run test:node
 ```
+
+### Integration test setup
+
+Integration tests run handler code through LLRT against [moto](https://github.com/getmoto/moto), a local AWS service emulator. This lets us test real AWS SDK calls (DynamoDB, SSM, Firehose, etc.) without hitting actual AWS.
+
+The tests call the actual handler functions, which use the real AWS SDK clients. The clients are pointed at moto via the `AWS_ENDPOINT_OVERRIDE` env var (see `src/clients/`).
+
+#### One-time setup
+
+```bash
+pip3 install "moto[server]"
+```
+
+#### Running
+
+```bash
+npm run test:integration
+```
+
+The script automatically starts moto, runs the tests, and stops moto when done.

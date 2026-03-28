@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "scripts": {
     "build:llrt-tests": "esbuild test/llrt/*.test.ts test/shared/*.test.ts --outdir=test/llrt/dist --platform=node --target=es2020 --format=esm --bundle --external:@aws-sdk --external:uuid",
+    "build:integration-tests": "esbuild test/integration/*.test.ts --outdir=test/integration/dist --platform=node --target=es2020 --format=esm --bundle --external:@aws-sdk --external:uuid",
     "test": "npm run test:llrt && npm run test:node",
     "test:llrt": "npm run build:llrt-tests && IS_LOCAL=true .llrt/llrt test -d test/llrt/dist",
     "test:node": "IS_LOCAL=true jest",
+    "test:integration": "npm run build:integration-tests && sh test/integration/run.sh",
     "install-llrt-test-runner-mac": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-x64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt",
     "install-llrt-test-runner-mac-arm": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-darwin-arm64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt",
     "install-llrt-test-runner-linux": "mkdir -p .llrt && curl -L https://github.com/awslabs/llrt/releases/latest/download/llrt-linux-x64-full-sdk.zip -o .llrt/llrt.zip && unzip -o .llrt/llrt.zip -d .llrt"

@@ -26,6 +26,12 @@ jobs:
       - name: Run tests
         run: npx lerna run test
 
+      - name: Install moto
+        run: pip3 install "moto[server]"
+
+      - name: Run integration tests
+        run: npx lerna run test:integration --scope=@short-as/lambda
+
       - name: cdk deploy
         working-directory: ./packages/infra/
         run: npx cdk deploy '@(Domain-prod|Backend-prod|Website-prod)' --require-approval never
