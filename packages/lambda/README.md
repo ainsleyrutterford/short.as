@@ -76,3 +76,9 @@ npm run test:integration
 ```
 
 The script automatically starts moto, runs the tests, and stops moto when done.
+
+If moto is left running by mistake (e.g. after a crash), you can kill it with:
+
+```bash
+kill -9 $(lsof -ti:5111)
+```

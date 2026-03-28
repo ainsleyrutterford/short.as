@@ -12,4 +12,8 @@ export const BUCKET_SIZE = 7311610;
 // E.g. the first bucket goes from 0 to 7311609, the next bucket from 7311610 onwards, etc.
 export const MAX_COUNT = BUCKET_SIZE - 1;
 
-export const getRandomCountBucketId = () => randomInt(NUM_COUNT_BUCKETS);
+// Overridable via environment variable to allow deterministic integration testing
+export const getRandomCountBucketId = () => {
+  const override = process.env.COUNT_BUCKET_ID_OVERRIDE;
+  return override ? Number(override) : randomInt(NUM_COUNT_BUCKETS);
+};
