@@ -11,13 +11,23 @@ npx playwright install
 
 ## Running tests
 
+Logged-out tests work with no extra config. Logged-in tests need AWS credentials to seed the test user in DynamoDB and fetch the JWT signing key from SSM.
+
+### Against dev.short.as (default)
+
 ```bash
-# Run against dev.short.as (default)
 npx playwright test
+```
 
-# Run against a specific URL
-BASE_URL=https://localhost:3000 npx playwright test
+### Against prod
 
+```bash
+BASE_URL=https://short.as npx playwright test
+```
+
+### Other useful commands
+
+```bash
 # Run in headed mode to watch
 npx playwright test --headed
 
@@ -26,10 +36,4 @@ npx playwright test --ui
 
 # Generate test code by recording actions
 npx playwright codegen dev.short.as
-```
-
-Logged-in tests require a JWT signing key:
-
-```bash
-JWT_SIGNING_KEY=<key> npx playwright test
 ```
