@@ -37,3 +37,15 @@ npx playwright test --ui
 # Generate test code by recording actions
 npx playwright codegen dev.short.as
 ```
+
+## Cleanup
+
+Soft-delete leftover URLs created by the e2e test user if a test failed and it wasn't able to clean up after itself:
+
+```bash
+# Dev (default)
+./cleanup.sh
+
+# Prod
+./cleanup.sh prod
+```
