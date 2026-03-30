@@ -37,7 +37,7 @@ const UrlCard = ({ url }: UrlCardProps) => {
   }, [isCopied]);
 
   return (
-    <Card>
+    <Card data-testid="url-card">
       <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
         <div className="grid grid-cols-12 gap-1 sm:gap-4 items-center">
           {/* Column 1: Short + long URL */}
