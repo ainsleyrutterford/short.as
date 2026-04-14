@@ -273,22 +273,23 @@ const generateTicks = (from: Date, to: Date, period: Period): string[] => {
   const ticks: string[] = [];
   const current = new Date(from);
 
+  // Use UTC methods so ticks align with the backend's UTC-based aggregation keys
   if (period === "hour") {
-    current.setMinutes(0, 0, 0);
+    current.setUTCMinutes(0, 0, 0);
   } else if (period === "day") {
-    current.setHours(0, 0, 0, 0);
+    current.setUTCHours(0, 0, 0, 0);
   } else {
-    current.setHours(0, 0, 0, 0);
-    // Roll back to Monday. getDay() returns 0 for Sunday, 1 for Monday, etc.
+    current.setUTCHours(0, 0, 0, 0);
+    // Roll back to Monday. getUTCDay() returns 0 for Sunday, 1 for Monday, etc.
     // (day + 6) % 7 gives how many days to subtract: Mon=0, Tue=1, ..., Sun=6
-    current.setDate(current.getDate() - ((current.getDay() + 6) % 7));
+    current.setUTCDate(current.getUTCDate() - ((current.getUTCDay() + 6) % 7));
   }
 
   while (current <= to) {
     ticks.push(current.toISOString());
-    if (period === "hour") current.setHours(current.getHours() + 1);
-    else if (period === "day") current.setDate(current.getDate() + 1);
-    else current.setDate(current.getDate() + 7);
+    if (period === "hour") current.setUTCHours(current.getUTCHours() + 1);
+    else if (period === "day") current.setUTCDate(current.getUTCDate() + 1);
+    else current.setUTCDate(current.getUTCDate() + 7);
   }
 
   return ticks;
