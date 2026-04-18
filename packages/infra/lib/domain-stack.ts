@@ -40,6 +40,13 @@ export class DomainStack extends cdk.Stack {
       domainName: this.hostedZone.zoneName,
     });
 
+    // Verifies to Google that we own this domain. See:
+    // https://knowledge.workspace.google.com/admin/domains/verify-your-domain-with-a-txt-record
+    new route53.TxtRecord(this, "GoogleTxtRecord", {
+      zone: this.hostedZone,
+      values: ["google-site-verification=rPIYoTNgOW83x0Ra3zVEnCTWXCs-Xogrw4_kLljhQew"],
+    });
+
     this.certificate = new acm.Certificate(this, "Certificate", {
       domainName: "short.as",
       subjectAlternativeNames: ["www.short.as"],
