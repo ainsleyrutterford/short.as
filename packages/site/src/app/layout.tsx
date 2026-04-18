@@ -12,9 +12,26 @@ import ReactQueryProvider from "@/contexts/react-query";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const title = "Short.as – Free URL Shortener with Analytics & QR Codes";
+const description =
+  "A free URL shortener with analytics. Shorten links, track clicks, and generate colorful QR codes with your logo.";
+
+// https://nextjs.org/docs/app/getting-started/metadata-and-og-images#static-metadata
 export const metadata: Metadata = {
-  title: "short.as",
-  description: "Create short as links!",
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: "https://short.as",
+    siteName: title,
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+  },
 };
 
 // Prevents iOS zoom on inputs when focused since the text size is less than 16px
