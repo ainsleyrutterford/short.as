@@ -3,54 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { MarkGithubIcon } from "@primer/octicons-react";
 import Link from "next/link";
-import { FacebookLogo } from "@/assets/facebook";
 import { GoogleLogo } from "@/assets/google";
+import { MicrosoftLogo } from "@/assets/microsoft";
 import { PageContainer } from "@/components/page-container";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { OAuthProvider } from "@short-as/types";
-
-/** https://developers.google.com/identity/protocols/oauth2/web-server#creatingclient */
-const createGoogleOAuthUrl = () => {
-  const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-
-  const queryStrings = new URLSearchParams({
-    redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URL ?? "",
-    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "",
-    // offline means that a refresh token should also be returned
-    access_type: "offline",
-    response_type: "code",
-    prompt: "consent",
-    scope: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
-  });
-
-  return `${baseUrl}?${queryStrings.toString()}`;
-};
-
-/** https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity */
-const createGitHubOAuthUrl = () => {
-  const baseUrl = "https://github.com/login/oauth/authorize";
-
-  const queryStrings = new URLSearchParams({
-    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? "",
-    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_OAUTH_REDIRECT_URL ?? "",
-  });
-
-  return `${baseUrl}?${queryStrings.toString()}`;
-};
-
-const createFacebookOAuthUrl = () => {
-  const baseUrl = "https://www.facebook.com/v21.0/dialog/oauth";
-
-  const queryStrings = new URLSearchParams({
-    client_id: process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID ?? "",
-    redirect_uri: process.env.NEXT_PUBLIC_FACEBOOK_OAUTH_REDIRECT_URL ?? "",
-    scope: "email,public_profile",
-    state: "temp",
-  });
-
-  return `${baseUrl}?${queryStrings.toString()}`;
-};
 
 const LastUsed = () => (
   <div className="absolute -top-4 -right-20 text-[0.7rem]/3 bg-primary text-primary-foreground rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-[2px] px-1.5 py-[3px]">
@@ -58,8 +15,10 @@ const LastUsed = () => (
   </div>
 );
 
+const oAuthStartUrl = (provider: OAuthProvider) =>
+  `${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth/start?provider=${provider}`;
+
 const Login = () => {
-  const router = useRouter();
   const [lastUsedOAuthProvider, setLastUsedOAuthProvider] = useState("");
 
   useEffect(() => {
@@ -81,29 +40,35 @@ const Login = () => {
           </p>
         </div>
         <div className="grid w-full items-center gap-y-2">
-          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createGoogleOAuthUrl())}>
-            <div className="relative flex items-center">
-              <GoogleLogo className="mr-2 h-4 w-4" />
-              <span>Continue with Google</span>
+          <Button className="w-full relative" variant="secondary" asChild>
+            <a href={oAuthStartUrl(OAuthProvider.Google)}>
+              <div className="relative flex items-center">
+                <GoogleLogo className="mr-2 h-4 w-4" />
+                <span>Continue with Google</span>
 
-              {lastUsedOAuthProvider === OAuthProvider.Google && <LastUsed />}
-            </div>
+                {lastUsedOAuthProvider === OAuthProvider.Google && <LastUsed />}
+              </div>
+            </a>
           </Button>
-          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createFacebookOAuthUrl())}>
-            <div className="relative flex items-center">
-              <FacebookLogo className="mr-2 h-4 w-4" />
-              <span>Continue with Facebook</span>
+          <Button className="w-full relative" variant="secondary" asChild>
+            <a href={oAuthStartUrl(OAuthProvider.Microsoft)}>
+              <div className="relative flex items-center">
+                <MicrosoftLogo className="mr-2 h-4 w-4" />
+                <span>Continue with Microsoft</span>
 
-              {lastUsedOAuthProvider === OAuthProvider.Facebook && <LastUsed />}
-            </div>
+                {lastUsedOAuthProvider === OAuthProvider.Microsoft && <LastUsed />}
+              </div>
+            </a>
           </Button>
-          <Button className="w-full relative" variant="secondary" onClick={() => router.push(createGitHubOAuthUrl())}>
-            <div className="relative flex items-center">
-              <MarkGithubIcon className="mr-2 h-4 w-4" />
-              <span>Continue with GitHub</span>
+          <Button className="w-full relative" variant="secondary" asChild>
+            <a href={oAuthStartUrl(OAuthProvider.GitHub)}>
+              <div className="relative flex items-center">
+                <MarkGithubIcon className="mr-2 h-4 w-4" />
+                <span>Continue with GitHub</span>
 
-              {lastUsedOAuthProvider === OAuthProvider.GitHub && <LastUsed />}
-            </div>
+                {lastUsedOAuthProvider === OAuthProvider.GitHub && <LastUsed />}
+              </div>
+            </a>
           </Button>
         </div>
         <div className="mt-8 flex w-full items-center justify-center flex-row">

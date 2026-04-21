@@ -35,7 +35,7 @@ const SiteHeader = () => {
             <ModeToggle />
             {loggedIn && (
               <Link href="/profile" className={`transition-drop-shadow duration-200 ease-in-out ${dropShadow}`}>
-                <Avatar imageUrl={user?.profilePictureUrl} />
+                <Avatar user={user} />
               </Link>
             )}
           </nav>

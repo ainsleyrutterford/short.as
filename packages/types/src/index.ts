@@ -1,7 +1,7 @@
 export enum OAuthProvider {
   Google = "google",
   GitHub = "github",
-  Facebook = "facebook",
+  Microsoft = "microsoft",
 }
 
 export interface User {
@@ -9,7 +9,7 @@ export interface User {
   oAuthProvider: OAuthProvider;
   email: string;
   name: string;
-  profilePictureUrl: string;
+  profilePictureUrl?: string;
   firstLoginTimestamp: number;
   lastOAuthLoginTimestamp: number;
   lastRefreshLoginTimestamp: number;

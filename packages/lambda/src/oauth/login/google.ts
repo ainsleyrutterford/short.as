@@ -1,20 +1,15 @@
+import * as arctic from "arctic";
 import { OAuthProvider } from "@short-as/types";
 
 import { fetchOAuthClientInformation } from "../utils";
 import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
-import { decodeJwtPayload } from "../jwt";
 import { siteUrl } from "../../utils";
 
-interface GoogleOAuthResponse {
-  access_token: string;
-  expires_in: number;
-  refresh_token: string;
-  scope: string;
-  token_type: string;
-  id_token: string;
-}
-
+/**
+ * Google's OIDC ID token claims.
+ * See https://developers.google.com/identity/openid-connect/openid-connect#an-id-tokens-payload
+ */
 interface GoogleUser {
   iss: string;
   azp: string;
@@ -34,31 +29,16 @@ interface GoogleUser {
 export class GoogleLoginHandler extends OAuthLoginHandler {
   oAuthProvider = OAuthProvider.Google;
 
-  /**
-   * https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
-   */
-  async fetchGoogleOAuthTokens(code: string): Promise<GoogleOAuthResponse> {
-    const baseUrl = "https://oauth2.googleapis.com/token";
-
+  private async createGoogleClient(): Promise<arctic.Google> {
     const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
-
-    const response = await fetch(baseUrl, {
-      method: "POST",
-      body: JSON.stringify({
-        code,
-        client_id,
-        client_secret,
-        redirect_uri: `${siteUrl}/api/oauth/google`,
-        grant_type: "authorization_code",
-      }),
-    });
-
-    return response.json();
+    return new arctic.Google(client_id, client_secret, `${siteUrl}/api/oauth/google`);
   }
 
-  async fetchUserData(code: string): Promise<UserDdbInput> {
-    const { id_token } = await this.fetchGoogleOAuthTokens(code);
-    const googleUser = decodeJwtPayload<GoogleUser>(id_token);
+  async fetchUserData(code: string, codeVerifier?: string): Promise<UserDdbInput> {
+    if (!codeVerifier) throw new Error("Missing code verifier for Google PKCE flow");
+    const google = await this.createGoogleClient();
+    const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+    const googleUser = arctic.decodeIdToken(tokens.idToken()) as GoogleUser;
 
     return {
       // We can't just use the sub as it isn't guaranteed to be unique for other providers too

@@ -145,7 +145,7 @@ const EditPage = () => {
         </form>
       </Card>
       <div className="flex items-center gap-2 mt-6 text-xs">
-        <Avatar size="20px" imageUrl={user?.profilePictureUrl} />
+        <Avatar size="20px" user={user} />
         {isLoading ? (
           <Skeleton className="inline-block h-4 w-48" />
         ) : (
