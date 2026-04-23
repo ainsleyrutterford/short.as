@@ -6,8 +6,10 @@ import Link from "next/link";
 import { GoogleLogo } from "@/assets/google";
 import { MicrosoftLogo } from "@/assets/microsoft";
 import { PageContainer } from "@/components/page-container";
-import { useEffect, useState } from "react";
-import { OAuthProvider } from "@short-as/types";
+import React, { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { OAuthProvider, OAUTH_ERRORS, OAuthErrorCode } from "@short-as/types";
 
 const LastUsed = () => (
   <div className="absolute -top-4 -right-20 text-[0.7rem]/3 bg-primary text-primary-foreground rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-[2px] px-1.5 py-[3px]">
@@ -20,10 +22,18 @@ const oAuthStartUrl = (provider: OAuthProvider) =>
 
 const Login = () => {
   const [lastUsedOAuthProvider, setLastUsedOAuthProvider] = useState("");
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setLastUsedOAuthProvider(window.localStorage.getItem("lastUsedOAuthProvider") ?? "");
   }, []);
+
+  useEffect(() => {
+    const error = searchParams.get("error") as OAuthErrorCode | null;
+    if (error && error in OAUTH_ERRORS) {
+      toast.error("Sign in failed", { description: OAUTH_ERRORS[error], duration: 10000 });
+    }
+  }, [searchParams]);
 
   return (
     <PageContainer>
@@ -89,4 +99,10 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <Login />
+    </Suspense>
+  );
+}

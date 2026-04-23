@@ -4,6 +4,13 @@ export enum OAuthProvider {
   Microsoft = "microsoft",
 }
 
+export const OAUTH_ERRORS = {
+  email_not_verified: "Please verify your email address with your provider before signing in.",
+  oauth_failed: "Something went wrong during sign in. Please try again.",
+} as const;
+
+export type OAuthErrorCode = keyof typeof OAUTH_ERRORS;
+
 export interface User {
   id: string;
   oAuthProvider: OAuthProvider;

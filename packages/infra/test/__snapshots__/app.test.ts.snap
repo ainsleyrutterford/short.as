@@ -1251,8 +1251,6 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             {
               "Action": [
                 "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
                 "dynamodb:Query",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
@@ -1271,16 +1269,26 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                     "Arn",
                   ],
                 },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": [
                 {
-                  "Ref": "AWS::NoValue",
+                  "Fn::GetAtt": [
+                    "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+                    "Arn",
+                  ],
                 },
               ],
             },
             {
               "Action": [
                 "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
                 "dynamodb:Query",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
@@ -1290,6 +1298,35 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
                 "dynamodb:UpdateItem",
                 "dynamodb:DeleteItem",
                 "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UrlsTable60368425",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "UrlsTable60368425",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
               ],
               "Effect": "Allow",
               "Resource": [
@@ -2263,6 +2300,7 @@ async function handler(event) {
         "SourceObjectKeys": [
           "[S3 KEY]",
         ],
+        "WaitForDistributionInvalidation": true,
       },
       "Type": "Custom::CDKBucketDeployment",
       "UpdateReplacePolicy": "Delete",
@@ -2373,7 +2411,7 @@ async function handler(event) {
             "Arn",
           ],
         },
-        "Runtime": "python3.11",
+        "Runtime": "python3.13",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",

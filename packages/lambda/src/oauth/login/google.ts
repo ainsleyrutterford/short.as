@@ -5,6 +5,7 @@ import { fetchOAuthClientInformation } from "../utils";
 import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
 import { siteUrl } from "../../utils";
+import { OAuthError } from "../../errors";
 
 /**
  * Google's OIDC ID token claims.
@@ -39,6 +40,10 @@ export class GoogleLoginHandler extends OAuthLoginHandler {
     const google = await this.createGoogleClient();
     const tokens = await google.validateAuthorizationCode(code, codeVerifier);
     const googleUser = arctic.decodeIdToken(tokens.idToken()) as GoogleUser;
+
+    if (!googleUser.email_verified) {
+      throw new OAuthError("email_not_verified");
+    }
 
     return {
       // We can't just use the sub as it isn't guaranteed to be unique for other providers too
