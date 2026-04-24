@@ -32,7 +32,7 @@ test("login page shows OAuth buttons", async ({ page }) => {
   await page.goto("/create/login");
 
   await expect(page.getByText("Welcome to short.as")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Facebook" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with GitHub" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Continue with Microsoft" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Continue with GitHub" })).toBeVisible();
 });

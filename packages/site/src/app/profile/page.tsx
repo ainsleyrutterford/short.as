@@ -1,7 +1,7 @@
 "use client";
 
-import { FacebookLogo } from "@/assets/facebook";
 import { GoogleLogo } from "@/assets/google";
+import { MicrosoftLogo } from "@/assets/microsoft";
 import { Avatar } from "@/components/avatar";
 import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,8 @@ const ProviderIcon = ({ provider }: { provider?: OAuthProvider }) => {
   if (provider === OAuthProvider.GitHub) {
     return <MarkGithubIcon className={className} />;
   }
-  if (provider === OAuthProvider.Facebook) {
-    return <FacebookLogo className={className} />;
+  if (provider === OAuthProvider.Microsoft) {
+    return <MicrosoftLogo className={className} />;
   }
   return <></>;
 };
@@ -48,7 +48,7 @@ export default function Profile() {
                 <div className="flex justify-center items-center h-8 w-8 absolute -top-1 -right-1 border bg-card shadow rounded-full">
                   <ProviderIcon provider={user?.oAuthProvider} />
                 </div>
-                <Avatar size="80px" imageUrl={user?.profilePictureUrl} />
+                <Avatar size="80px" user={user} />
               </div>
               <div className="flex flex-col justify-center">
                 <p className="text-lg font-semibold">{user?.name}</p>

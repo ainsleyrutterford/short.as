@@ -1,19 +1,11 @@
-import { URLSearchParams } from "url";
+import * as arctic from "arctic";
 import { OAuthProvider } from "@short-as/types";
 
 import { fetchOAuthClientInformation } from "../utils";
 import { UserDdbInput } from "../types";
 import { OAuthLoginHandler } from "./login-handler";
 import { siteUrl } from "../../utils";
-
-interface GitHubOAuthResponse {
-  access_token: string;
-  expires_in: number;
-  refresh_token: string;
-  refresh_token_expires_in: string;
-  scope: string;
-  token_type: string;
-}
+import { OAuthError } from "../../errors";
 
 /**
  * A subset of:
@@ -31,61 +23,57 @@ interface GitHubUser {
   bio: string;
 }
 
+/**
+ * https://docs.github.com/en/rest/users/emails?apiVersion=2022-11-28#list-email-addresses-for-the-authenticated-user
+ */
+interface GitHubEmail {
+  email: string;
+  primary: boolean;
+  verified: boolean;
+}
+
 export class GitHubLoginHandler extends OAuthLoginHandler {
   oAuthProvider = OAuthProvider.GitHub;
 
-  /** https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github */
-  async fetchGitHubOAuthTokens(code: string): Promise<GitHubOAuthResponse> {
-    const baseUrl = "https://github.com/login/oauth/access_token";
-
+  private async createGitHubClient(): Promise<arctic.GitHub> {
     const { client_id, client_secret } = await fetchOAuthClientInformation(this.oAuthProvider);
-
-    const params = new URLSearchParams({
-      code,
-      client_id,
-      client_secret,
-      redirect_uri: `${siteUrl}/api/oauth/github`,
-    });
-
-    // https://github.com/orgs/community/discussions/150317?utm_source=chatgpt.com#discussioncomment-12009551
-    const response = await fetch(baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-
-    const text = await response.text();
-    // Parse form-encoded response
-    const parsed = new URLSearchParams(text);
-    const data = Object.fromEntries(parsed.entries());
-
-    return data as unknown as GitHubOAuthResponse;
+    return new arctic.GitHub(client_id, client_secret, `${siteUrl}/api/oauth/github`);
   }
 
-  async fetchGitHubUserData(access_token: string): Promise<GitHubUser> {
-    const url = "https://api.github.com/user";
-
-    const options = {
-      method: "GET",
-      headers: {
-        Accept: "application/vnd.github+json", // GitHub API response format
-        Authorization: `Bearer ${access_token}`,
-        "X-GitHub-Api-Version": "2022-11-28", // Specific GitHub API version
-      },
+  private gitHubHeaders(accessToken: string) {
+    return {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${accessToken}`,
+      "X-GitHub-Api-Version": "2022-11-28",
     };
+  }
 
-    const response = await fetch(url, options);
+  async fetchGitHubUserData(accessToken: string): Promise<GitHubUser> {
+    const response = await fetch("https://api.github.com/user", { headers: this.gitHubHeaders(accessToken) });
     return response.json();
   }
 
-  async fetchUserData(code: string): Promise<UserDdbInput> {
-    const { access_token } = await this.fetchGitHubOAuthTokens(code);
-    const githubUser = await this.fetchGitHubUserData(access_token);
+  private async fetchVerifiedPrimaryEmail(accessToken: string) {
+    const response = await fetch("https://api.github.com/user/emails", { headers: this.gitHubHeaders(accessToken) });
+    const emails: GitHubEmail[] = await response.json();
+    const primary = emails.find((e) => e.primary && e.verified);
+    if (!primary) throw new OAuthError("email_not_verified");
+    return primary.email;
+  }
+
+  async fetchUserData(code: string, _codeVerifier?: string): Promise<UserDdbInput> {
+    const github = await this.createGitHubClient();
+    const tokens = await github.validateAuthorizationCode(code);
+    const accessToken = tokens.accessToken();
+    const [githubUser, email] = await Promise.all([
+      this.fetchGitHubUserData(accessToken),
+      this.fetchVerifiedPrimaryEmail(accessToken),
+    ]);
 
     return {
       id: `${this.oAuthProvider}-${githubUser.id}`,
       oAuthProvider: this.oAuthProvider,
-      email: githubUser.email,
+      email,
       name: githubUser.name,
       profilePictureUrl: githubUser.avatar_url,
     };

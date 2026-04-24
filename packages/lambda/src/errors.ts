@@ -1,3 +1,5 @@
+import { OAuthErrorCode } from "@short-as/types";
+
 /**
  * Using this page as a guide: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
  */
@@ -10,6 +12,17 @@ export class HttpError extends Error {
   ) {
     super(message);
     this.name = "HttpError";
+  }
+}
+
+/**
+ * The OAuthError is special, if you throw it during the OAuth flow then the code is
+ * used to look up a human readable error to show to the user in a toast.
+ */
+export class OAuthError extends Error {
+  constructor(public code: OAuthErrorCode) {
+    super(code);
+    this.name = "OAuthError";
   }
 }
 

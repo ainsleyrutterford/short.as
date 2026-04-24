@@ -1,6 +1,8 @@
+import * as cookie from "cookie";
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { OAuthProvider } from "@short-as/types";
 
+import { OAuthError } from "../../errors";
 import { nowInSeconds } from "../../utils";
 import { response, siteUrl } from "../../utils";
 import { createOrUpdateUser } from "../user";
@@ -18,27 +20,35 @@ export abstract class OAuthLoginHandler {
       : siteUrl
   }/create/shorten?loggedIn=true`;
 
-  abstract fetchUserData(code: string): Promise<UserDdbInput>;
+  abstract fetchUserData(code: string, codeVerifier?: string): Promise<UserDdbInput>;
 
   async handleRequest(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> {
     console.log(`Handling ${this.oAuthProvider} OAuth request...`);
 
-    const now = nowInSeconds();
+    try {
+      const code = event.queryStringParameters?.code;
+      if (!code) throw new OAuthError("oauth_failed");
 
-    const code = event.queryStringParameters?.code;
-    if (!code) {
-      return response({
-        statusCode: 400,
-        body: JSON.stringify({ message: "Missing code query string parameter" }),
-      });
+      // Validate state to protect against CSRF — see https://thecopenhagenbook.com/oauth
+      const cookies = Object.assign({}, ...(event.cookies?.map((c) => cookie.parse(c)) ?? []));
+      const state = event.queryStringParameters?.state;
+      if (!state || state !== cookies.oauth_state) throw new OAuthError("oauth_failed");
+
+      const now = nowInSeconds();
+      const user = await this.fetchUserData(code, cookies.oauth_code_verifier);
+      const { id: userId, oAuthProvider, refreshTokenVersion } = await createOrUpdateUser(user);
+      const loggedInCookies = await createLoggedInCookies({ now, oAuthProvider, userId, refreshTokenVersion });
+
+      return response({ statusCode: 301, cookies: loggedInCookies, headers: { Location: this.loggedInRedirectUrl } });
+    } catch (error) {
+      if (error instanceof OAuthError) {
+        console.log(`OAuth login rejected: ${error.code}`);
+        return response({
+          statusCode: 302,
+          headers: { Location: `${siteUrl}/create/login?error=${error.code}` },
+        });
+      }
+      throw error;
     }
-
-    const user = await this.fetchUserData(code);
-
-    const { id: userId, oAuthProvider, refreshTokenVersion } = await createOrUpdateUser(user);
-
-    const loggedInCookies = await createLoggedInCookies({ now, oAuthProvider, userId, refreshTokenVersion });
-
-    return response({ statusCode: 301, cookies: loggedInCookies, headers: { Location: this.loggedInRedirectUrl } });
   }
 }

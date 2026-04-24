@@ -3,17 +3,21 @@ import httpErrorHandler from "@middy/http-error-handler";
 import { middy, warmup, logResponse } from "../middlewares";
 import { handleMeRequest } from "../oauth/me";
 import { GoogleLoginHandler } from "../oauth/login/google";
-import { FacebookLoginHandler } from "../oauth/login/facebook";
 import { GitHubLoginHandler } from "../oauth/login/github";
+import { MicrosoftLoginHandler } from "../oauth/login/microsoft";
 import { handleLogoutRequest } from "../oauth/logout";
+import { handleOAuthStart } from "../oauth/start";
 
 import httpRouterHandler, { Route } from "@middy/http-router";
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { auth } from "../middlewares/auth";
 
-export { TESTING_LOCALHOST } from "../oauth/cookies";
-
 const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
+  {
+    method: "GET",
+    path: "/oauth/start",
+    handler: handleOAuthStart,
+  },
   {
     method: "GET",
     path: "/oauth/google",
@@ -21,8 +25,8 @@ const routes: Route<APIGatewayProxyEventV2, APIGatewayProxyResultV2>[] = [
   },
   {
     method: "GET",
-    path: "/oauth/facebook",
-    handler: (event: APIGatewayProxyEventV2) => new FacebookLoginHandler().handleRequest(event),
+    path: "/oauth/microsoft",
+    handler: (event: APIGatewayProxyEventV2) => new MicrosoftLoginHandler().handleRequest(event),
   },
   {
     method: "GET",
