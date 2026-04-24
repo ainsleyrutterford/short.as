@@ -2254,6 +2254,10 @@ async function handler(event) {
       "Properties": {
         "Tags": [
           {
+            "Key": "aws-cdk:cr-owned:.well-known/:83da7cb9",
+            "Value": "true",
+          },
+          {
             "Key": "aws-cdk:cr-owned:create/:0ebd2df5",
             "Value": "true",
           },
@@ -2576,6 +2580,13 @@ async function handler(event) {
               "ViewerProtocolPolicy": "redirect-to-https",
             },
             {
+              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+              "Compress": true,
+              "PathPattern": "/.well-known/*",
+              "TargetOriginId": "TestWebsiteStackDistributionOrigin34C5B183F",
+              "ViewerProtocolPolicy": "redirect-to-https",
+            },
+            {
               "AllowedMethods": [
                 "GET",
                 "HEAD",
@@ -2600,7 +2611,7 @@ async function handler(event) {
               ],
               "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
               "PathPattern": "/api/*",
-              "TargetOriginId": "TestWebsiteStackDistributionOrigin34C5B183F",
+              "TargetOriginId": "TestWebsiteStackDistributionOrigin4B594C145",
               "ViewerProtocolPolicy": "redirect-to-https",
             },
           ],
@@ -2705,6 +2716,28 @@ async function handler(event) {
               },
             },
             {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "Bucket83908E77",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "TestWebsiteStackDistributionOrigin34C5B183F",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "origin-access-identity/cloudfront/",
+                      {
+                        "Ref": "OriginAccessIdentityDF1E3CAC",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+            {
               "CustomOriginConfig": {
                 "OriginProtocolPolicy": "https-only",
                 "OriginSSLProtocols": [
@@ -2741,7 +2774,7 @@ async function handler(event) {
                   },
                 ],
               },
-              "Id": "TestWebsiteStackDistributionOrigin34C5B183F",
+              "Id": "TestWebsiteStackDistributionOrigin4B594C145",
             },
           ],
         },
@@ -2839,6 +2872,49 @@ async function handler(event) {
         "Name": "RootRedirectFunctionc8ac49a71b70e8f94e35d7058e80417b45c0334fb7",
       },
       "Type": "AWS::CloudFront::Function",
+    },
+    "WellKnownDeploymentAwsCliLayer610D800C": {
+      "Properties": {
+        "Content": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "[S3 KEY]",
+        },
+        "Description": "/opt/awscli/aws",
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+    },
+    "WellKnownDeploymentCustomResourceE433FB3E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "DestinationBucketKeyPrefix": ".well-known/",
+        "DestinationBucketName": {
+          "Ref": "Bucket83908E77",
+        },
+        "DistributionId": {
+          "Ref": "Distribution830FAC52",
+        },
+        "OutputObjectKeys": true,
+        "Prune": true,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+            "Arn",
+          ],
+        },
+        "SourceBucketNames": [
+          {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+        ],
+        "SourceObjectKeys": [
+          "[S3 KEY]",
+        ],
+        "WaitForDistributionInvalidation": true,
+      },
+      "Type": "Custom::CDKBucketDeployment",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {

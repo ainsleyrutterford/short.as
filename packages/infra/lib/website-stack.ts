@@ -97,6 +97,12 @@ export class WebsiteStack extends cdk.Stack {
             { eventType: cloudfront.FunctionEventType.VIEWER_REQUEST, function: htmlRedirectFunction },
           ],
         },
+        // Serves static .well-known files (e.g. Microsoft domain verification) directly from S3
+        "/.well-known/*": {
+          origin: S3BucketOrigin.withOriginAccessIdentity(bucket, { originAccessIdentity }),
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
         "/api/*": {
           origin: new HttpOrigin(httpApiDomainName),
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -159,6 +165,13 @@ export class WebsiteStack extends cdk.Stack {
       distribution,
       destinationKeyPrefix: "create/",
       sources: [Source.asset(path.resolve(__dirname, "../../site/out"))],
+    });
+
+    new BucketDeployment(this, "WellKnownDeployment", {
+      destinationBucket: bucket,
+      distribution,
+      destinationKeyPrefix: ".well-known/",
+      sources: [Source.asset(path.resolve(__dirname, "./well-known"))],
     });
   }
 
