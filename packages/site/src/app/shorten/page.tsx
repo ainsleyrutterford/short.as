@@ -14,7 +14,6 @@ import { useAuth } from "@/contexts/auth";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { CreateAccountSuggestion } from "@/components/create-account-suggestion";
 import { PageContainer } from "@/components/page-container";
-import { isProd } from "@/lib/utils";
 import { YourUrls } from "@/components/your-urls";
 import { useAddUrl } from "@/queries/urls";
 import { useUrlInput } from "@/hooks/use-url-input";
@@ -145,8 +144,7 @@ const ShortenPage = () => {
           </form>
         </Card>
         {isLoggedInLoaded && loggedIn && <YourUrls />}
-        {/* For now, only show login for dev */}
-        {isLoggedInLoaded && !isProd && !loggedIn && <CreateAccountSuggestion />}
+        {isLoggedInLoaded && !loggedIn && <CreateAccountSuggestion />}
       </div>
     </PageContainer>
   );
