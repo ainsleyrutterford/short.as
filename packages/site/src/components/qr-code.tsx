@@ -177,7 +177,9 @@ const ColorInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<Rea
 
   return (
     <div className="flex gap-1">
-      <Popover open={open} onOpenChange={setOpen}>
+      {/* modal prevents Dialog's DismissableLayer from closing the Popover on click.
+         See: https://github.com/shadcn-ui/ui/issues/10469 */}
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -188,23 +190,7 @@ const ColorInput = ({ hsva, setHsva }: { hsva: HSVA; setHsva: React.Dispatch<Rea
             <Pipette className="h-4 w-4" style={{ color: isDark(hsva) ? "white" : "black" }} />
           </Button>
         </PopoverTrigger>
-        {/* 
-          usePortal={false} is needed for Popovers inside Dialog/Drawer to work properly.
-          See: https://stackoverflow.com/questions/79425374
-          
-          forceMount + display:none keeps Colorful mounted so its event handlers are registered
-          before the first interaction. Without this, the first click closes the Popover because
-          Colorful's handlers aren't set up yet and Radix treats it as an outside click.
-        */}
-        <PopoverContent
-          className="w-fit"
-          side="top"
-          align="start"
-          avoidCollisions={false}
-          usePortal={false}
-          forceMount
-          style={{ display: open ? undefined : "none" }}
-        >
+        <PopoverContent className="w-fit" side="top" align="start" avoidCollisions={false}>
           <div className="flex flex-col gap-3">
             <Colorful color={hsva} onChange={(color) => setHsva(color.hsva)} />
             <div className="flex flex-row gap-3">
