@@ -219,7 +219,7 @@ export class BackendStack extends cdk.Stack {
       lambdas: [createShortUrl.lambda, getLongUrl.lambda, oauth.lambda, userApis.lambda, analyticsAggregator.lambda],
       tables: [urlsTable, countBucketsTable, usersTable, analyticsAggregator.analyticsAggregationTable],
       deliveryStream: analyticsAggregator.deliveryStream,
-      alarmEmail: isProd ? "ainsley.rutterford@gmail.com" : undefined,
+      alarmEmail: "ainsley.rutterford@gmail.com",
     });
   }
 

@@ -16,7 +16,7 @@ export interface UrlAnalyticsAggregatorProps {
 export class UrlAnalyticsAggregator extends Construct {
   public deliveryStream: firehose.CfnDeliveryStream;
   public analyticsAggregationTable: dynamodb.Table;
-  public lambda: lambda.IFunction;
+  public lambda: lambda.Function;
   private stackName: string;
 
   constructor(scope: Construct, id: string, props: UrlAnalyticsAggregatorProps) {

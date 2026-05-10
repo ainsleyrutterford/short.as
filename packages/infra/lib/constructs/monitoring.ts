@@ -3,19 +3,21 @@ import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as actions from "aws-cdk-lib/aws-cloudwatch-actions";
-import { Duration } from "aws-cdk-lib";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as budgets from "aws-cdk-lib/aws-budgets";
+import { Duration, Stack } from "aws-cdk-lib";
 import { HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
-import { IFunction } from "aws-cdk-lib/aws-lambda";
+import { Function } from "aws-cdk-lib/aws-lambda";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnDeliveryStream } from "aws-cdk-lib/aws-kinesisfirehose";
 
 export interface MonitoringProps {
   isProd: boolean;
   httpApi: HttpApi;
-  lambdas: IFunction[];
+  lambdas: Function[];
   tables: ITable[];
   deliveryStream: CfnDeliveryStream;
-  alarmEmail?: string;
+  alarmEmail: string;
 }
 
 export class Monitoring extends Construct {
@@ -38,6 +40,7 @@ export class Monitoring extends Construct {
     this.addLambdaAlarms(lambdas);
     this.addDynamoDbAlarms(tables);
     this.addFirehoseAlarms(deliveryStream);
+    this.addCostCircuitBreaker(props);
 
     const dashboard = new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `short-as-${props.isProd ? "prod" : "dev"}`,
@@ -88,7 +91,7 @@ export class Monitoring extends Construct {
     );
   }
 
-  private addLambdaWidgets(dashboard: cloudwatch.Dashboard, lambdas: IFunction[]) {
+  private addLambdaWidgets(dashboard: cloudwatch.Dashboard, lambdas: Function[]) {
     dashboard.addWidgets(new cloudwatch.TextWidget({ markdown: "## Lambda", width: 24, height: 1 }));
 
     const widgets = lambdas.map(
@@ -203,7 +206,7 @@ export class Monitoring extends Construct {
     });
   }
 
-  private addLambdaAlarms(lambdas: IFunction[]) {
+  private addLambdaAlarms(lambdas: Function[]) {
     const period = this.period;
 
     for (const fn of lambdas) {
@@ -272,5 +275,74 @@ export class Monitoring extends Construct {
 
     if (this.alarmAction) alarm.addAlarmAction(this.alarmAction);
     this.alarms.push(alarm);
+  }
+
+  private addCostCircuitBreaker(props: MonitoringProps) {
+    const account = Stack.of(this).account;
+
+    const denyPolicy = new iam.ManagedPolicy(this, "BudgetDenyPolicy", {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.DENY,
+          actions: ["lambda:InvokeFunction"],
+          resources: ["*"],
+        }),
+      ],
+    });
+
+    const budgetRole = new iam.Role(this, "BudgetActionRole", {
+      assumedBy: new iam.ServicePrincipal("budgets.amazonaws.com"),
+      inlinePolicies: {
+        AttachPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["iam:AttachRolePolicy", "iam:DetachRolePolicy"],
+              resources: [`arn:aws:iam::${account}:role/*`],
+              conditions: { ArnEquals: { "iam:PolicyARN": denyPolicy.managedPolicyArn } },
+            }),
+          ],
+        }),
+      },
+    });
+
+    const budget = new budgets.CfnBudget(this, "MonthlyCostBudget", {
+      budget: {
+        budgetName: "short-as-monthly",
+        budgetType: "COST",
+        timeUnit: "MONTHLY",
+        budgetLimit: { amount: 20, unit: "USD" },
+      },
+      notificationsWithSubscribers: [
+        {
+          notification: {
+            notificationType: "ACTUAL",
+            comparisonOperator: "GREATER_THAN",
+            threshold: 80,
+            thresholdType: "PERCENTAGE",
+          },
+          subscribers: [{ subscriptionType: "EMAIL", address: props.alarmEmail }],
+        },
+      ],
+    });
+
+    for (const fn of props.lambdas) {
+      if (!fn.role) continue;
+      const id = fn.node.scope?.node.id ?? fn.node.id;
+      new budgets.CfnBudgetsAction(this, `BudgetAction-${id}`, {
+        budgetName: budget.ref,
+        notificationType: "ACTUAL",
+        actionType: "APPLY_IAM_POLICY",
+        actionThreshold: { type: "PERCENTAGE", value: 90 },
+        executionRoleArn: budgetRole.roleArn,
+        approvalModel: "AUTOMATIC",
+        definition: {
+          iamActionDefinition: {
+            policyArn: denyPolicy.managedPolicyArn,
+            roles: [fn.role.roleName],
+          },
+        },
+        subscribers: [{ type: "EMAIL", address: props.alarmEmail }],
+      });
+    }
   }
 }
