@@ -16,6 +16,7 @@ export interface UrlAnalyticsAggregatorProps {
 export class UrlAnalyticsAggregator extends Construct {
   public deliveryStream: firehose.CfnDeliveryStream;
   public analyticsAggregationTable: dynamodb.Table;
+  public lambda: lambda.IFunction;
   private stackName: string;
 
   constructor(scope: Construct, id: string, props: UrlAnalyticsAggregatorProps) {
@@ -52,6 +53,8 @@ export class UrlAnalyticsAggregator extends Construct {
       },
       timeout: Duration.seconds(120),
     });
+
+    this.lambda = aggregatorLambda;
 
     this.analyticsAggregationTable.grantReadWriteData(aggregatorLambda);
     urlsTable.grantReadWriteData(aggregatorLambda);
