@@ -8,6 +8,7 @@ import { response, siteUrl } from "../../utils";
 import { createOrUpdateUser } from "../user";
 import { UserDdbInput } from "../types";
 import { createLoggedInCookies, TESTING_LOCALHOST } from "../cookies";
+import { publishMetric } from "../../metrics";
 
 export abstract class OAuthLoginHandler {
   protected oAuthProvider: OAuthProvider | undefined;
@@ -38,6 +39,8 @@ export abstract class OAuthLoginHandler {
       const user = await this.fetchUserData(code, cookies.oauth_code_verifier);
       const { id: userId, oAuthProvider, refreshTokenVersion } = await createOrUpdateUser(user);
       const loggedInCookies = await createLoggedInCookies({ now, oAuthProvider, userId, refreshTokenVersion });
+
+      await publishMetric("LoginSuccess", 1, { Provider: oAuthProvider });
 
       return response({ statusCode: 301, cookies: loggedInCookies, headers: { Location: this.loggedInRedirectUrl } });
     } catch (error) {

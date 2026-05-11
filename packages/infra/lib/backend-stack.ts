@@ -8,6 +8,7 @@ import { PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { ApiRouteLambda } from "./constructs/api-route-lambda";
 import { UrlAnalyticsAggregator } from "./constructs/analytics-aggregator";
+import { Monitoring } from "./constructs/monitoring";
 
 interface BackendStackProps extends cdk.StackProps {
   isProd: boolean;
@@ -92,7 +93,7 @@ export class BackendStack extends cdk.Stack {
       resources: [`arn:aws:ssm:${region}:${account}:parameter/${isProd ? "prod" : "dev"}/oauth/*`],
     });
 
-    new ApiRouteLambda(this, "CreateShortUrlLambda", {
+    const createShortUrl = new ApiRouteLambda(this, "CreateShortUrlLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         // This filepath is relative to the root of the infra package I believe
@@ -118,7 +119,7 @@ export class BackendStack extends cdk.Stack {
       ],
     });
 
-    new ApiRouteLambda(this, "GetLongUrlLambda", {
+    const getLongUrl = new ApiRouteLambda(this, "GetLongUrlLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         entry: "../lambda/src/handlers/get-long-url.ts",
@@ -148,7 +149,7 @@ export class BackendStack extends cdk.Stack {
       ],
     });
 
-    new ApiRouteLambda(this, "OAuthLambda", {
+    const oauth = new ApiRouteLambda(this, "OAuthLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         entry: "../lambda/src/handlers/oauth-proxy.ts",
@@ -170,7 +171,7 @@ export class BackendStack extends cdk.Stack {
       ],
     });
 
-    new ApiRouteLambda(this, "UserAPIsLambda", {
+    const userApis = new ApiRouteLambda(this, "UserAPIsLambda", {
       httpApi: this.httpApi,
       lambdaProps: {
         entry: "../lambda/src/handlers/user-apis-proxy/index.ts",
@@ -210,6 +211,15 @@ export class BackendStack extends cdk.Stack {
         }),
         getOAuthSSMParameterStatement,
       ],
+    });
+
+    new Monitoring(this, "Monitoring", {
+      isProd,
+      httpApi: this.httpApi,
+      lambdas: [createShortUrl.lambda, getLongUrl.lambda, oauth.lambda, userApis.lambda, analyticsAggregator.lambda],
+      tables: [urlsTable, countBucketsTable, usersTable, analyticsAggregator.analyticsAggregationTable],
+      deliveryStream: analyticsAggregator.deliveryStream,
+      alarmEmail: "ainsley.rutterford@gmail.com",
     });
   }
 

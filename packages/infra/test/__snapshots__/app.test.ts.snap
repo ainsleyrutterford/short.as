@@ -960,6 +960,1408 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Permission",
     },
+    "MonitoringAlarmTopicAF62D4F1": {
+      "Properties": {
+        "TopicName": "short-as-alarms",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "MonitoringAlarmTopicainsleyrutterfordgmailcom5CE73936": {
+      "Properties": {
+        "Endpoint": "ainsley.rutterford@gmail.com",
+        "Protocol": "email",
+        "TopicArn": {
+          "Ref": "MonitoringAlarmTopicAF62D4F1",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "MonitoringApiGateway4xxRate4A90DA83": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 10, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "ApiGateway4xxRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ApiId",
+                    "Value": {
+                      "Ref": "HttpAPI8D545486",
+                    },
+                  },
+                ],
+                "MetricName": "Count",
+                "Namespace": "AWS/ApiGateway",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ApiId",
+                    "Value": {
+                      "Ref": "HttpAPI8D545486",
+                    },
+                  },
+                ],
+                "MetricName": "4xx",
+                "Namespace": "AWS/ApiGateway",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 30,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringApiGateway5xxRate097EE0CC": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "ApiGateway5xxRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ApiId",
+                    "Value": {
+                      "Ref": "HttpAPI8D545486",
+                    },
+                  },
+                ],
+                "MetricName": "Count",
+                "Namespace": "AWS/ApiGateway",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "ApiId",
+                    "Value": {
+                      "Ref": "HttpAPI8D545486",
+                    },
+                  },
+                ],
+                "MetricName": "5xx",
+                "Namespace": "AWS/ApiGateway",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringBudgetActionCreateShortUrlLambdaC9D0510C": {
+      "Properties": {
+        "ActionThreshold": {
+          "Type": "PERCENTAGE",
+          "Value": 90,
+        },
+        "ActionType": "APPLY_IAM_POLICY",
+        "ApprovalModel": "AUTOMATIC",
+        "BudgetName": {
+          "Ref": "MonitoringMonthlyCostBudgetBBEC6E25",
+        },
+        "Definition": {
+          "IamActionDefinition": {
+            "PolicyArn": {
+              "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+            },
+            "Roles": [
+              {
+                "Ref": "CreateShortUrlLambdaServiceRole05A03927",
+              },
+            ],
+          },
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "MonitoringBudgetActionRole0409EE9B",
+            "Arn",
+          ],
+        },
+        "NotificationType": "ACTUAL",
+        "Subscribers": [
+          {
+            "Address": "ainsley.rutterford@gmail.com",
+            "Type": "EMAIL",
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::BudgetsAction",
+    },
+    "MonitoringBudgetActionGetLongUrlLambda2A874827": {
+      "Properties": {
+        "ActionThreshold": {
+          "Type": "PERCENTAGE",
+          "Value": 90,
+        },
+        "ActionType": "APPLY_IAM_POLICY",
+        "ApprovalModel": "AUTOMATIC",
+        "BudgetName": {
+          "Ref": "MonitoringMonthlyCostBudgetBBEC6E25",
+        },
+        "Definition": {
+          "IamActionDefinition": {
+            "PolicyArn": {
+              "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+            },
+            "Roles": [
+              {
+                "Ref": "GetLongUrlLambdaServiceRole6B2DF149",
+              },
+            ],
+          },
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "MonitoringBudgetActionRole0409EE9B",
+            "Arn",
+          ],
+        },
+        "NotificationType": "ACTUAL",
+        "Subscribers": [
+          {
+            "Address": "ainsley.rutterford@gmail.com",
+            "Type": "EMAIL",
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::BudgetsAction",
+    },
+    "MonitoringBudgetActionOAuthLambda33135C43": {
+      "Properties": {
+        "ActionThreshold": {
+          "Type": "PERCENTAGE",
+          "Value": 90,
+        },
+        "ActionType": "APPLY_IAM_POLICY",
+        "ApprovalModel": "AUTOMATIC",
+        "BudgetName": {
+          "Ref": "MonitoringMonthlyCostBudgetBBEC6E25",
+        },
+        "Definition": {
+          "IamActionDefinition": {
+            "PolicyArn": {
+              "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+            },
+            "Roles": [
+              {
+                "Ref": "OAuthLambdaServiceRole36582DA5",
+              },
+            ],
+          },
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "MonitoringBudgetActionRole0409EE9B",
+            "Arn",
+          ],
+        },
+        "NotificationType": "ACTUAL",
+        "Subscribers": [
+          {
+            "Address": "ainsley.rutterford@gmail.com",
+            "Type": "EMAIL",
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::BudgetsAction",
+    },
+    "MonitoringBudgetActionRole0409EE9B": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "budgets.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "iam:AttachRolePolicy",
+                    "iam:DetachRolePolicy",
+                  ],
+                  "Condition": {
+                    "ArnEquals": {
+                      "iam:PolicyARN": {
+                        "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+                      },
+                    },
+                  },
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:iam::",
+                        {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":role/*",
+                      ],
+                    ],
+                  },
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "AttachPolicy",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MonitoringBudgetActionUrlAnalyticsAggregatorE33A9207": {
+      "Properties": {
+        "ActionThreshold": {
+          "Type": "PERCENTAGE",
+          "Value": 90,
+        },
+        "ActionType": "APPLY_IAM_POLICY",
+        "ApprovalModel": "AUTOMATIC",
+        "BudgetName": {
+          "Ref": "MonitoringMonthlyCostBudgetBBEC6E25",
+        },
+        "Definition": {
+          "IamActionDefinition": {
+            "PolicyArn": {
+              "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+            },
+            "Roles": [
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambdaServiceRole7CC31995",
+              },
+            ],
+          },
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "MonitoringBudgetActionRole0409EE9B",
+            "Arn",
+          ],
+        },
+        "NotificationType": "ACTUAL",
+        "Subscribers": [
+          {
+            "Address": "ainsley.rutterford@gmail.com",
+            "Type": "EMAIL",
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::BudgetsAction",
+    },
+    "MonitoringBudgetActionUserAPIsLambdaEBD13EB6": {
+      "Properties": {
+        "ActionThreshold": {
+          "Type": "PERCENTAGE",
+          "Value": 90,
+        },
+        "ActionType": "APPLY_IAM_POLICY",
+        "ApprovalModel": "AUTOMATIC",
+        "BudgetName": {
+          "Ref": "MonitoringMonthlyCostBudgetBBEC6E25",
+        },
+        "Definition": {
+          "IamActionDefinition": {
+            "PolicyArn": {
+              "Ref": "MonitoringBudgetDenyPolicy5B5DB152",
+            },
+            "Roles": [
+              {
+                "Ref": "UserAPIsLambdaServiceRoleD33633D8",
+              },
+            ],
+          },
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "MonitoringBudgetActionRole0409EE9B",
+            "Arn",
+          ],
+        },
+        "NotificationType": "ACTUAL",
+        "Subscribers": [
+          {
+            "Address": "ainsley.rutterford@gmail.com",
+            "Type": "EMAIL",
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::BudgetsAction",
+    },
+    "MonitoringBudgetDenyPolicy5B5DB152": {
+      "Properties": {
+        "Description": "",
+        "Path": "/",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Deny",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::ManagedPolicy",
+    },
+    "MonitoringCountBucketsTableThrottled2EB468E5": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "CountBucketsTable09F12BD0",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ThrottledRequests",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringCreateShortUrlLambdaErrorRate24549719": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "CreateShortUrlLambda-ErrorRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "CreateShortUrlLambda8EAB433A",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "CreateShortUrlLambda8EAB433A",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringDashboard0C3675C6": {
+      "Properties": {
+        "DashboardBody": {
+          "Fn::Join": [
+            "",
+            [
+              "{"start":"-P14D","widgets":[{"type":"alarm","width":24,"height":3,"x":0,"y":0,"properties":{"title":"Alarm Status","alarms":["",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringApiGateway5xxRate097EE0CC",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringApiGateway4xxRate4A90DA83",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringCreateShortUrlLambdaErrorRate24549719",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringGetLongUrlLambdaErrorRateB8618C0F",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringOAuthLambdaErrorRateDD33F24C",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringUserAPIsLambdaErrorRateF053EE7B",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringUrlAnalyticsAggregatorErrorRateD8681829",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringUrlsTableThrottled50A33F85",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringCountBucketsTableThrottled2EB468E5",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringUsersTableThrottledE1F355EF",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringUrlAnalyticsAggregationTableThrottled35964981",
+                  "Arn",
+                ],
+              },
+              "","",
+              {
+                "Fn::GetAtt": [
+                  "MonitoringFirehoseFreshnessA545798D",
+                  "Arn",
+                ],
+              },
+              ""]}},{"type":"text","width":24,"height":1,"x":0,"y":3,"properties":{"markdown":"## API Gateway"}},{"type":"metric","width":24,"height":6,"x":0,"y":4,"properties":{"view":"timeSeries","title":"Requests & Errors","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/ApiGateway","Count","ApiId","",
+              {
+                "Ref": "HttpAPI8D545486",
+              },
+              "",{"label":"Requests","stat":"Sum"}],["AWS/ApiGateway","5xx","ApiId","",
+              {
+                "Ref": "HttpAPI8D545486",
+              },
+              "",{"label":"5xx","stat":"Sum"}],["AWS/ApiGateway","4xx","ApiId","",
+              {
+                "Ref": "HttpAPI8D545486",
+              },
+              "",{"label":"4xx","stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":24,"height":1,"x":0,"y":10,"properties":{"markdown":"## Lambda"}},{"type":"metric","width":8,"height":6,"x":0,"y":11,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "CreateShortUrlLambda8EAB433A",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Lambda","Invocations","FunctionName","",
+              {
+                "Ref": "CreateShortUrlLambda8EAB433A",
+              },
+              "",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","",
+              {
+                "Ref": "CreateShortUrlLambda8EAB433A",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":8,"y":11,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "GetLongUrlLambda1C69761E",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Lambda","Invocations","FunctionName","",
+              {
+                "Ref": "GetLongUrlLambda1C69761E",
+              },
+              "",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","",
+              {
+                "Ref": "GetLongUrlLambda1C69761E",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":16,"y":11,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "OAuthLambda5A654FC4",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Lambda","Invocations","FunctionName","",
+              {
+                "Ref": "OAuthLambda5A654FC4",
+              },
+              "",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","",
+              {
+                "Ref": "OAuthLambda5A654FC4",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":0,"y":17,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UserAPIsLambda60578052",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Lambda","Invocations","FunctionName","",
+              {
+                "Ref": "UserAPIsLambda60578052",
+              },
+              "",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","",
+              {
+                "Ref": "UserAPIsLambda60578052",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":8,"y":17,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Lambda","Invocations","FunctionName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+              },
+              "",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":24,"height":1,"x":0,"y":23,"properties":{"markdown":"## DynamoDB"}},{"type":"metric","width":8,"height":6,"x":0,"y":24,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UrlsTable60368425",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/DynamoDB","ThrottledRequests","TableName","",
+              {
+                "Ref": "UrlsTable60368425",
+              },
+              "",{"label":"Throttled","stat":"Sum"}],["AWS/DynamoDB","SystemErrors","TableName","",
+              {
+                "Ref": "UrlsTable60368425",
+              },
+              "",{"label":"System Errors","stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":8,"y":24,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "CountBucketsTable09F12BD0",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/DynamoDB","ThrottledRequests","TableName","",
+              {
+                "Ref": "CountBucketsTable09F12BD0",
+              },
+              "",{"label":"Throttled","stat":"Sum"}],["AWS/DynamoDB","SystemErrors","TableName","",
+              {
+                "Ref": "CountBucketsTable09F12BD0",
+              },
+              "",{"label":"System Errors","stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":16,"y":24,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UsersTable9725E9C8",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/DynamoDB","ThrottledRequests","TableName","",
+              {
+                "Ref": "UsersTable9725E9C8",
+              },
+              "",{"label":"Throttled","stat":"Sum"}],["AWS/DynamoDB","SystemErrors","TableName","",
+              {
+                "Ref": "UsersTable9725E9C8",
+              },
+              "",{"label":"System Errors","stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":0,"y":30,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+              },
+              "","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/DynamoDB","ThrottledRequests","TableName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+              },
+              "",{"label":"Throttled","stat":"Sum"}],["AWS/DynamoDB","SystemErrors","TableName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+              },
+              "",{"label":"System Errors","stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":24,"height":1,"x":0,"y":36,"properties":{"markdown":"## Firehose"}},{"type":"metric","width":12,"height":6,"x":0,"y":37,"properties":{"view":"timeSeries","title":"Incoming Records","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Firehose","IncomingRecords","DeliveryStreamName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsFirehoseB53E5A44",
+              },
+              "",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":12,"height":6,"x":12,"y":37,"properties":{"view":"timeSeries","title":"Delivery Freshness","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/Firehose","DeliveryToS3.DataFreshness","DeliveryStreamName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsFirehoseB53E5A44",
+              },
+              "",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"text","width":24,"height":1,"x":0,"y":43,"properties":{"markdown":"## Business Metrics"}},{"type":"metric","width":8,"height":6,"x":0,"y":44,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UrlsTable60368425",
+              },
+              " Items","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["short.as","ItemCount","TableName","",
+              {
+                "Ref": "UrlsTable60368425",
+              },
+              "",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":8,"y":44,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "CountBucketsTable09F12BD0",
+              },
+              " Items","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["short.as","ItemCount","TableName","",
+              {
+                "Ref": "CountBucketsTable09F12BD0",
+              },
+              "",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":16,"y":44,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UsersTable9725E9C8",
+              },
+              " Items","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["short.as","ItemCount","TableName","",
+              {
+                "Ref": "UsersTable9725E9C8",
+              },
+              "",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":0,"y":50,"properties":{"view":"timeSeries","title":"",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+              },
+              " Items","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["short.as","ItemCount","TableName","",
+              {
+                "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+              },
+              "",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":8,"height":6,"x":0,"y":56,"properties":{"view":"timeSeries","title":"Logins","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["short.as","LoginSuccess","Provider","google",{"label":"google","stat":"Sum"}],["short.as","LoginSuccess","Provider","github",{"label":"github","stat":"Sum"}],["short.as","LoginSuccess","Provider","microsoft",{"label":"microsoft","stat":"Sum"}]],"yAxis":{}}}]}",
+            ],
+          ],
+        },
+        "DashboardName": "short-as-prod",
+      },
+      "Type": "AWS::CloudWatch::Dashboard",
+    },
+    "MonitoringFirehoseFreshnessA545798D": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "DeliveryStreamName",
+            "Value": {
+              "Ref": "UrlAnalyticsAggregatorUrlAnalyticsFirehoseB53E5A44",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "DeliveryToS3.DataFreshness",
+        "Namespace": "AWS/Firehose",
+        "Period": 900,
+        "Statistic": "Maximum",
+        "Threshold": 900,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringGetLongUrlLambdaErrorRateB8618C0F": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "GetLongUrlLambda-ErrorRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "GetLongUrlLambda1C69761E",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "GetLongUrlLambda1C69761E",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringMonthlyCostBudgetBBEC6E25": {
+      "Properties": {
+        "Budget": {
+          "BudgetLimit": {
+            "Amount": 20,
+            "Unit": "USD",
+          },
+          "BudgetName": "short-as-monthly",
+          "BudgetType": "COST",
+          "TimeUnit": "MONTHLY",
+        },
+        "NotificationsWithSubscribers": [
+          {
+            "Notification": {
+              "ComparisonOperator": "GREATER_THAN",
+              "NotificationType": "ACTUAL",
+              "Threshold": 80,
+              "ThresholdType": "PERCENTAGE",
+            },
+            "Subscribers": [
+              {
+                "Address": "ainsley.rutterford@gmail.com",
+                "SubscriptionType": "EMAIL",
+              },
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::Budgets::Budget",
+    },
+    "MonitoringOAuthLambdaErrorRateDD33F24C": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "OAuthLambda-ErrorRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "OAuthLambda5A654FC4",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "OAuthLambda5A654FC4",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringPublishMetricsLambda94D854CB": {
+      "DependsOn": [
+        "MonitoringPublishMetricsLambdaServiceRoleDefaultPolicy427CAE8D",
+        "MonitoringPublishMetricsLambdaServiceRole6DDE0261",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "[S3 KEY]",
+        },
+        "Environment": {
+          "Variables": {
+            "TABLE_NAMES": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "UrlsTable60368425",
+                  },
+                  ",",
+                  {
+                    "Ref": "CountBucketsTable09F12BD0",
+                  },
+                  ",",
+                  {
+                    "Ref": "UsersTable9725E9C8",
+                  },
+                  ",",
+                  {
+                    "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+                  },
+                ],
+              ],
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "MonitoringPublishMetricsLambdaServiceRole6DDE0261",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MonitoringPublishMetricsLambdaServiceRole6DDE0261": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MonitoringPublishMetricsLambdaServiceRoleDefaultPolicy427CAE8D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dynamodb:DescribeTable",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UrlsTable60368425",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "UrlsTable60368425",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "dynamodb:DescribeTable",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CountBucketsTable09F12BD0",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "dynamodb:DescribeTable",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UsersTable9725E9C8",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "dynamodb:DescribeTable",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "MonitoringPublishMetricsLambdaServiceRoleDefaultPolicy427CAE8D",
+        "Roles": [
+          {
+            "Ref": "MonitoringPublishMetricsLambdaServiceRole6DDE0261",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "MonitoringPublishMetricsScheduleAllowEventRuleTestBackendStackMonitoringPublishMetricsLambdaF5E5FE7E60C06214": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "MonitoringPublishMetricsLambda94D854CB",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "MonitoringPublishMetricsScheduleBB84B1B6",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "MonitoringPublishMetricsScheduleBB84B1B6": {
+      "Properties": {
+        "ScheduleExpression": "rate(6 hours)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "MonitoringPublishMetricsLambda94D854CB",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "MonitoringUrlAnalyticsAggregationTableThrottled35964981": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregationTable3080F80E",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ThrottledRequests",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringUrlAnalyticsAggregatorErrorRateD8681829": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "UrlAnalyticsAggregator-ErrorRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "UrlAnalyticsAggregatorUrlAnalyticsAggregatorLambda31B0391A",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringUrlsTableThrottled50A33F85": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "UrlsTable60368425",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ThrottledRequests",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringUserAPIsLambdaErrorRateF053EE7B": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "IF(total > 5, errors / total * 100, 0)",
+            "Id": "expr_1",
+            "Label": "UserAPIsLambda-ErrorRate (%)",
+            "ReturnData": true,
+          },
+          {
+            "Id": "total",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "UserAPIsLambda60578052",
+                    },
+                  },
+                ],
+                "MetricName": "Invocations",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "errors",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "FunctionName",
+                    "Value": {
+                      "Ref": "UserAPIsLambda60578052",
+                    },
+                  },
+                ],
+                "MetricName": "Errors",
+                "Namespace": "AWS/Lambda",
+              },
+              "Period": 900,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "MonitoringUsersTableThrottledE1F355EF": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "MonitoringAlarmTopicAF62D4F1",
+          },
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "TableName",
+            "Value": {
+              "Ref": "UsersTable9725E9C8",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ThrottledRequests",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 0,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
     "OAuthLambda5A654FC4": {
       "DependsOn": [
         "OAuthLambdaServiceRoleDefaultPolicy6729CF8D",
