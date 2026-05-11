@@ -303,7 +303,7 @@ export class Monitoring extends Construct {
 
     const budget = new budgets.CfnBudget(this, "MonthlyCostBudget", {
       budget: {
-        budgetName: "short-as-monthly",
+        budgetName: `short-as-monthly-${props.isProd ? "prod" : "dev"}`,
         budgetType: "COST",
         timeUnit: "MONTHLY",
         budgetLimit: { amount: 20, unit: "USD" },
