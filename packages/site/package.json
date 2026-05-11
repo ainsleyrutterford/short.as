@@ -24,6 +24,8 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@short-as/shared": "*",
+    "@short-as/types": "*",
     "@tanstack/react-query": "^5.85.3",
     "@types/mdx": "^2.0.13",
     "@uiw/react-color-colorful": "^2.9.5",

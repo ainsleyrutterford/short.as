@@ -13,6 +13,7 @@
     "@aws-cdk/aws-glue-alpha": "^2.206.0-alpha.0",
     "@short-as/lambda": "*",
     "@short-as/site": "*",
+    "@short-as/types": "*",
     "aws-cdk-lib": "^2.191.0",
     "cdk-lambda-llrt": "^0.0.15",
     "constructs": "^10.0.0",

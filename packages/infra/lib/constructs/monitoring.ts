@@ -5,11 +5,22 @@ import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as budgets from "aws-cdk-lib/aws-budgets";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as nodeJsLambda from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration, Stack } from "aws-cdk-lib";
 import { HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
 import { Function } from "aws-cdk-lib/aws-lambda";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { CfnDeliveryStream } from "aws-cdk-lib/aws-kinesisfirehose";
+import { OAuthProvider } from "@short-as/types";
+
+const NAMESPACE = "short.as";
+
+const sectionHeader = (title: string) => new cloudwatch.TextWidget({ markdown: `## ${title}`, width: 24, height: 1 });
+
+const lambdaId = (fn: Function) => fn.node.scope?.node.id ?? fn.node.id;
 
 export interface MonitoringProps {
   isProd: boolean;
@@ -30,7 +41,7 @@ export class Monitoring extends Construct {
 
     const { httpApi, lambdas, tables, deliveryStream } = props;
 
-    if (props.isProd && props.alarmEmail) {
+    if (props.isProd) {
       const topic = new sns.Topic(this, "AlarmTopic", { topicName: "short-as-alarms" });
       topic.addSubscription(new subscriptions.EmailSubscription(props.alarmEmail));
       this.alarmAction = new actions.SnsAction(topic);
@@ -41,6 +52,7 @@ export class Monitoring extends Construct {
     this.addDynamoDbAlarms(tables);
     this.addFirehoseAlarms(deliveryStream);
     this.addCostCircuitBreaker(props);
+    this.addBusinessMetrics(props);
 
     const dashboard = new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `short-as-${props.isProd ? "prod" : "dev"}`,
@@ -53,92 +65,76 @@ export class Monitoring extends Construct {
     this.addLambdaWidgets(dashboard, lambdas);
     this.addDynamoDbWidgets(dashboard, tables);
     this.addFirehoseWidgets(dashboard, deliveryStream);
+    this.addBusinessMetricsWidgets(dashboard, tables);
   }
 
   private addApiGatewayWidgets(dashboard: cloudwatch.Dashboard, httpApi: HttpApi) {
-    const dims = { ApiId: httpApi.httpApiId };
+    const metric = (metricName: string, label: string) =>
+      new cloudwatch.Metric({
+        namespace: "AWS/ApiGateway",
+        metricName,
+        dimensionsMap: { ApiId: httpApi.httpApiId },
+        statistic: "Sum",
+        label,
+      });
 
-    dashboard.addWidgets(new cloudwatch.TextWidget({ markdown: "## API Gateway", width: 24, height: 1 }));
-
+    dashboard.addWidgets(sectionHeader("API Gateway"));
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
         title: "Requests & Errors",
-        left: [
-          new cloudwatch.Metric({
-            namespace: "AWS/ApiGateway",
-            metricName: "Count",
-            dimensionsMap: dims,
-            statistic: "Sum",
-            label: "Requests",
-          }),
-          new cloudwatch.Metric({
-            namespace: "AWS/ApiGateway",
-            metricName: "5xx",
-            dimensionsMap: dims,
-            statistic: "Sum",
-            label: "5xx",
-          }),
-          new cloudwatch.Metric({
-            namespace: "AWS/ApiGateway",
-            metricName: "4xx",
-            dimensionsMap: dims,
-            statistic: "Sum",
-            label: "4xx",
-          }),
-        ],
+        left: [metric("Count", "Requests"), metric("5xx", "5xx"), metric("4xx", "4xx")],
         width: 24,
       }),
     );
   }
 
   private addLambdaWidgets(dashboard: cloudwatch.Dashboard, lambdas: Function[]) {
-    dashboard.addWidgets(new cloudwatch.TextWidget({ markdown: "## Lambda", width: 24, height: 1 }));
-
-    const widgets = lambdas.map(
-      (fn) =>
-        new cloudwatch.GraphWidget({
-          title: fn.functionName,
-          left: [fn.metricInvocations({ statistic: "Sum" }), fn.metricErrors({ statistic: "Sum" })],
-          width: 8,
-        }),
+    dashboard.addWidgets(sectionHeader("Lambda"));
+    dashboard.addWidgets(
+      ...lambdas.map(
+        (fn) =>
+          new cloudwatch.GraphWidget({
+            title: fn.functionName,
+            left: [fn.metricInvocations({ statistic: "Sum" }), fn.metricErrors({ statistic: "Sum" })],
+            width: 8,
+          }),
+      ),
     );
-    dashboard.addWidgets(...widgets);
   }
 
   private addDynamoDbWidgets(dashboard: cloudwatch.Dashboard, tables: ITable[]) {
-    dashboard.addWidgets(new cloudwatch.TextWidget({ markdown: "## DynamoDB", width: 24, height: 1 }));
-
-    const widgets = tables.map(
-      (table) =>
-        new cloudwatch.GraphWidget({
-          title: table.tableName,
-          left: [
-            new cloudwatch.Metric({
-              namespace: "AWS/DynamoDB",
-              metricName: "ThrottledRequests",
-              dimensionsMap: { TableName: table.tableName },
-              statistic: "Sum",
-              label: "Throttled",
-            }),
-            new cloudwatch.Metric({
-              namespace: "AWS/DynamoDB",
-              metricName: "SystemErrors",
-              dimensionsMap: { TableName: table.tableName },
-              statistic: "Sum",
-              label: "System Errors",
-            }),
-          ],
-          width: 8,
-        }),
+    dashboard.addWidgets(sectionHeader("DynamoDB"));
+    dashboard.addWidgets(
+      ...tables.map(
+        (table) =>
+          new cloudwatch.GraphWidget({
+            title: table.tableName,
+            left: [
+              new cloudwatch.Metric({
+                namespace: "AWS/DynamoDB",
+                metricName: "ThrottledRequests",
+                dimensionsMap: { TableName: table.tableName },
+                statistic: "Sum",
+                label: "Throttled",
+              }),
+              new cloudwatch.Metric({
+                namespace: "AWS/DynamoDB",
+                metricName: "SystemErrors",
+                dimensionsMap: { TableName: table.tableName },
+                statistic: "Sum",
+                label: "System Errors",
+              }),
+            ],
+            width: 8,
+          }),
+      ),
     );
-    dashboard.addWidgets(...widgets);
   }
 
   private addFirehoseWidgets(dashboard: cloudwatch.Dashboard, deliveryStream: CfnDeliveryStream) {
     const dims = { DeliveryStreamName: deliveryStream.ref };
 
-    dashboard.addWidgets(new cloudwatch.TextWidget({ markdown: "## Firehose", width: 24, height: 1 }));
-
+    dashboard.addWidgets(sectionHeader("Firehose"));
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
         title: "Incoming Records",
@@ -167,53 +163,59 @@ export class Monitoring extends Construct {
     );
   }
 
+  private addBusinessMetricsWidgets(dashboard: cloudwatch.Dashboard, tables: ITable[]) {
+    dashboard.addWidgets(sectionHeader("Business Metrics"));
+    dashboard.addWidgets(
+      ...tables.map(
+        (table) =>
+          new cloudwatch.GraphWidget({
+            title: `${table.tableName} Items`,
+            left: [
+              new cloudwatch.Metric({
+                namespace: NAMESPACE,
+                metricName: "ItemCount",
+                dimensionsMap: { TableName: table.tableName },
+                statistic: "Maximum",
+              }),
+            ],
+            width: 8,
+          }),
+      ),
+    );
+
+    const loginMetrics = Object.values(OAuthProvider).map(
+      (provider) =>
+        new cloudwatch.Metric({
+          namespace: NAMESPACE,
+          metricName: "LoginSuccess",
+          dimensionsMap: { Provider: provider },
+          statistic: "Sum",
+          label: provider,
+        }),
+    );
+    dashboard.addWidgets(new cloudwatch.GraphWidget({ title: "Logins", left: loginMetrics, width: 8 }));
+  }
+
   private addApiGatewayAlarms(httpApi: HttpApi) {
-    const dims = { ApiId: httpApi.httpApiId };
-    const period = this.period;
-
-    const requests = new cloudwatch.Metric({
-      namespace: "AWS/ApiGateway",
-      metricName: "Count",
-      dimensionsMap: dims,
-      statistic: "Sum",
-      period,
-    });
-
-    this.addRateAlarm("ApiGateway5xxRate", {
-      errors: new cloudwatch.Metric({
+    const metric = (metricName: string) =>
+      new cloudwatch.Metric({
         namespace: "AWS/ApiGateway",
-        metricName: "5xx",
-        dimensionsMap: dims,
+        metricName,
+        dimensionsMap: { ApiId: httpApi.httpApiId },
         statistic: "Sum",
-        period,
-      }),
-      total: requests,
-      floor: 5,
-      threshold: 10,
-    });
+        period: this.period,
+      });
 
-    this.addRateAlarm("ApiGateway4xxRate", {
-      errors: new cloudwatch.Metric({
-        namespace: "AWS/ApiGateway",
-        metricName: "4xx",
-        dimensionsMap: dims,
-        statistic: "Sum",
-        period,
-      }),
-      total: requests,
-      floor: 10,
-      threshold: 30,
-    });
+    const requests = metric("Count");
+    this.addRateAlarm("ApiGateway5xxRate", { errors: metric("5xx"), total: requests, floor: 5, threshold: 10 });
+    this.addRateAlarm("ApiGateway4xxRate", { errors: metric("4xx"), total: requests, floor: 10, threshold: 30 });
   }
 
   private addLambdaAlarms(lambdas: Function[]) {
-    const period = this.period;
-
     for (const fn of lambdas) {
-      const id = fn.node.scope?.node.id ?? fn.node.id;
-      this.addRateAlarm(`${id}-ErrorRate`, {
-        errors: fn.metricErrors({ statistic: "Sum", period }),
-        total: fn.metricInvocations({ statistic: "Sum", period }),
+      this.addRateAlarm(`${lambdaId(fn)}-ErrorRate`, {
+        errors: fn.metricErrors({ statistic: "Sum", period: this.period }),
+        total: fn.metricInvocations({ statistic: "Sum", period: this.period }),
         floor: 5,
         threshold: 10,
       });
@@ -260,7 +262,6 @@ export class Monitoring extends Construct {
       label: `${id} (%)`,
       period: this.period,
     });
-
     this.addAlarm(id, rate, opts.threshold);
   }
 
@@ -272,7 +273,6 @@ export class Monitoring extends Construct {
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
-
     if (this.alarmAction) alarm.addAlarmAction(this.alarmAction);
     this.alarms.push(alarm);
   }
@@ -282,11 +282,7 @@ export class Monitoring extends Construct {
 
     const denyPolicy = new iam.ManagedPolicy(this, "BudgetDenyPolicy", {
       statements: [
-        new iam.PolicyStatement({
-          effect: iam.Effect.DENY,
-          actions: ["lambda:InvokeFunction"],
-          resources: ["*"],
-        }),
+        new iam.PolicyStatement({ effect: iam.Effect.DENY, actions: ["lambda:InvokeFunction"], resources: ["*"] }),
       ],
     });
 
@@ -327,22 +323,36 @@ export class Monitoring extends Construct {
 
     for (const fn of props.lambdas) {
       if (!fn.role) continue;
-      const id = fn.node.scope?.node.id ?? fn.node.id;
-      new budgets.CfnBudgetsAction(this, `BudgetAction-${id}`, {
+      new budgets.CfnBudgetsAction(this, `BudgetAction-${lambdaId(fn)}`, {
         budgetName: budget.ref,
         notificationType: "ACTUAL",
         actionType: "APPLY_IAM_POLICY",
         actionThreshold: { type: "PERCENTAGE", value: 90 },
         executionRoleArn: budgetRole.roleArn,
         approvalModel: "AUTOMATIC",
-        definition: {
-          iamActionDefinition: {
-            policyArn: denyPolicy.managedPolicyArn,
-            roles: [fn.role.roleName],
-          },
-        },
+        definition: { iamActionDefinition: { policyArn: denyPolicy.managedPolicyArn, roles: [fn.role.roleName] } },
         subscribers: [{ type: "EMAIL", address: props.alarmEmail }],
       });
     }
+  }
+
+  private addBusinessMetrics(props: MonitoringProps) {
+    const metricsLambda = new nodeJsLambda.NodejsFunction(this, "PublishMetricsLambda", {
+      entry: "../lambda/src/handlers/publish-metrics.ts",
+      runtime: lambda.Runtime.NODEJS_22_X,
+      environment: { TABLE_NAMES: props.tables.map((t) => t.tableName).join(",") },
+      timeout: Duration.seconds(30),
+    });
+
+    for (const table of props.tables) {
+      table.grant(metricsLambda, "dynamodb:DescribeTable");
+    }
+
+    metricsLambda.addToRolePolicy(new iam.PolicyStatement({ actions: ["cloudwatch:PutMetricData"], resources: ["*"] }));
+
+    new events.Rule(this, "PublishMetricsSchedule", {
+      schedule: events.Schedule.rate(Duration.hours(6)),
+      targets: [new targets.LambdaFunction(metricsLambda)],
+    });
   }
 }

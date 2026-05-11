@@ -22,12 +22,8 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "outDir": "./dist",
-    // "typeRoots": [
-    //   "./node_modules/@types"
-    // ]
   },
   "exclude": [
-    // "node_modules",
     "./dist",
     "cdk.out"
   ]

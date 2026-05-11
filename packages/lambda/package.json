@@ -20,6 +20,8 @@
     "@aws-sdk/lib-dynamodb": "^3.525.0",
     "@middy/http-error-handler": "^6.3.0",
     "@middy/http-router": "^6.3.1",
+    "@short-as/shared": "*",
+    "@short-as/types": "*",
     "arctic": "^3.7.0",
     "cookie": "^1.0.2",
     "jsrsasign": "^11.1.0",
@@ -30,6 +32,7 @@
     "@types/aws-lambda": "^8.10.149",
     "@types/jest": "^30.0.0",
     "@types/jsrsasign": "^10.5.15",
+    "@types/node": "^24.0.0",
     "esbuild": "^0.27.1",
     "jest": "^30.3.0",
     "ts-jest": "^29.4.6"
