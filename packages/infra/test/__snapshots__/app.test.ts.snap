@@ -1874,7 +1874,7 @@ exports[`Snapshot tests Backend stack matches snapshot 1`] = `
             "Amount": 20,
             "Unit": "USD",
           },
-          "BudgetName": "short-as-monthly",
+          "BudgetName": "short-as-monthly-prod",
           "BudgetType": "COST",
           "TimeUnit": "MONTHLY",
         },
